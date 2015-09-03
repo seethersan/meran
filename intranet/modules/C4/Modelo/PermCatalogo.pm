@@ -1,12 +1,27 @@
-package C4::Modelo::PermCatalogo;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::PermCatalogo;
 use strict;
-
 use base qw(C4::Modelo::DB::Object::AutoBase2);
-
 __PACKAGE__->meta->setup(
     table   => 'perm_catalogo',
-
     columns => [
         nro_socio => { type => 'varchar', overflow => 'truncate', length => 16, not_null => 1 },
         ui  => { type => 'varchar', overflow => 'truncate', length => 4, not_null => 1 }, 
@@ -25,16 +40,12 @@ __PACKAGE__->meta->setup(
         undefined => { type => 'varchar', overflow => 'truncate', length => 8, not_null => 1 },
         id => { type => 'integer', overflow => 'truncate', length => 11, not_null => 1 }
     ],
-
     primary_key_columns => [ 'nro_socio','ui','tipo_documento' ],
-
     unique_key => [ 'id' ],
 );
-
 sub agregar{
     my ($self) = shift;
     my ($permisos_hash) = @_;
-
     $self->setNro_socio($permisos_hash->{'nro_socio'});
     $self->setUI($permisos_hash->{'id_ui'});
     $self->setTipo_documento($permisos_hash->{'tipo_documento'});
@@ -50,15 +61,11 @@ sub agregar{
     $self->setUsuarios($permisos_hash->{'usuarios'});
     $self->setSistema($permisos_hash->{'sistema'});
     $self->setUndefined($permisos_hash->{'undefined'});
-
     $self->save();
 }
-
 sub setAll{
-
     my ($self) = shift;
     my ($permisosByte) = @_;
-
     $self->setDatos_nivel1($permisosByte);
     $self->setDatos_nivel2($permisosByte);
     $self->setDatos_nivel3($permisosByte);
@@ -72,14 +79,9 @@ sub setAll{
     $self->setSistema($permisosByte);
     $self->setUndefined($permisosByte);
 }
-
 sub modificar{
     my ($self) = shift;
     my ($permisos_hash) = @_;
-# 
-#     $self->setNro_socio($permisos_hash->{'nro_socio'});
-#     $self->setUI($permisos_hash->{'id_ui'});
-#     $self->setTipo_documento($permisos_hash->{'tipo_documento'});
     $self->setDatos_nivel1($permisos_hash->{'datos_nivel1'});
     $self->setDatos_nivel2($permisos_hash->{'datos_nivel2'});
     $self->setDatos_nivel3($permisos_hash->{'datos_nivel3'});
@@ -89,114 +91,93 @@ sub modificar{
     $self->setEstructura_catalogacion_n3($permisos_hash->{'estructura_catalogacion_n3'});
     $self->setTablas_de_referencia($permisos_hash->{'tablas_de_refencia'});
     $self->setControl_de_autoridades($permisos_hash->{'control_de_autoridades'});
-
     $self->save();
 }
-
 sub getNro_socio{
     my ($self) = shift;
     return ($self->nro_socio);
 }
-
 sub setNro_socio{
     my ($self) = shift;
     my ($nro_socio) = @_;
     $self->nro_socio($nro_socio);
 }
-
 sub getUsuarios{
     my ($self) = shift;
     return ($self->usuarios);
 }
-
 sub setUsuarios{
     my ($self) = shift;
     my ($usuarios) = @_;
     $self->usuarios($usuarios);
 }
-
 sub getSistema{
     my ($self) = shift;
     return ($self->sistema);
 }
-
 sub setSistema{
     my ($self) = shift;
     my ($sistema) = @_;
     $self->sistema($sistema);
 }
-
 sub getUndefined{
     my ($self) = shift;
     return ($self->undefined);
 }
-
 sub setUndefined{
     my ($self) = shift;
     my ($undefined) = @_;
     $self->undefined($undefined);
 }
-
 sub getId_persona{
     my ($self) = shift;
     return ($self->nro_socio);
 }
-
 sub setNro_socio{
     my ($self) = shift;
     my ($nro_socio) = @_;
     $self->nro_socio($nro_socio);
 }
-
 sub getUI{
     my ($self) = shift;
     return ($self->ui);
 }
-
 sub setUI{
     my ($self) = shift;
     my ($ui) = @_;
     $self->ui($ui);
 }
-
 sub getTipo_documento{
     my ($self) = shift;
     return ($self->tipo_documento);
 }
-
 sub setTipo_documento{
     my ($self) = shift;
     my ($tipo_documento) = @_;
     $self->tipo_documento($tipo_documento);
 }
-
 sub getDatos_nivel1{
     my ($self) = shift;
     return ($self->datos_nivel1);
 }
-
 sub setDatos_nivel1{
     my ($self) = shift;
     my ($datos_nivel1) = @_;
     $self->datos_nivel1($datos_nivel1);
 }
-
 sub getDatos_nivel2{
     my ($self) = shift;
     return ($self->datos_nivel2);
 }
-
 sub setDatos_nivel2{
     my ($self) = shift;
     my ($datos_nivel2) = @_;
     $self->datos_nivel2($datos_nivel2);
 }
-
 sub getDatos_nivel3{
     my ($self) = shift;
     return ($self->datos_nivel3);
 }
-
 sub setDatos_nivel3{
     my ($self) = shift;
     my ($datos_nivel3) = @_;
@@ -207,41 +188,34 @@ sub getEstantes_virtuales{
     my ($self) = shift;
     return ($self->estantes_virtuales);
 }
-
 sub setEstantes_virtuales{
     my ($self) = shift;
     my ($estantes_virtuales) = @_;
     $self->estantes_virtuales($estantes_virtuales);
 }
   
-
 sub getEstructura_catalogacion_n1{
     my ($self) = shift;
     return ($self->estructura_catalogacion_n1);
 }
-
 sub setEstructura_catalogacion_n1{
     my ($self) = shift;
     my ($estructura_catalogacion_n1) = @_;
     $self->estructura_catalogacion_n1($estructura_catalogacion_n1);
 }
-
 sub getEstructura_catalogacion_n2{
     my ($self) = shift;
     return ($self->estructura_catalogacion_n2);
 }
-
 sub setEstructura_catalogacion_n2{
     my ($self) = shift;
     my ($estructura_catalogacion_n2) = @_;
     $self->estructura_catalogacion_n2($estructura_catalogacion_n2);
 }
-
 sub getEstructura_catalogacion_n3{
     my ($self) = shift;
     return ($self->estructura_catalogacion_n3);
 }
-
 sub setEstructura_catalogacion_n3{
     my ($self) = shift;
     my ($estructura_catalogacion_n3) = @_;
@@ -252,31 +226,25 @@ sub getTablas_de_referencia{
     my ($self) = shift;
     return ($self->tablas_de_refencia);
 }
-
 sub setTablas_de_referencia{
     my ($self) = shift;
     my ($tablas_de_refencia) = @_;
     $self->tablas_de_refencia($tablas_de_refencia);
 }
-
 sub getControl_de_autoridades{
     my ($self) = shift;
     return ($self->control_de_autoridades);
 }
-
 sub setControl_de_autoridades{
     my ($self) = shift;
     my ($control_de_autoridades) = @_;
     $self->control_de_autoridades($control_de_autoridades);
 }
-
 sub getId{
     my ($self) = shift;
     return ($self->id);
 }
-
 sub convertirEnEstudiante{
-
     my ($self) = shift;
     my ($socio) = @_;
     $self->setAll(C4::AR::Permisos::getConsultaByte());
@@ -284,47 +252,23 @@ sub convertirEnEstudiante{
     $self->setUI($socio->getId_ui);
     $self->setTipo_documento('ALL');
     $self->save();
-
 }
-
 sub convertirEnLibrarian{
-
     my ($self) = shift;
     my ($socio) = @_;
-
     $self->setAll(C4::AR::Permisos::getConsultaByte() | C4::AR::Permisos::getAltaByte() | C4::AR::Permisos::getModificacionByte() );
     $self->setNro_socio($socio->getNro_socio);
     $self->setUI($socio->getId_ui);
     $self->setTipo_documento('ALL');
-
     $self->save();
-
 }
-
 sub convertirEnSuperLibrarian{
-
     my ($self) = shift;
     my ($socio) = @_;
-
     $self->setAll(C4::AR::Permisos::getTodosByte());
     $self->setNro_socio($socio->getNro_socio);
     $self->setUI($socio->getId_ui);
     $self->setTipo_documento('ALL');
-
     $self->save();
-
 }
-
-
-
-# sub setId{
-#     my ($self) = shift;
-#     my ($id) = @_;
-#     $self->control_de_autoridades($control_de_autoridades);
-# }
-
-
-
-
 1;
-

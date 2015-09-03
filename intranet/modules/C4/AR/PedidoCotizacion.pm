@@ -1,5 +1,23 @@
-package C4::AR::PedidoCotizacion;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::PedidoCotizacion;
 use strict;
 require Exporter;
 use DBI;
@@ -12,7 +30,6 @@ use C4::Modelo::AdqPedidoCotizacionDetalle::Manager;
 use C4::AR::Recomendaciones;
 use C4::AR::PedidoCotizacion;
 use C4::AR::PedidoCotizacionDetalle;
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw(  
@@ -25,8 +42,6 @@ use vars qw(@EXPORT @ISA);
             &getPedidosCotizacion;
             &appendPedidoCotizacion;
 );
-
-
 sub getPresupuestosPedidoCotizacion{
       my ($params)        =@_;
       
@@ -36,27 +51,21 @@ sub getPresupuestosPedidoCotizacion{
                                                                     query  => [ ref_pedido_cotizacion_id => $params],
                                                                 );
       my @results;
-
       foreach my $pres (@$presupuestos) {
           push (@results, $pres);
       }
-
       return(\@results);
-
 }
-
 =item
     Esta funcion agrega pedido/s cotizacion_detalle a un pedido_cotizacion ya existente
     Parametros: (El id del pedido_cotizacion y los ids de los ejemplares a agregar)
 =cut
 sub appendPedidoCotizacion{
-
     my ($param)              = @_;
     my $msg_object           = C4::AR::Mensajes::create();
     my $pedido_cotizacion    = C4::Modelo::AdqPedidoCotizacion->new();
     my $db                   = $pedido_cotizacion->db;
     my $bool_existe_ejemplar = 0; # bool para el mensaje al cliente, donde chequea que no se agregue el mismo ejemplar dos veces
-
     if (!($msg_object->{'error'})){
         $db->{connect_options}->{AutoCommit} = 0;
         $db->begin_work;
@@ -66,7 +75,6 @@ sub appendPedidoCotizacion{
             
             # recorremos el array de ids de ejemplares, para por cada id obtenerlo y pasarle la info a agregar a un pedido_detalle
             for(my $i=0; $i<scalar(@{$param->{'ejemplares_ids_array'}}); $i++){
-
                 # chequeamos que el ejemplar no este ya agregado en la base, al mismo pedido_cotizacion
               if(C4::AR::PedidoCotizacionDetalle::existeEjemplarEnPedidoCotizacion($param->{'ejemplares_ids_array'}->[$i],$id_pedido_cotizacion,$db))
               {         
@@ -75,7 +83,6 @@ sub appendPedidoCotizacion{
                 C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'A042', 'params' => []} ) ;
                 $db->rollback;
                 $bool_existe_ejemplar = 1;
-
               }else{
          
                 # nivel 2
@@ -125,20 +132,15 @@ sub appendPedidoCotizacion{
             C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'B449', 'params' => []} ) ;
             $db->rollback;
         }
-
         $db->{connect_options}->{AutoCommit} = 1;
     }
     return ($msg_object);  
 }
-
-
 sub getAdqPedidoCotizacionDetalle{
     my ( $id_pedido, $db) = @_;
  
     my @results; 
-
     $db = $db || C4::Modelo::AdqPedidoCotizacionDetalle->new()->db;
-
     my $detalle_array_ref = C4::Modelo::AdqPedidoCotizacionDetalle::Manager->get_adq_pedido_cotizacion_detalle(   
                                                                     db => $db,
                                                                     query   => [ adq_pedido_cotizacion_id => { eq => $id_pedido } ],
@@ -156,38 +158,29 @@ sub getAdqPedidoCotizacionDetalle{
         return 0;
     }
 }
-
-
 sub getAdqPedidosCotizacion{
     
     my $db = C4::Modelo::AdqPedidoCotizacion->new()->db;
     my $pedidos_cotizacion = C4::Modelo::AdqPedidoCotizacion::Manager->get_adq_pedido_cotizacion(   
                                                                     db => $db,
                                                                 );
-
     my @results;
-
     foreach my $pedido (@$pedidos_cotizacion) {
         push (@results, $pedido);
     }
-
     return(\@results);
 }
-
-
 =item
     Esta funcion agrega un pedido cotizacion
     Parametros: (El id es AUTO_INCREMENT y la fecha CURRENT_TIMESTAMP)
         HASH { recomendaciones_array, cantidad_ejemplares_array } => para el pedido_cotizacion_detalle
 =cut
 sub addPedidoCotizacion{
-
     my ($param)             = @_;
     #my $id_recomendacion    = $param->{'id_recomendacion'};
     my $pedido_cotizacion   = C4::Modelo::AdqPedidoCotizacion->new();
     my $msg_object          = C4::AR::Mensajes::create();
     my $db                  = $pedido_cotizacion->db;
-
     if (!($msg_object->{'error'})){
         $db->{connect_options}->{AutoCommit} = 0;
         $db->begin_work;
@@ -224,7 +217,6 @@ sub addPedidoCotizacion{
                 my $pedido_cotizacion_detalle               = C4::Modelo::AdqPedidoCotizacionDetalle->new(db => $db);    
                 
                 $pedido_cotizacion_detalle->addPedidoCotizacionDetalle(\%params);    
-
             }   
     
             $msg_object->{'error'} = 0;
@@ -239,46 +231,34 @@ sub addPedidoCotizacion{
             C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'B449', 'params' => []} ) ;
             $db->rollback;
         }
-
         $db->{connect_options}->{AutoCommit} = 1;
     }
     return ($msg_object);  
 }
-
 =item
     Esta funcion devuelve los pedidos de recomendacion, con su detalle
 =cut
 sub getPedidosCotizacionConDetalle{
-
     my ($params) = @_;
-
     my $db                                      = C4::Modelo::AdqPedidoCotizacionDetalle->new()->db;
     my $pedidos_cotizacion_array_ref            = C4::Modelo::AdqPedidoCotizacionDetalle::Manager->get_adq_pedido_cotizacion_detalle(   
                                                                     db => $db,
                                                                     sort(nro_renglon),
                                                                     require_objects     => ['ref_adq_pedido_cotizacion'],
                                                                 );
-
     return ($pedidos_cotizacion_array_ref);
 }
-
 =item
     Esta funcion devuelve los pedidos de cotizacion
 =cut
 sub getPedidosCotizacion{
-
     my ($params) = @_;
-
     my $db                                      = C4::Modelo::AdqPedidoCotizacion->new()->db;
     my $pedidos_cotizacion_array_ref            = C4::Modelo::AdqPedidoCotizacion::Manager->get_adq_pedido_cotizacion(   
                                                                     db => $db,
                                                                 );
-
     return ($pedidos_cotizacion_array_ref);
 }
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__
-

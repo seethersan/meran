@@ -1,5 +1,23 @@
-package C4::AR::Recomendaciones;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::Recomendaciones;
 use strict;
 require Exporter;
 use DBI;
@@ -8,7 +26,6 @@ use C4::Modelo::AdqRecomendacion::Manager;
 use C4::Modelo::AdqRecomendacionDetalle;
 use C4::Modelo::AdqRecomendacionDetalle::Manager;
 use C4::AR::RecomendacionDetalle;
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw(  
@@ -23,8 +40,6 @@ use vars qw(@EXPORT @ISA);
     &eliminarRecomendacion;
     &getRecomendacionesDeUsuario
 );
-
-
 sub eliminarDetallesRecomendacion{
       my ($params, $msg_object) = @_;
   
@@ -40,16 +55,12 @@ sub eliminarDetallesRecomendacion{
                   return $msg_object;
               }
           }
-
       } else {
             $msg_object->{'error'}= 0;
       }
       return $msg_object;
 }
-
-
 sub eliminarRecomendacion {
-
      my ($id_rec) = @_;
     
      my $msg_object= C4::AR::Mensajes::create();
@@ -57,7 +68,6 @@ sub eliminarRecomendacion {
      my $recomendacion = C4::AR::Recomendaciones::getRecomendacionPorId($id_rec);
  
      C4::AR::Recomendaciones::eliminarDetallesRecomendacion($id_rec, $msg_object);
-
      if ($msg_object->{'error'} == 0){
           eval {
               $recomendacion->eliminar();
@@ -77,25 +87,17 @@ sub eliminarRecomendacion {
      }
      return ($msg_object);
 }
-
-
-
 =item
     Esta funcion edita la cantidad de ejemplares de una recomendacion
     Parametros: 
                  HASH: {id_recomendacion_detalle},{cantidad de ejemplares}
 =cut
 sub editarCantidadEjemplares{
-#   Recibe la informacion del objeto JSON.
-
     my ($params)        =@_;
     my $msg_object      = C4::AR::Mensajes::create();
-
     my $recomendacion   = getRecomendacionDetallePorId($params->{'id_recomendacion_detalle'});
-
     $recomendacion->setearCantidad($params->{'cantidad_ejemplares'});
 }
-
 =item
     Esta funcion agrega una recomendacion y su detalle
     Parametros: 
@@ -105,14 +107,10 @@ sub editarCantidadEjemplares{
 =cut
 sub agregarRecomendacion{
     my ($usr_socio_id) = @_;
-
     my $recomendacion = C4::Modelo::AdqRecomendacion->new();
     my $msg_object= C4::AR::Mensajes::create();
     my $db = $recomendacion->db;
-
-# TODO
     #_verificarDatosProveedor($param,$msg_object);
-
     if (!($msg_object->{'error'})){
            
           # entro si no hay algun error, todos los campos ingresados son validos
@@ -125,7 +123,6 @@ sub agregarRecomendacion{
               $msg_object->{'error'} = 0;
               C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'A001', 'params' => []});
               $db->commit;
-
             };
             if ($@){
               # TODO falta definir el mensaje "amigable" para el usuario informando que no se pudo agregar el proveedor
@@ -134,53 +131,37 @@ sub agregarRecomendacion{
                   C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'B410', 'params' => []} ) ;
                   $db->rollback;
               }
-
               $db->{connect_options}->{AutoCommit} = 1;
     }
     return ($recomendacion->getId());
 }
-
 =item
     Esta funcion devuelve las recomendaciones activas, con su detalle
 =cut
 sub getRecomendacionesActivas{
-
     my ($params) = @_;
-
     my $db                                      = C4::Modelo::AdqRecomendacionDetalle->new()->db;
     my $recomendaciones_activas_array_ref       = C4::Modelo::AdqRecomendacionDetalle::Manager->get_adq_recomendacion_detalle(   
                                                                     db => $db,
                                                                     query   => [ activa => 1 ],
                                                                     require_objects     => ['ref_adq_recomendacion'],
                                                                 );
-
     return ($recomendaciones_activas_array_ref);
 }
-
-
 sub getRecomendacionesDeUsuario{
-
     my ($userid) = @_;
     
-
     my $db                                      = C4::Modelo::AdqRecomendacion->new()->db;
     my $recomendaciones_de_usuario       = C4::Modelo::AdqRecomendacion::Manager->get_adq_recomendacion(   
                                                                     db => $db,
                                                                     query   => [ usr_socio_id => $userid ],
                                                          
                                                                 );
-
     return ($recomendaciones_de_usuario);
 }
-
-
-
 sub getRecomendaciones{
-
     my ($ini,$cantR)=@_;
     
-#     my ($params) = @_;
-
     my $db                                      = C4::Modelo::AdqRecomendacion->new()->db;
     
     my $recomendaciones_activas_array_ref       = C4::Modelo::AdqRecomendacion::Manager->get_adq_recomendacion(   
@@ -189,27 +170,20 @@ sub getRecomendaciones{
                                                                     limit   => $cantR,
                                                                     offset  => $ini,
                                                                 );
-
     
     my $cantidad= C4::Modelo::AdqRecomendacion::Manager->get_adq_recomendacion_count(   
                                                                     db => $db,
                                                                     query   => [ activa => 1 ],
                                                                 );
      
-
     return($cantidad,$recomendaciones_activas_array_ref);
-
-#     return ($recomendaciones_activas_array_ref);
 }
-
 =item
     Recupera un registro de recomendacion_detalle
     Retorna un objeto o 0 si no existe
 =cut
 sub getRecomendacionDetallePorId{
-
     my ($params) = @_;
-
     my $db                = C4::Modelo::AdqRecomendacionDetalle->new()->db;
     my $recomendacion     = C4::Modelo::AdqRecomendacionDetalle::Manager->get_adq_recomendacion_detalle(   
                                                                     db => $db,
@@ -222,14 +196,8 @@ sub getRecomendacionDetallePorId{
         return 0;
     }
 }
-
-
-
 sub getRecomendacionDetalle{
-
     my ($params) = @_;
-
-
     my $db                = C4::Modelo::AdqRecomendacionDetalle->new()->db;
     my $recomendacion     = C4::Modelo::AdqRecomendacionDetalle::Manager->get_adq_recomendacion_detalle(   
                                                                     db => $db,
@@ -240,17 +208,11 @@ sub getRecomendacionDetalle{
     
     }
 }
-
-
-
 =item
     Recupera un registro de recomendacion
     Retorna un objeto o 0 si no existe
 =cut
-
-
 sub getRecomendacionPorId{
-
     my ($params, $db) = @_;
     my $recomendacion     = C4::Modelo::AdqRecomendacion::Manager->get_adq_recomendacion(   
                                                                     db => $db,
@@ -259,18 +221,14 @@ sub getRecomendacionPorId{
                                                                 
     if( scalar($recomendacion) > 0){
         return ($recomendacion->[0]);
-
     }else{
         return 0;
     }
 }
-
-
 =item
     Actualiza la info de una recomendacion
 =cut
 sub updateRecomendacionDetalle{
-
     my ($params) = @_;
     
     my $recomendacion = getRecomendacionDetallePorId($params->{'id_recomendacion'});
@@ -287,12 +245,10 @@ sub updateRecomendacionDetalle{
           eval{
               $recomendacion->updateRecomendacionDetalle($params);
               
-
               $msg_object->{'error'}= 0;
               C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'A034', 'params' => []});
               $db->commit;
           };
-
           if ($@){
           # TODO falta definir el mensaje "amigable" para el usuario informando que no se pudo editar el proveedor
               &C4::AR::Mensajes::printErrorDB($@, 'B449',"INTRA");
@@ -300,17 +256,13 @@ sub updateRecomendacionDetalle{
               C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'B449', 'params' => []} ) ;
               $db->rollback;
           }
-
     }
     return ($msg_object);
     
 }
-
 sub _verificarDatosRecomendacion {
-
      my ($data, $msg_object)    = @_;
      my $checkStatus;
-
      my $cat_nivel_2            = $data->{'cat_nivel'};
      my $autor                  = $data->{'autor'};
      my $titulo                 = $data->{'titulo'};
@@ -327,8 +279,6 @@ sub _verificarDatosRecomendacion {
      #TODO: 
  
 }
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__

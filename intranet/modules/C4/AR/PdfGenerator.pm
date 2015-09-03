@@ -1,4 +1,23 @@
-package C4::AR::PdfGenerator;
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::PdfGenerator;
 
 use strict;
 require Exporter;
@@ -10,15 +29,10 @@ use HTML::HTMLDoc;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
-# set the version for version checking
 $VERSION = 0.01;
 
 @ISA = qw(Exporter);
 
-#
-# don't forget MARCxxx subs are exported only for testing purposes. Should not be used
-# as the old-style API and the NEW one are the only public functions.
-#
 @EXPORT_OK = qw(
   searchGenerator
   availPdfGenerator
@@ -172,7 +186,6 @@ sub availPdfGenerator {
     imprimirFinal( $pdf, $tmpFileName );
 }
 
-#Genera el PDF de las estadisticas que se generan en la pagina estadisticas.pl - Damian
 sub estadisticasPdfGenerator {
     my ( $msg, @results ) = @_;
     my $pdf = newPdf();
@@ -216,7 +229,6 @@ sub estadisticasPdfGenerator {
     imprimirFinal( $pdf, $tmpFileName );
 }
 
-#Miguel 31-05/07 - Genero el PDF de Historico de Prestamos
 sub hitoricoPrestamosPdfGenerator {
     my ( $msg, @results ) = @_;
     my $pdf = newPdf();
@@ -251,8 +263,6 @@ sub hitoricoPrestamosPdfGenerator {
     imprimirFinal( $pdf, $tmpFileName );
 }
 
-#Damian - 22/05/2007
-#Funcion generica que sirve para imprimir las lineas se usa en todos los generadores de pdf
 sub imprimirLinea {
     my ( $pdf, $pos, $msg, $msg2, $line, $page ) = @_;
     my $pagewidth;
@@ -269,17 +279,6 @@ sub imprimirLinea {
         $pdf->addRawText( $msg2, 180, $pos );
         $pdf->setSize(12);
         $pos = $pos - 15;
-## FIXME esta funcion es llamada dentro de un loop, de manera q consulta demasiado a la base a travez del ##context(), o sea q estos valores se deben recibir como parametro
-# Preferencias viejas, actualizar a lo nuevo.
-#       $pdf->addImg(
-#           C4::AR::Preferencias::getValorPreferencia('opacdir')
-#             . '/htdocs/opac-tmpl/'
-#             . C4::AR::Preferencias::getValorPreferencia('opacthemes') . '/'
-#             . C4::AR::Preferencias::getValorPreferencia('opaclanguages')
-#             . '/images/escudo-print.png',
-#           500,
-#           $pageheight - 77
-#       );
         $pdf->setFont("Verdana");
         $pdf->setSize(10);
         $pos = $pos - 40;
@@ -289,8 +288,6 @@ sub imprimirLinea {
     return ( $pdf, $pos, $page, $line );
 }
 
-#Damian - 22/05/2007
-#Funcion generica que sirve para imprimir las lineas se usa en todos los generadores de pdf
 sub imprimirLinea2 {
     my ( $pdf, $text, $line, $pos ) = @_;
 
@@ -329,15 +326,9 @@ sub imprimirLinea2 {
     return ( $pdf, $line, $pos );
 }
 
-#Para imprimir el archivo con el nombre. Funcion generica que se puede usar en todos las funciones
-#que generan pdf - Damian - 23/05/2007
 sub imprimirFinal {
     my ( $pdf, $tmpFileName ) = @_;
 
-# OLD WAY
-#   print "Content-type: application/pdf\n";
-#   print "Content-Disposition: attachment; filename=\"$tmpFileName\"\n\n";
-#   print $pdf->Finish();
 
 my $filename='/tmp/'.$tmpFileName;
  $pdf->saveAs($filename);
@@ -346,7 +337,6 @@ my $filename='/tmp/'.$tmpFileName;
 
 }
 
-################CARNETS############################################33
 
 sub completeBorrowerNumber {
     my ($bornum) = @_;
@@ -379,7 +369,6 @@ sub cardGenerator {
     return ($pdf);
 }
 
-#  Genera los carnets a partir de una busqueda
 
 sub batchCardsGenerator {
     my ( $count, $socios ) = @_;
@@ -442,7 +431,6 @@ sub batchCardsGenerator {
 
 }
 
-#genera a partir de una coordenada
 sub generateCard {
     my ( $nro_socio, $x, $y, $pdf ) = @_;
     my $phone;
@@ -519,7 +507,6 @@ sub generateCard {
         $pageheight - ( $y + 81 )
     );
 }
-#############FIN CARNET########################
 sub _format {
     my ($string) = @_;
 
@@ -645,9 +632,6 @@ sub imprimirEncabezado {
     my $dia     = $datearr[3];
     $ui_object  = $ui_object || C4::AR::Referencias::obtenerDefaultUI();
     #fin fecha
-# FIXME si le dejo esto se rompe, como se va a cambiar el manejador de PDFs lo dejo asi
-# my $tema_intra  = C4::AR::Preferencias::getValorPreferencia('tema_intra') || 'default';
-#         $pdf->addImg( C4::Context->config('intrahtdocs').'/'.$tema_intra.'/images/escudo-uni.png', $x, $pageheight - 160);
     $pdf->setFont("Arial-Bold");
     $pdf->setSize(10);
     $pdf->addRawText( _unformat(uc($ui_object->getTituloFormal)), $x, $pageheight - 180 );
@@ -740,7 +724,6 @@ sub imprimirTabla {
     $y = $y + 20;
     $pdf->setFont("Verdana");
     $pdf->setSize(10);
-#Se pone solamente Encode::decode_utf8 porque ya viene en UTF-8
     for ( my $i = 0 ; $i < $cantFila ; $i++ ) {
         $pdf->drawRect( 50, $pageheight - $y, 200, $pageheight - ( $y + 20 ) );
         $pdf->addRawText( Encode::decode_utf8($datos->[$i]->{'autor'}),
@@ -786,7 +769,6 @@ sub imprimirPiePag {
       . C4::AR::Preferencias::getValorPreferencia('close'). Encode::decode_utf8(" Sabados: ")
       . C4::AR::Preferencias::getValorPreferencia('open_sabado'). " a " .C4::AR::Preferencias::getValorPreferencia('close_sabado');
     $texto[4] = "E-mail: " . $biblio->getEmail;
-#   $texto[5] = Encode::decode_utf8("Sitio web: "). $ENV{'SERVER_NAME'};
     $texto[5] = Encode::decode_utf8("Sitio web: ").$biblio->getUrlServidor;
     $texto[6] = "";
     $y        = $y + 15;
@@ -795,16 +777,13 @@ sub imprimirPiePag {
     return ($pdf);
 }
 
-#### Generar Etiquetas para Libros
 
-#  Genera los carnets a partir de una busqueda
 
 sub batchBookLabelGenerator {
     my ( $count, $results ) = @_;
     my $i   = 0;
     my $pag = 1;
     my $pdf; 
-#   my $pdf = new PDF::Report();
     
  C4::AR::Debug::debug($count);
        if (!(C4::AR::Preferencias::getValorPreferencia('BookLabelPage'))){
@@ -846,7 +825,6 @@ sub batchBookLabelGenerator {
                                 $i++;
                             }
                             if ( $i < $count ) {
-#                                     
                                   generateBookLabelA4(@$results[$i], 25, 354, $pdf );
                                   generateBookLabelA4(@$results[$i], 312, 354, $pdf );    
                                 $i++;
@@ -854,7 +832,6 @@ sub batchBookLabelGenerator {
                             if ( $i < $count ) {
                                  generateBookLabelA4(@$results[$i], 25, 254, $pdf);
                                  generateBookLabelA4(@$results[$i], 312,254, $pdf );
-#                               
                                  
                                 $i++;
                             }
@@ -862,14 +839,12 @@ sub batchBookLabelGenerator {
                             if ( $i < $count ) {
                                  generateBookLabelA4(@$results[$i], 25, 154, $pdf);
                                  generateBookLabelA4(@$results[$i], 312,154, $pdf );
-#                               
                                  
                                 $i++;
                             }
                             if ( $i < $count ) {
                                  generateBookLabelA4(@$results[$i], 25, 54, $pdf);
                                  generateBookLabelA4(@$results[$i], 312,54, $pdf );
-#                               
                                  
                                 $i++;
                             }
@@ -948,15 +923,12 @@ sub generateBookLabelA4 {
 
     #      $pdf->addRawText($branch->{'categ'},$x+135,$pageheight + ($y-$posy));
     $posy = $posy + 7;
-#     $pdf->addRawText( _unformat($branch->getTituloFormal), $x + 145, $pageheight + 65   + ( $y - $posy ) );
     $pdf->addRawText( _unformat($branch->getTituloFormal), $x + 155,  270   + ( $y - $posy ) );
 
     $posy = $posy + 7;
-#     $pdf->addRawText( _unformat($branch->getNombre), $x + 145, $pageheight + 65 + ( $y - $posy ) );
     $pdf->addRawText( _unformat($branch->getNombre), $x + 155, 270 + ( $y - $posy ) );
     $posy = $posy + 7;
     $pdf->setSize(6);
-#     $pdf->addRawText( C4::AR::Filtros::i18n("Biblioteca"), $x + 145, $pageheight + 65  + ( $y - $posy ) );
     # $pdf->addRawText( C4::AR::Filtros::i18n("Biblioteca"), $x + 155, 270  + ( $y - $posy ) );
     $posy = $posy + 7;
     $pdf->setFont("Arial");
@@ -969,11 +941,9 @@ sub generateBookLabelA4 {
 
 
 
-#     $pdf->addRawText( $address, $x + 145, $pageheight + 65  + ( $y - $posy ) );
     $posy = $posy + ( 7 * $cantdir );
 
     my $mail = $branch->getEmail;
-#     $pdf->addRawText( $mail, $x + 145, $pageheight + 65 + ( $y - $posy ) );
     $pdf->addRawText( $mail, $x + 155, 270 + ( $y - $posy ) );
     $posy = $posy + 7;
 
@@ -986,12 +956,10 @@ sub generateBookLabelA4 {
         $phone_fax = " Fax " . $branch->getFax      || C4::AR::Filtros::i18n('No dispone');
         $pdf->addRawText( $phone_fax, $x + 154, 262 + ( $y - $posy ) );
     }
-#     $pdf->addRawText( $phone_fax, $x + 144, $pageheight + 65 + ( $y - $posy ) );
    
 
 
     $posy = $posy + 7;
-#     $pdf->addRawText( $phone_tel, $x + 144, $pageheight + 65 + ( $y - $posy ) );
   
 
     #AHORA DIBUJAMOS LA SIGNATURA SEPARADA POR ' '
@@ -1002,13 +970,11 @@ sub generateBookLabelA4 {
     foreach my $sig (@sigs) {
         if (C4::AR::Utilidades::validateString($sig)){
           $sig=  _unformat($sig);
-#         $pdf->addRawText( "$sig", $x + 15, $pageheight + 50 + ( $y - 120 ) - $posicion );
           $pdf->addRawText( "$sig", $x - 5, 250 + ( $y - 90 ) - $posicion );
           $posicion += 10;
         }
     }
 
-#     $pdf->addRawText( $codigo, $x + 15, $pageheight + ( $y - 120 ) - $posicion );
     
     #saco el barcode por ticket #9034
     $pdf->setSize(10);
@@ -1021,15 +987,12 @@ sub generateBookLabelA4 {
     $disp=  _unformat($disp);
     $pdf->addRawText( "$disp", $x - 5, ( $y + 145 ) - 50);
 
-# Inserto el barcode debajo de signatura
-#     $pdf->addRawText( "$codigo", $x + 10, $y + 80);
     
     $pdf->setFont("Arial");
 }
 
 
 
-#genera a partir de una coordenada
 sub generateBookLabel{
     my ( $nivel3, $x, $y, $pdf ) = @_;
 
@@ -1132,7 +1095,6 @@ sub generateBookLabel{
     
     $pdf->setFont("Arial");
 }
-#############FIN Etiquetas########################
 
 
 sub pdfFromHTML {

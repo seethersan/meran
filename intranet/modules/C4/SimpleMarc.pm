@@ -1,57 +1,37 @@
-package C4::SimpleMarc;
-
-# $Id: SimpleMarc.pm,v 1.7 2002/10/13 08:30:38 arensb Exp $
-
-# Routines for handling import of MARC data into Koha db
-
-# Koha library project  www.koha.org
-
-# Licensed under the GPL
-
-
-# Copyright 2000-2002 Katipo Communications
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
-# This file is part of Koha.
+# This file is part of Meran.
 #
-# Koha is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# Koha; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-# Suite 330, Boston, MA  02111-1307 USA
-
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::SimpleMarc;
 use strict;
 use DBI;
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-
-# set the version for version checking
 $VERSION = 0.01;
-
 =head1 NAME
-
 C4::SimpleMarc - Functions for parsing MARC records and files
-
 =head1 SYNOPSIS
-
   use C4::SimpleMarc;
-
 =head1 DESCRIPTION
-
 This module provides functions for parsing MARC records and files.
-
 =head1 FUNCTIONS
-
 =over 2
-
 =cut
-
 @ISA = qw(Exporter);
 @EXPORT = qw(
 	&extractmarcfields
@@ -60,21 +40,10 @@ This module provides functions for parsing MARC records and files.
 	%tagtext
 	%tagmap
 );
-
-# FIXME - %tagtext and %tagmap are in both @EXPORT and @EXPORT.
-# They should be in one or the other, but not both (though preferably,
-# things shouldn't get exported in the first place).
 @EXPORT   = qw(
 	%tagtext
 	%tagmap
 );
-
-#------------------------------------------------
-
-#------------------
-# Constants
-
-# %tagtext maps MARC tags to descriptive names.
 my %tagtext = (
     'LDR' => 'Leader',
     '001' => 'Control number',
@@ -137,23 +106,6 @@ my %tagtext = (
     '852' => 'Location',
     '856' => 'Electronic location and access',
 );
-
-# tag, subfield, field name, repeats, striptrailingchars
-# FIXME - What is this? Can it be explained without a semester-long
-# course in MARC?
-
-# XXX - Maps MARC (field, subfield) tuples to Koha database field
-# names (presumably in 'biblioitems'). $tagmap{$field}->{$subfield} is
-# an anonymous hash of the form
-#	{
-#		name	=> "title",	# Name of Koha field
-#		rpt	=> 0,		# I don't know what this is, but
-#					# it's not used.
-#		striptrail => ',:;/-',	# Lists the set of characters that
-#					# should be stripped from the end
-#					# of the MARC field.
-#	}
-
 my %tagmap=(
     '010'=>{'a'=>{name=> 'lccn',	rpt=>0, striptrail=>' ' 	}},
     '015'=>{'a'=>{name=> 'lccn',	rpt=>0	}},
@@ -177,28 +129,15 @@ my %tagmap=(
     '5xx'=>{'a'=>{name=> 'notes',	rpt=>1	}},
     '65x'=>{'a'=>{name=> 'subject',	rpt=>1, striptrail=>'.,:;/-'	}},
 );
-
-
-#------------------
-
 =item extractmarcfields
-
   $biblioitem = &extractmarcfields($marc_record);
-
 C<$marc_record> is a reference-to-array representing a MARC record;
 each element is a reference-to-hash specifying a MARC field (possibly
 with subfields).
-
 C<&extractmarcfields> translates C<$marc_record> into a Koha
 biblioitem. C<$biblioitem> is a reference-to-hash whose keys are named
 after fields in the biblioitems table of the Koha database.
-
 =cut
-#'
-# FIXME - Throughout:
-#	$foo->{bar}->[baz]->{quux}
-# can be rewritten as
-#	$foo->{bar}[baz]{quux}
 sub extractmarcfields {
     use strict;
     # input
@@ -207,13 +146,10 @@ sub extractmarcfields {
 			# Example: $record->[0]->{'tag'} = '100' # Author
 			# 	$record->[0]->{'subfields'}->{'a'} = subfieldvalue
     )=@_;
-
     # return
     my $bib;		# pointer to hash of named output fields
 			# Example: $bib->{'author'} = "Twain, Mark";
-
     my $debug=0;
-
     my (
 	$field, 	# hash ref
 	$value,
@@ -228,12 +164,9 @@ sub extractmarcfields {
 	$notes, $additionalauthors, $illustrator, $copyrightdate,
 	$s, $subdivision, $subjectsubfield,
     );
-
     print "<PRE>\n" if $debug;
-
     if ( ref($record) eq "ARRAY" ) {
         foreach $field (@$record) {
-
 	    # Check each subfield in field
 	    # FIXME - Would this code be more readable with
 	    #	while (($subfieldname, $subfield) = each %{$field->{subfields}})
@@ -267,9 +200,7 @@ sub extractmarcfields {
 		    print "Found subfield $field->{'tag'} $subfield " .
 			"$fieldname = $bib->{$fieldname}\n" if $debug;
 		} # if tagmap exists
-
 	    } # foreach subfield
-
 	    # Handle special fields and tags
 	    if ($field->{'tag'} eq '001') {
 		$bib->{controlnumber}=$field->{'indicator'};
@@ -284,11 +215,8 @@ sub extractmarcfields {
 		$bib->{lccn}=~s/^C//;
 		($bib->{lccn}) = (split(/\s+/, $bib->{lccn}))[0];
 	    }
-
-
 		# FIXME - Fix indentation
 		if ($field->{'tag'} eq '260') {
-
 		    $publicationyear=$field->{'subfields'}->{'c'};
 		    # FIXME - "\d\d\d\d" can be rewritten as "\d{4}"
 		    if ($publicationyear=~/c(\d\d\d\d)/) {
@@ -341,8 +269,6 @@ sub extractmarcfields {
 		    print "Subject=$subject\n" if $debug;
 		    push @subjects, $subject;
 		} # if tag 65x
-
-
         } # foreach field
         # FIXME - Why not do this up in the "Handle special fields and
         # tags" section?
@@ -356,7 +282,6 @@ sub extractmarcfields {
 		# one element, $#subjects == 0, which is false. For an
 		# array with 0 elements, $#subjects == -1, which is
 		# true.
-
 	# Misc cleanup
 	if ($bib->{dewey}) {
 	    $bib->{dewey}=~s/\///g;	# drop any slashes
@@ -365,23 +290,19 @@ sub extractmarcfields {
 					# The Dewey code is NOT a number,
 					# it's a string.
 	}
-
 	if ($bib->{lccn}) {
 	   ($bib->{lccn}) = (split(/\s+/, $bib->{lccn}))[0]; # only keep first word
 	}
-
 	if ( $bib->{isbn} ) {
 	    $bib->{isbn}=~s/[^\d]*//g;	# drop non-digits
 			# FIXME - "[^\d]" can be rewritten as "\D"
 			# FIXME - Does this include the check digit? If so,
 			# it might be "X".
 	};
-
 	if ( $bib->{issn} ) {
 	    $bib->{issn}=~s/^\s*//;
 	    ($bib->{issn}) = (split(/\s+/, $bib->{issn}))[0];
 	};
-
 	if ( $bib->{'volume-number'} ) {
 	    if ($bib->{'volume-number'}=~/(\d+).*(\d+)/ ) {
 		$bib->{'volume'}=$1;
@@ -391,7 +312,6 @@ sub extractmarcfields {
 	    }
 	    delete $bib->{'volume-number'};
 	} # if volume-number
-
     } else {
 	# FIXME - Style: this sort of error-checking should really go
 	# closer to the actual test, e.g.:
@@ -405,41 +325,23 @@ sub extractmarcfields {
 		ref($record) . " not ARRAY. Contact sysadmin.\n";
     }
     print "</PRE>\n" if $debug;
-
     return $bib;
-
 } # sub extractmarcfields
-#---------------------------------
-
-#--------------------------
-
 =item parsemarcfileformat
-
   @records = &parsemarcfileformat($marc_data);
-
 Parses the contents of a MARC file.
-
 C<$marc_data> is a string, the contents of a MARC file.
 C<&parsemarcfileformat> parses this string into individual MARC
 records and returns them.
-
 C<@records> is an array of references-to-hash. Each element is a MARC
 record; its keys are the MARC tags.
-
 =cut
-#'
-# Parse MARC data in file format with control-character separators
-#   May be multiple records.
-# FIXME - Is the input ever likely to be more than a few Kb? If so, it
-# might be worth changing this function to take a (read-only)
-# reference-to-string, to avoid unnecessary copying.
 sub parsemarcfileformat {
     use strict;
     # Input is one big text string
     my $data=shift;
     # Output is list of records.  Each record is list of field hashes
     my @records;
-
     my $splitchar=chr(29);	# \c]
     my $splitchar2=chr(30);	# \c^
     my $splitchar3=chr(31);	# \c_
@@ -451,14 +353,12 @@ sub parsemarcfileformat {
 	my $tagcounter=0;
 	my %tag;
 	my $field;
-
 	my $leader=substr($record,0,24);
 	print "<pre>parse Leader:$leader</pre>\n" if $debug;
 	push (@record, {
 		'tag' => 'LDR',
 		'indicator' => $leader ,
 	} );
-
 	$record=substr($record,24);
 	foreach $field (split(/$splitchar2/, $record)) {
 	    my %field;
@@ -477,7 +377,6 @@ sub parsemarcfileformat {
 		    $tag=substr($directory,0,3);
 		    $length=substr($directory,3,4);
 		    $start=substr($directory,7,6);
-
 		    # Bump to next directory entry
 		    $directory=substr($directory,12);
 		    $tag{$counter2}=$tag;
@@ -532,81 +431,23 @@ sub parsemarcfileformat {
     print "</pre>" if $debug;
     return @records;
 } # sub parsemarcfileformat
-
-#----------------------------------------------
-
 =item taglabel
-
   $label = &taglabel($tag);
-
 Converts a MARC tag (a three-digit number, or "LDR") and returns a
 descriptive label.
-
 Note that although the tag looks like a number, it is treated here as
 a string. Be sure to use
-
     $label = &taglabel("082");
-
 and not
-
     $label = &taglabel(082);	# <-- Invalid octal number!
-
 =cut
-#'
-# FIXME - Does this function mean that %tagtext doesn't need to be
-# exported?
 sub taglabel {
     my ($tag)=@_;
-
     return $tagtext{$tag};
-
 } # sub taglabel
-
 1;
-
-#---------------------------------------------
-# $Log: SimpleMarc.pm,v $
-# Revision 1.7  2002/10/13 08:30:38  arensb
-# Deleted unused variables.
-# Removed trailing whitespace.
-#
-# Revision 1.6  2002/10/10 04:44:28  arensb
-# Added whitespace to make the POD work.
-#
-# Revision 1.5  2002/10/07 00:51:22  arensb
-# Added POD and some comments.
-#
-# Revision 1.4  2002/10/05 09:53:11  arensb
-# Merged with arensb-context branch: use C4::Context->dbh instead of
-# &C4Connect, and generally prefer C4::Context over C4::Database.
-#
-# Revision 1.3.2.1  2002/10/04 02:57:38  arensb
-# Removed useless "use C4::Database;" line.
-#
-# Revision 1.3  2002/08/14 18:12:52  tonnesen
-# Added copyright statement to all .pl and .pm files
-#
-# Revision 1.2  2002/07/02 20:30:15  tonnesen
-# Merged SimpleMarc.pm over from rel-1-2
-#
-# Revision 1.1.2.4  2002/06/28 14:36:47  amillar
-# Fix broken logic on illustrator vs. add'l author
-#
-# Revision 1.1.2.3  2002/06/26 20:54:32  tonnesen
-# use warnings breaks on perl 5.005...
-#
-# Revision 1.1.2.2  2002/06/26 15:52:55  amillar
-# Fix display of marc tag labels and indicators
-#
-# Revision 1.1.2.1  2002/06/26 07:27:35  amillar
-# Moved acqui.simple MARC handling to new module SimpleMarc.pm
-#
 __END__
-
 =back
-
 =head1 AUTHOR
-
 Koha Developement team <info@koha.org>
-
 =cut

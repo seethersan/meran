@@ -1,12 +1,27 @@
-package C4::Modelo::UsrPersona;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::UsrPersona;
 use strict;
-
 use base qw(C4::Modelo::DB::Object::AutoBase2);
-
 __PACKAGE__->meta->setup(
     table   => 'usr_persona',
-
     columns => [
         id_persona       => { type => 'serial', overflow => 'truncate', not_null => 1 },
         legajo           => { type => 'varchar', overflow => 'truncate', length => 255, not_null => 1 },
@@ -41,7 +56,6 @@ __PACKAGE__->meta->setup(
         division         => { type => 'varchar', overflow => 'truncate', length => 255 },
         foto             => { type => 'varchar', overflow => 'truncate', length => 255 },
     ],
-
      relationships =>
     [
       ciudad_ref => 
@@ -68,13 +82,10 @@ __PACKAGE__->meta->setup(
     primary_key_columns => [ 'id_persona' ],
     unique_key => ['tipo_documento','nro_documento'],
 );
-
 use utf8;
 use C4::Modelo::UsrPersona;
 use C4::Modelo::UsrEstado;
 use C4::Modelo::UsrRegularidad::Manager;
-
-
 =item
     Returns true (1) if the row was loaded successfully
     undef if the row could not be loaded due to an error, 
@@ -83,28 +94,22 @@ use C4::Modelo::UsrRegularidad::Manager;
 sub load{
     my $self = $_[0]; # Copy, not shift
     
-
     my $error = 1;
-
     eval {
     
          unless( $self->SUPER::load(speculative => 1) ){
                  C4::AR::Debug::debug("UsrPersona=>  dentro del unless, no existe el objeto SUPER load");
                 $error = 0;
          }
-
         C4::AR::Debug::debug("UsrPersona=>  SUPER load");
         return $self->SUPER::load(@_);
     };
-
     if($@){
         C4::AR::Debug::debug("UsrPersona=>  no existe el objeto");
         $error = undef;
     }
-
     return $error;
 }
-
 sub agregar{
     my ($self)=shift;
     my ($data_hash)=@_;
@@ -144,27 +149,19 @@ sub agregar{
     $self->setFoto($self->buildFotoNameHash());
     $self->save();
     return $self->convertirEnSocio($data_hash);
-
 }
-
 sub convertirEnSocio{
     my ($self)=shift;
     my ($data_hash,$vienePassword)=@_;
-
     $self->log($data_hash,'convertirEnSocio');
-
-#    $self->forget();
-
     my $db = $self->db;
     my $socio = C4::Modelo::UsrSocio->new(db => $db);
         $data_hash->{'id_persona'} = $self->getId_persona;
-
         $socio->agregar($data_hash);
         $socio->setId_estado(($data_hash->{'id_estado'}));
         $socio->setThemeINTRA($data_hash->{'tema'} || 'default');
     return $socio;
 }
-
 sub modificar{
     my ($self)=shift;
     my ($data_hash)=@_;
@@ -198,14 +195,11 @@ sub modificar{
     $self->setCarrera($data_hash->{'carrera'});
     $self->setAnio($data_hash->{'anio'});
     $self->setDivision($data_hash->{'division'});
-
     $self->save();
 }
-
 sub modificarDatosDeOPAC{
     my ($self)=shift;
     my ($data_hash)=@_;
-
     #Asignando data...
     $data_hash = C4::AR::Utilidades::escapeHashData($data_hash);
     
@@ -218,117 +212,94 @@ sub modificarDatosDeOPAC{
     
     $self->save();
 }
-
 sub modificarVisibilidadOPAC{
     my ($self)=shift;
     my ($data_hash)=@_;
-
     #Asignando data...
     $data_hash = C4::AR::Utilidades::escapeHashData($data_hash);
-
     $self->setNombre($data_hash->{'nombre'});
     $self->setApellido($data_hash->{'apellido'});
     $self->setCalle($data_hash->{'direccion'});
     $self->setCiudad($data_hash->{'id_ciudad'});
     $self->setTelefono($data_hash->{'numero_telefono'});
     $self->setEmail($data_hash->{'email'});
-
     $self->save();
 }
-
 sub sortByString{
     my ($self) = shift;
     my ($campo) = @_;
-
     my $fieldsString = &C4::AR::Utilidades::joinArrayOfString($self->meta->columns);
     my $index = rindex $fieldsString,$campo;
-
     if ($index != -1){
         return ("persona.".$campo);
     } else {
         return ("persona.apellido");
     }
 }
-
 sub activar{
     my ($self) = shift;
-
     $self->setEs_socio(1);
     $self->save();
 }
-
 sub desactivar{
     my ($self) = shift;
     $self->setEs_socio(0);
     $self->save();
 }
-
 sub getLegajo{
     my ($self) = shift;
     return ($self->legajo);
 }
-
 sub setLegajo{
     my ($self) = shift;
     my ($legajo) = @_;
     $self->legajo($legajo);
 }
-
 sub getInstitucion{
     my ($self) = shift;
     return ($self->institucion);
 }
-
 sub setInstitucion{
     my ($self) = shift;
     my ($institucion) = @_;
     $self->institucion($institucion);
 }
-
 sub getCarrera{
     my ($self) = shift;
     return ($self->carrera);
 }
-
 sub setCarrera{
     my ($self) = shift;
     my ($carrera) = @_;
     $self->carrera($carrera);
 }
-
 sub getAnio{
     my ($self) = shift;
     return ($self->anio);
 }
-
 sub setAnio{
     my ($self) = shift;
     my ($anio) = @_;
     $self->anio($anio);
 }
-
 sub getDivision{
     my ($self) = shift;
     return ($self->division);
 }
-
 sub setDivision{
     my ($self) = shift;
     my ($division) = @_;
     $self->division($division);
 }
-
 sub getId_persona{
     my ($self) = shift;
     return ($self->id_persona);
 }
-
 sub setId_persona{
     my ($self) = shift;
     my ($id_persona) = @_;
     $self->id_persona($id_persona);
 }
-
 sub buildFotoNameHash{
     my ($self) = shift;
     use Digest::SHA;
@@ -338,164 +309,133 @@ sub buildFotoNameHash{
     
     return $hash;
 }
-
 sub setFoto{
     my ($self) = shift;
     my ($foto) = @_;
     $self->foto($foto);
     $self->save();
 }
-
 sub getFoto{
     my ($self) = shift;
     return($self->foto);
 }
-
 sub setEs_socio{
     my ($self) = shift;
     my ($status) = @_;
     $self->es_socio($status);
 }
-
 sub getEs_socio{
     my ($self) = shift;
     return($self->es_socio);
 }
-
 sub getVersion_documento{
     my ($self) = shift;
     return ($self->version_documento);
 }
-
 sub setVersion_documento{
     my ($self) = shift;
     my ($version_documento) = @_;
     $self->version_documento($version_documento);
 }
-
-
 sub getNro_documento{
     my ($self) = shift;
     return ($self->nro_documento);
 }
-
 sub setNro_documento{
     my ($self) = shift;
     my ($nro_documento) = @_;
     $self->nro_documento($nro_documento);
 }
-
 sub getTipo_documento{
     my ($self) = shift;
     return ($self->tipo_documento);
 }
-
 sub setTipo_documento{
     my ($self) = shift;
     my ($tipo_documento) = @_;
     $self->tipo_documento($tipo_documento);
 }
-
 sub getApellido{
     my ($self) = shift;
     return ($self->apellido);
 }
-
 sub setApellido{
     my ($self) = shift;
     my ($apellido) = @_;
     Encode::encode_utf8($apellido);
     $self->apellido(C4::AR::Utilidades::capitalizarString($apellido));
 }
-
 sub getNombre{
     my ($self) = shift;
     return ($self->nombre);
 }
-
 sub setNombre{
     my ($self) = shift;
     my ($nombre) = @_;
     Encode::encode_utf8($nombre);
     $self->nombre(C4::AR::Utilidades::capitalizarString($nombre));
 }
-
 sub getApeYNom{
     my ($self) = shift;
-
     return ($self->getApellido.", ".$self->getNombre);
 }
-
 sub getTitulo{
     my ($self) = shift;
     return ($self->titulo);
 }
-
 sub setTitulo{
     my ($self) = shift;
     my ($titulo) = @_;
     Encode::encode_utf8($titulo);
     $self->titulo($titulo);
 }
-
-
 sub getOtros_nombres{
     my ($self) = shift;
     return ($self->otros_nombres);
 }
-
 sub setOtros_nombres{
     my ($self) = shift;
     my ($otros_nombres) = @_;
     Encode::encode_utf8($otros_nombres);
     $self->otros_nombres($otros_nombres);
 }
-
 sub getIniciales{
     my ($self) = shift;
     return ($self->iniciales);
 }
-
 sub setIniciales{
     my ($self) = shift;
     my ($iniciales) = @_;
     $self->iniciales($iniciales);
 }
-
 sub getCodigoPostal{
     my ($self) = shift;
     return ($self->codigo_postal);
 }
-
 sub setCodigoPostal{
     my ($self) = shift;
     my ($cp) = @_;
     $self->codigo_postal($cp);
 }
-
 sub getCalle{
     my ($self) = shift;
     return ($self->calle);
 }
-
 sub setCalle{
     my ($self) = shift;
     my ($calle) = @_;
     Encode::encode_utf8($calle);
     $self->calle($calle);
 }
-
 sub getBarrio{
     my ($self) = shift;
     return ($self->barrio);
 }
-
 sub setBarrio{
     my ($self) = shift;
     my ($barrio) = @_;
     $self->barrio($barrio);
 }
-
 sub getCiudad{
     my ($self) = shift;
     
@@ -511,138 +451,111 @@ sub getCiudad{
    
     return ($self->ciudad);
 }
-
 sub setCiudad{
     my ($self) = shift;
     my ($ciudad) = @_;
     $self->ciudad($ciudad);
 }
-
 sub getTelefono{
     my ($self) = shift;
     return ($self->telefono);
 }
-
 sub setTelefono{
     my ($self) = shift;
     my ($telefono) = @_;
     $self->telefono($telefono);
 }
-
 sub getEmail{
     my ($self) = shift;
     return ($self->email);
 }
-
 sub setEmail{
     my ($self) = shift;
     my ($email) = @_;
     $self->email($email);
 }
-
 sub getFax{
     my ($self) = shift;
     return ($self->fax);
 }
-
 sub setFax{
     my ($self) = shift;
     my ($fax) = @_;
     $self->fax($fax);
 }
-
 sub getMsg_texto{
     my ($self) = shift;
     return ($self->msg_texto);
 }
-
 sub setMsg_texto{
     my ($self) = shift;
     my ($msg_texto) = @_;
     Encode::encode_utf8($msg_texto);
     $self->msg_texto($msg_texto);
 }
-
 sub getAlt_calle{
     my ($self) = shift;
     return ($self->alt_calle);
 }
-
 sub setAlt_calle{
     my ($self) = shift;
     my ($alt_calle) = @_;
     $self->alt_calle($alt_calle);
 }
-
 sub getAlt_barrio{
     my ($self) = shift;
     return ($self->alt_barrio);
 }
-
 sub setAlt_barrio{
     my ($self) = shift;
     my ($alt_barrio) = @_;
     $self->alt_barrio($alt_barrio);
 }
-
 sub getAlt_ciudad{
     my ($self) = shift;   
     return ($self->alt_ciudad);
 }
-
 sub setAlt_ciudad{
     my ($self) = shift;
     my ($alt_ciudad) = @_;
     $self->alt_ciudad($alt_ciudad);
 }
-
 sub getAlt_telefono{
     my ($self) = shift;
     return ($self->alt_telefono);
 }
-
 sub setAlt_telefono{
     my ($self) = shift;
     my ($alt_telefono) = @_;
     $self->alt_telefono($alt_telefono);
 }
-
 sub getNacimiento{
     my ($self) = shift;
     my $dateformat = C4::Date::get_date_format();
-
     return ( C4::Date::format_date($self->nacimiento, $dateformat) );
 }
-
 sub setNacimiento{
     my ($self) = shift;
     my ($nacimiento)    = @_;
-
     $nacimiento         = C4::AR::Validator::toValidDate($nacimiento);
     my $dateformat      = C4::Date::get_date_format();
     $nacimiento         = C4::Date::format_date_in_iso($nacimiento, $dateformat);
-
     $self->nacimiento($nacimiento);
 }
-
 sub getFecha_alta{
     my ($self) = shift;
     my $dateformat = C4::Date::get_date_format();
-
     return ( C4::Date::format_date($self->fecha_alta, $dateformat) );
 }
-
 sub setFecha_alta{
     my ($self) = shift;
     my ($fecha_alta) = @_;
     $self->fecha_alta($fecha_alta);
 }
-
 sub getSexo{
     my ($self) = shift;
     return ($self->sexo);
 }
-
 sub getSexoPrint{
     my ($self) = shift;
     my %hash_sexo;
@@ -650,53 +563,37 @@ sub getSexoPrint{
     $hash_sexo{'F'} = "Femenino";
     return ($hash_sexo{uc($self->sexo)});
 }
-
-
 sub setSexo{
     my ($self) = shift;
     my ($sexo) = @_;
     $self->sexo($sexo);
 }
-
 sub getTelefono_laboral{
     my ($self) = shift;
     return ($self->telefono_laboral);
 }
-
 sub setTelefono_laboral{
     my ($self) = shift;
     my ($telefono_laboral) = @_;
     $self->telefono_laboral($telefono_laboral);
 }
-
-
 sub getInvolvedCount{
  
     my ($self) = shift;
     my ($campo, $value)= @_;
     my @filtros;
-
     push (@filtros, ( $campo->getCampo_referente => $value ) );
-
     my $count = C4::Modelo::UsrPersona::Manager->get_usr_persona_count( query => \@filtros );
-
     return ($count);
 }
-
 sub replaceBy{
  
     my ($self) = shift;
-
     my ($campo,$value,$new_value)= @_;
     
     my @filtros;
-
     push (  @filtros, ( $campo => { eq => $value},) );
-
-
     my $replaced = C4::Modelo::UsrPersona::Manager->update_usr_persona(     where => \@filtros,
                                                                         set   => { $campo => $new_value });
 }
-
 1;
-

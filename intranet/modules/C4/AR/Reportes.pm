@@ -1,4 +1,23 @@
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 package C4::AR::Reportes;
 
 
@@ -112,7 +131,6 @@ sub altasRegistro {
 
     $cat_registro_n3_count = $cat_registro_n3_count->[0]->{'agregacion_temp'};
 
-#Este for es sólo para hacer el array de id1, para que se puedar usar armarInfoNivel1
     my @id1_array;
 
     foreach my $record (@$cat_registro_n3) {
@@ -144,7 +162,6 @@ sub getReportFilter {
 
 }
 
-# FUNCIONES PARA ESTADISTICAS CON OpenFlashChart2
 sub random_color {
     my @hex;
     for ( my $i = 0 ; $i < 64 ; $i++ ) {
@@ -347,7 +364,6 @@ sub listarItemsDeInventarioEntreSigTops{
     my($result)= armarResult($cat_nivel3_array_ref);
 
 
-#     my($info_reporte)= armarInforme($cat_nivel3_array_ref);
 
     return ($cat_nivel3_array_ref_count, $result);
 }
@@ -441,8 +457,6 @@ sub listarItemsDeInventarioEntreBarcodes{
                                                                                             query => [  
                                                                                                    codigo_barra => { between => [ $desde_barcode, $hasta_barcode ] },
                                                                                                    marc_record => { like => '%'.$campoRegMARC.'%' }
-#                                                                                                    codigo_barra => { ge => $desde_barcode },
-#                                                                                                    codigo_barra => { le =>  $hasta_barcode },
                                                                                             ], 
                                                                                             sort_by => ['codigo_barra'],
                                                                                             limit   => $cantR,
@@ -612,9 +626,7 @@ sub armarInforme{
 
     my @informe;
 
-#     my @headers= ("Código de barra", "Signatura Topográfica", "Autor", "Título", "Editor", "Edición", "UI Origen", "UI Poseedora");
 
-#     push(@informe,\@headers);
 
     foreach my $reg_nivel_3 (@$cat_nivel3_array_ref){
           my %hash_result;
@@ -623,7 +635,6 @@ sub armarInforme{
 
           $hash_result{'codigo_barra'}= $reg_nivel_3->getCodigoBarra; 
           $hash_result{'signatura'}= $reg_nivel_3->getSignatura;
-# @$nivel2[0]
 
           $hash_result{'autor'}= $nivel1->getAutor;
           $hash_result{'titulo'}= $nivel1->getTitulo;
@@ -1004,8 +1015,6 @@ sub getBusquedasOPAC {
         {
             push( @filtros,
             
-#           FIXME: ver si anda! cambiado 16/05 porque ahora no esta mas el cod_categoria, esta el id. 
-#               ( 'usr_socio.cod_categoria' => { eq => $tipo_socio } ) );
 
                 ( 'usr_socio.id_categoria' => { eq => $tipo_socio } ) );
         }
@@ -1089,8 +1098,6 @@ sub registroDeUsuarios {
 
     if ($categoria) {
     
-#       FIXME: ver si anda! cambiado 16/05 porque ahora no esta mas el cod_categoria, esta el id. 
-#       push( @filtros, ( 'cod_categoria' => { eq => $categoria } ) );
 
         push( @filtros, ( 'id_categoria' => { eq => $categoria } ) );
     }
@@ -1529,9 +1536,6 @@ sub getBusquedasDeUsuario {
     }
 
      push( @filtros,( and => [@filtro] ));
-#     if ($statistics){
-# 
-#     }
 
     my $resultsarray = C4::Modelo::RepHistorialBusqueda::Manager->get_rep_historial_busqueda( 
                                                                       query   => \@filtros,
@@ -1700,7 +1704,6 @@ sub getReservasCirculacion {
     my @filtros;
     my $resultsarray;
 
-#    my @filtro;
     C4::AR::Debug::debug("Reportes => tipo => ".$tipoDoc);
 
     #OK
@@ -2010,14 +2013,11 @@ sub reportToPDF{
                       destination        => "/home/dan/my_fantastic_report.pdf",
                       paper              => "A4",
                       orientation        => "portrait",
-#                     template           => '/home/dan/my_page_template.pdf',
                       font_list          => [ "Verdana" ],
                       default_font       => "Verdana",
                       default_font_size  => "10",
                       info               => {
                                                 Author      => "Meran",
-#                                                 Keywords    => "Fantastic, Amazing, Superb",
-#                                                 Subject     => "Stuff",
                                                 Title       => "Reporte"
                                             }
 
@@ -2059,7 +2059,6 @@ sub reportToPDF{
 
     $pdf->render_data( $data );
     C4::AR::PdfGenerator::imprimirFinal($pdf );
-#     $pdf->save;
 
 
 }
@@ -2073,13 +2072,11 @@ sub exportarReporte {
       my $formato_exportacion= $params->{'formato_exportacion'};
 
       if ($formato_exportacion eq "PDF"){
-#           LLAMA A LA FUNCION QUE GENERA EL PDF
             reportToPDF($datos,  $cantidad_datos, $headers);
       } elsif  ($formato_exportacion eq "XLS")  {
            
         
       } else {
-#          LLAMA A LA FUNCION QUE GENERA EL GRAFICO
 
       }
       

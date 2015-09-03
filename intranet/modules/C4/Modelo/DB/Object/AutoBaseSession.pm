@@ -1,111 +1,86 @@
-package C4::Modelo::DB::Object::AutoBaseSession;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::DB::Object::AutoBaseSession;
 use base 'Rose::DB::Object';
-
 use C4::Modelo::DB::AutoBase1;
 use base qw(Rose::DB::Object::Helpers);
 sub init_db { C4::Modelo::DB::AutoBase1->new}
-
 =item
 Imprime el nombre de la clase
 =cut
  
 sub getPk{
-
     my ($self) = shift;
-
     return (''.$self->meta->primary_key);
 }
-
 sub getByPk{
-
     my ($self) = shift;
     my ($value_id)=@_;
-
     my @filtros;
-
     my $pk = $self->meta->primary_key;
-
     my $self_like = $self->meta->class->new($pk => $value_id);
   
     $self_like->load();
-
     return($self_like);
 }
-
 sub replaceByThis{
-
     my ($self) = shift;
     my ($new_id)=@_;
-
     my @filtros;
-
     my ($referer_involved,$data_array) = C4::AR::Referencias::mostrarReferencias($self->getAlias(),$self->getPkValue);
-
-
     foreach my $tabla (@$data_array){
         
         my ($clave_tabla_referente,$tabla_referente) = C4::AR::Referencias::getTablaInstanceByTableName($tabla->{'tabla_object'}->getTabla_referente);
-
         $tabla_referente->replaceBy($tabla->{'tabla_object'}->getCampo_referente,$self->getPkValue,$new_id);        
     }
-
 }
-
-
 sub getRelated{
-
     my ($self)=shift;
     my @filtros;
-
     my $related = $self->getAll(0,0,1);
-
     return ($related);
 }
-
-
-
 sub getPkValue{
-
     my ($self) = shift;
-
     return ($self->{$self->meta->primary_key});
 }
-
 sub getInvolvedCount{
  
-# ESTE METODO LO DEBEN IMPLEMENTAR TODAS LAS CLASES QUE USEN ALGUNA REFERENCIA, SI O SI
      return (0);
 }
-
 sub toString{
     my ($self)=shift;
-
     return $self->meta->class;
 }
-
 sub getTableName{
-
     my ($self)=shift;
-
     return $self->meta->table;
-
 }
 =item
-
     CHAIN OF RESPONSIBILITY
-
     HandleReques = createFromAlias, implementado como un  TemplateMethod compuesto por 
-
     createFromAlias (TemplateMethod), nextChain, nextMember (HooksMethods)
-
 =cut
 sub createFromAlias{
     my ($self)=shift;
     my $classAlias = shift;
-#     open A,">>/tmp/debug.txt";
-#     print A "\n\n\nSELF->getAlias: ".$self->getAlias."  // INCOMING ALIAS: ".$classAlias."\n\n\n";
-#     close A;
     if ($classAlias eq $self->getAlias){
         return ($self);
     }else
@@ -113,7 +88,6 @@ sub createFromAlias{
             return($self->nextChain($classAlias));
         }
 }
-
 sub nextChain{
     my ($self)=shift;
     my $classAlias = shift;
@@ -125,16 +99,10 @@ sub nextChain{
             return($self->nextMember->createFromAlias($classAlias));
         }
 }
-
-
 sub printAsTableElement{
-
     my ($self)=shift;
     my $classAlias = shift;
-
-
     my $campos = $self->getCamposAsArray;
-
     my $td;
   
     foreach my $campo (@$campos){
@@ -143,9 +111,6 @@ sub printAsTableElement{
     }
     return ($td);
 }
-
-
-
 =item
 Esta funcion devuelve los campos de la tabla del objeto llamador
 =cut
@@ -153,42 +118,29 @@ sub getCamposAsHash{
     my ($self)=shift;
     my $arregloJSON;
     my $camposArray = $self->meta->columns;
-
     foreach my $campo (@$camposArray){
-## FIXME ."" se esta concatenando $campo con "" pq sino se rompe, cosa de locos
         push (@arregloJSON, {'campo' => $campo."" });
     }
-
     return(\@arregloJSON);
 }
-
 sub getCamposAsArray{
     my ($self)=shift;
-
     my $arreglo;
     my $camposArray = $self->meta->columns;
-
     my @campos_sin_id;
-
     foreach my $campo (@$camposArray){
       if ($campo ne 'id'){
           push (@campos_sin_id,$campo);
       }
     
     }    
-
     return(\@campos_sin_id);
 }
-
-
 sub getCampos{
     my ($self)=shift;
     my $fieldsString = &C4::AR::Utilidades::joinArrayOfString($self->meta->columns);
-
     return($fieldsString);
 }
-
-
 sub getAlias{
     use C4::Modelo::PrefTablaReferencia;
     my ($self)=shift;
@@ -196,58 +148,42 @@ sub getAlias{
     my $prefTablaRef = C4::Modelo::PrefTablaReferencia->new();
     return($prefTablaRef->getAliasForTable($nombreTabla));
 }
-
 =item
 Devuelve si es o no la ultima tabla de la cadena de referencias
 =cut
 sub lastTable {
     return (0);
 }
-
 sub default {
     return (0);
 }
-
 sub log{
     my ($self)=shift;
     use C4::AR::Debug;
     my ($data, $metodoLlamador)=@_;
-
     C4::AR::Debug::log($self, $data, $metodoLlamador);
 }
-
 sub debug{
     my $self = shift;
-
 	foreach my $msg (@_){
 		C4::AR::Debug::debugObject($self, $msg);
 	}
 }
-
 sub sortByString{
-
     my ($self)=shift;
     my ($campo)=@_;
     my $fieldsString = " ".$self->getCampos;
-# 	C4::AR::Debug::debug("AutoBase2 => fieldsString: ".$fieldsString);
     my $index = rindex $fieldsString," ".$campo." ";
     if ($index != -1){
-# 		C4::AR::Debug::debug("AutoBase2 => sortByString=> retrun: ".$campo);
         return ($campo);
     }
     else
         {
-# 			C4::AR::Debug::debug("AutoBase2 => sortByString=> antes de self->defaultSort:");
-# 			C4::AR::Debug::debug("AutoBase2 => sortByString=> self->defaultSort: ".$self->defaultSort);
             return ($self->defaultSort);
         }
 }
-
-
 =item
 $self->meta
-
-
        key: column_db_value_hash_keys => value:
        key: nonlazy_column_names_string_sql => value:
        key: db => value:
@@ -316,8 +252,5 @@ $self->meta
        key: column_rw_method => value: HASH(0xa491acc)
        key: lazy_column_names => value:
        key: method_columns => value:
-
 =cut
-
-
 1;

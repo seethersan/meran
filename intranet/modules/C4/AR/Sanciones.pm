@@ -1,9 +1,23 @@
-package C4::AR::Sanciones;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
-# Modulo para hacer calculos de dias a sancionar
+# This file is part of Meran.
 #
-
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::Sanciones;
 use strict;
 require Exporter;
 use C4::Context;
@@ -11,7 +25,6 @@ use C4::Date;
 use Date::Manip;
 use C4::Modelo::CircSancion;
 use C4::Modelo::CircSancion::Manager;
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw( 
@@ -26,14 +39,11 @@ use vars qw(@EXPORT @ISA);
     diasDeSancion
     getTipoSancion
 );
-
-
 =item 
 Busca las sanciones segun lo ingresado en el cliente: apellido, nombre, nro_socio.
 Tambien filtrando por fecha, para mostrar las sanciones actuales.
 =cut
 sub getSancionesLike {
-
     my ($str,$ini,$cantR) = @_;
     my $sanciones_array_ref;
     my @filtros;
@@ -44,11 +54,9 @@ sub getSancionesLike {
     my @searchstring_array= split(' ',$str);
     
     C4::AR::Utilidades::printARRAY(\@searchstring_array);
-
     #Primero filtro sanciones
     
     push (@filtros,(fecha_comienzo  => { le => $hoy },fecha_final     => { ge => $hoy}));
-
     foreach my $s (@searchstring_array){ 
                 push (  @filtros, ( or   => [   
                                                 'socio.persona.nombre'    => { like => $s.'%'},   
@@ -61,7 +69,6 @@ sub getSancionesLike {
                                             ],
          ));
     }
-
     $sanciones_array_ref = C4::Modelo::CircSancion::Manager->get_circ_sancion( 
                                         query           => \@filtros,
                                         select          => ['circ_sancion.*'],
@@ -74,15 +81,10 @@ sub getSancionesLike {
                                                                                             with_objects  => ['socio','socio.persona','nivel3'],
                                                                                            ); 
   return ($sanciones_array_ref_count,$sanciones_array_ref);
-
 }
-
-
-
 sub tieneSanciones {
   #Se buscan todas las sanciones actuales de un socio
   my ($nro_socio)=@_;
-
   my $dateformat = C4::Date::get_date_format();
   my $hoy=C4::Date::format_date_in_iso(ParseDate("today"), $dateformat);
   
@@ -102,32 +104,23 @@ sub tieneSanciones {
     return(\@$sanciones_array_ref);
   }
 }
-
-
 sub tieneSancionPendiente {
   #Se buscan todas las sanciones pendientes de un socio
   my ($nro_socio,$db)=@_;
-
     use C4::Modelo::CircSancion::Manager;
     my $sanciones_array_ref = C4::Modelo::CircSancion::Manager->get_circ_sancion( db=> $db,
                             query => [ nro_socio => { eq => $nro_socio },
                                        fecha_comienzo => { eq => undef },
                                        fecha_final => { eq => undef }] 
                             );
-
   if (scalar($sanciones_array_ref->[0])){
       return($sanciones_array_ref->[0] || 0);
   }else{
       return (0);
   }
 }
-
-
 sub permisoParaPrestamo {
-#Esta funcion retorna un par donde el primer parametro indica si el usuario puede realizar una reserva o se le puede realizar un prestamo y el segundo indica en caso de e
-#star sancionado la fecha en la que la sancion finaliza
     my ($nro_socio, $tipo_prestamo, $es_reserva) = @_;
-
     my $deudaOsancion   = 0; #Se supone que no esta sancionado
     my $hasta           = undef;
     my $cod_error;
@@ -148,22 +141,17 @@ sub permisoParaPrestamo {
         $cod_error      = 'S205';
         C4::AR::Debug::debug("Sanciones::permisoParaPrestamo => estaSancionado ");
     }
-
     $status_hash{'deudaSancion'} = $deudaOsancion;
     $status_hash{'hasta'}        = $hasta;
     $status_hash{'cod_error'}    = $cod_error;
     
     return(\%status_hash);
 }
-
-
 sub estaSancionado {
   #Esta funcion determina si un usuario ($nro_socio) tiene derecho (o sea no esta sancionado) a retirar un ejemplar para un tipo de prestamo ($tipo_prestamo)
   my ($nro_socio, $tipo_prestamo)=@_;
-
   my $dateformat = C4::Date::get_date_format();
   my $hoy=C4::Date::format_date_in_iso(ParseDate("today"), $dateformat);
-
   my $sanciones_array_ref = C4::Modelo::CircSancion::Manager->get_circ_sancion (
                                                                                 query => [ 
                                                                                     nro_socio     => { eq => $nro_socio },
@@ -177,7 +165,6 @@ sub estaSancionado {
   foreach my $sancion (@$sanciones_array_ref){
     #Es una sanción Manual? Se aplica a todos los tipos de préstamo!
     if ( $sancion->getTipo_sancion eq -1 ){ return $sancion; }
-
     foreach my $tipo ($sancion->ref_tipo_prestamo_sancion){
       if ( $tipo->getTipo_prestamo eq $tipo_prestamo ){ return $sancion; }
     }
@@ -185,13 +172,10 @@ sub estaSancionado {
   
   return (0);
 }
-
 sub tieneLibroVencido {
   #Esta funcion determina si un usuario ($nro_socio) tiene algun biblio vencido que no le permite realizar reservas o prestamos
   my ($nro_socio,$db)=@_;
-
   my $prestamos_array_ref=C4::AR::Prestamos::getPrestamosDeSocio($nro_socio,$db);
-
   my $dateformat = C4::Date::get_date_format();
   my $hoy=C4::Date::format_date_in_iso(ParseDate("today"), $dateformat);
   foreach my $prestamo (@$prestamos_array_ref) {
@@ -203,12 +187,8 @@ sub tieneLibroVencido {
   }
   return(0);
 }
-
 sub getSociosSancionados {
-#Esta funcion retorna los socios sancionados para un determinado tipo de prestamo o su tipo_prestamo es 0 (o sea es una sancion por 
-#no retirar una reserva)
   my ($tipo_prestamo)=@_;
-
   my $dateformat = C4::Date::get_date_format();
   my $hoy=C4::Date::format_date_in_iso(ParseDate("today"), $dateformat);
   
@@ -224,26 +204,15 @@ sub getSociosSancionados {
                                                                 select => ['nro_socio'],
                                                                 with_objects => [ 'ref_tipo_prestamo_sancion' ]
                   );
-
   my @socios_sancionados;
   foreach my $sancion (@$sanciones_array_ref){
     push (@socios_sancionados,$sancion->getNro_socio);
   }
-
   return(\@socios_sancionados);
 }
-
-
 sub diasDeSancion {
-# Retorna la cantidad de dias de sancion que corresponden a una devolucion
-# Si retorna 0 (cero) entonces no corresponde una sancion
-# Recibe la fecha de devolucion (returndate), la fecha hasta la que podia devolverse (date_due), la categoria del usuario (categorycode) y el tipo de prestamo (issuecode)
     my ($fecha_devolucion, $fecha_vencimiento, $categoria, $tipo_prestamo)=@_;
-
-
       C4::AR::Debug::debug("EN DiasDeSancion ?");
-
-
     if (Date_Cmp($fecha_vencimiento, $fecha_devolucion) >= 0) {
         #Si es un prestamo especial debe devolverlo antes de una determinada hora
         if ($tipo_prestamo ne 'ES'){return(0);}
@@ -262,8 +231,6 @@ sub diasDeSancion {
             }
         }#else ES
     }#if Date_Cmp
-
-#Corresponde una sancion vamos a calcular de cuantos dias!
 C4::AR::Debug::debug("Corresponde una sancion vamos a calcular de cuantos dias!");
   use C4::Modelo::CircTipoSancion::Manager;
   my $tipo_sancion_array_ref = C4::Modelo::CircTipoSancion::Manager->get_circ_tipo_sancion ( 
@@ -272,16 +239,12 @@ C4::AR::Debug::debug("Corresponde una sancion vamos a calcular de cuantos dias!"
                                                                             categoria_socio     => { eq => $categoria },
                                                                         ],
                                     );
-
  C4::AR::Debug::debug("HAY REGLAS? ");
-
  if (!$tipo_sancion_array_ref->[0]){
     C4::AR::Debug::debug("NO HAY REGLAS!!!! DIAS DE SANCION 0!!! ");  
     return 0;
  }
-
   my $reglas_tipo_array_ref=$tipo_sancion_array_ref->[0]->ref_regla_tipo_sancion;
-
 =item
 Date-Date calculations
 $delta  = $date->calc($date2 [,$subtract] [,$mode]);
@@ -295,20 +258,14 @@ If $subtract is non-zero, the delta produced is:
   my $err;
   my $delta= Date::Manip::DateCalc(ParseDate($fecha_vencimiento),ParseDate($fecha_devolucion),\$err,0);
   
-
   #FIXME esta horrible, agarro las horas y las divido por 24!!!
   my $dias;
-
   $dias = Date::Manip::Delta_Format($delta,2,"%.2hhs") / 24;
-
   if ( (!$dias)||($dias<=0)){
     $dias = Date::Manip::Delta_Format($delta,2,"%dh");
   }
-
   C4::AR::Debug::error("HAY ERROR?????    ".$err);
-
   C4::AR::Debug::error("CUANTOS DIAS??? FECHA: ".$fecha_vencimiento." DEVOLUCION: ".$fecha_devolucion." DELTA: ".$delta." DIAS: ".$dias);
-
   #Si es un prestamo especial, si se pasa de la hora se toma como si se pasara un dia
   if ($tipo_prestamo eq 'ES'){$dias++;}
 C4::AR::Debug::debug("DIAS Excedido -->>> ".$dias);
@@ -317,7 +274,6 @@ C4::AR::Debug::debug("DIAS Excedido -->>> ".$dias);
     
   foreach  my $regla_tipo (@$reglas_tipo_array_ref) {
      C4::AR::Debug::error("REGLAS DE SANCION -->>> Orden ".$regla_tipo->getOrden);
-
         if($diasExcedido > 0){
             #($regla_tipo->getCantidad == 0) ===> INFINITO
             for (my $i=0; (($i < $regla_tipo->getCantidad) || ($regla_tipo->getCantidad == 0)) && ($diasExcedido > 0); $i++) {
@@ -331,29 +287,19 @@ C4::AR::Debug::debug("DIAS Excedido -->>> ".$dias);
             return($cantidadDeDias);
         }
     }
-
 return($cantidadDeDias);
-
 }
-
-
 sub getTipoSancion{
   #Esta funcion recupera el tipo de sancion a partir del tipo de prestamo y la categoria del usuario
     my ($tipo_prestamo, $categoria_socio,$db)=@_;
     my @filtros;
     my $tipo_sanciones_array_ref;
-
-
     if ( ($tipo_prestamo) && (($tipo_prestamo ne C4::AR::Filtros::i18n("SIN SELECCIONAR"))) ){
       push (@filtros, (tipo_prestamo => {eq =>$tipo_prestamo}) );
-
     }
-
     if ( ($categoria_socio) && (($categoria_socio ne C4::AR::Filtros::i18n("SIN SELECCIONAR"))) ){
       push (@filtros, (categoria_socio => {eq =>$categoria_socio}) );
-
     }
-
     if($db){ #Si viene $db es porque forma parte de una transaccion
         $tipo_sanciones_array_ref = C4::Modelo::CircTipoSancion::Manager->get_circ_tipo_sancion (
                                                                     db => $db,
@@ -364,10 +310,7 @@ sub getTipoSancion{
                                                                     query => \@filtros,
                                     );
     }
-
     my $tipo_sancion=undef;
-
-
     if ($tipo_sanciones_array_ref->[0]){
         $tipo_sancion = $tipo_sanciones_array_ref->[0];
     }else{
@@ -375,20 +318,14 @@ sub getTipoSancion{
       $tipo_sancion->setCategoria_socio($categoria_socio);
       $tipo_sancion->setTipo_prestamo($tipo_prestamo);
       $tipo_sancion->save();
-
     }
-
     return($tipo_sancion);
 }
-
-
 sub sanciones {
  #Esta funcion muestra toda las sanciones que hay
   my ($orden,$ini,$cantR) = @_;
-
   my $dateformat = C4::Date::get_date_format();
   my $hoy        = C4::Date::format_date_in_iso(ParseDate("today"), $dateformat);
-
   my $sanciones_array_ref = C4::Modelo::CircSancion::Manager->get_circ_sancion (   
                                                                     query => [ 
                                                                             fecha_comienzo  => { le => $hoy },
@@ -406,17 +343,12 @@ sub sanciones {
                                                                                                     fecha_final     => { ge => $hoy}, 
                                                                                             ]); 
   return ($sanciones_array_ref_count,$sanciones_array_ref);
-
 }
-
-
 =item
 Elimina las sanciones 
 =cut
-
 sub eliminarSanciones{
   my ($userid,$sanciones_ids) = @_;
-
     my @infoMessages;
     my %messageObj;
   my ($msg_object) = C4::AR::Mensajes::create();
@@ -424,7 +356,6 @@ sub eliminarSanciones{
   my $db           = $sancionTEMP->db;
   $db->{connect_options}->{AutoCommit} = 0;
   $db->begin_work;
-
   foreach my $id_sancion (@$sanciones_ids) {
     my $sancion = C4::Modelo::CircSancion->new(id_sancion => $id_sancion, db => $db);
   
@@ -433,7 +364,6 @@ sub eliminarSanciones{
     my $socio_temp       = C4::AR::Usuarios::getSocioInfoPorNroSocio($socio_sancionado);
     my $nombre_persona   = $socio_temp->persona->getNombre();
     my $apellido_persona = $socio_temp->persona->getApellido();
-
     if(!$msg_object->{'error'}){
         eval{ 
             $sancion->eliminar_sancion($userid);
@@ -450,24 +380,17 @@ sub eliminarSanciones{
         $msg_object->{'error'}= 1;
         C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'S203', 'params' => [$apellido_persona, $nombre_persona, $socio_sancionado]} ) ;
     }
-
   }
-
   $db->{connect_options}->{AutoCommit} = 1;
-
   return ($msg_object);
  }
-
-
 =item
   sub actualizarTiposPrestamoQueAplica
   
   Esta funcion actualiza los tipos de prestamo sobre los cuales se aplica la sancion de un determinado tipo de prestamo y categoria de usuario
 =cut
-
 sub actualizarTiposPrestamoQueAplica {
     my ($tipo_prestamo,$categoria_socio,$tiposQueAplica) = @_;
-
     my @infoMessages;
     my %messageObj;
     my ($msg_object)    = C4::AR::Mensajes::create();
@@ -477,7 +400,6 @@ sub actualizarTiposPrestamoQueAplica {
     $db->begin_work;
     #Busco el tipo de sanción
     my $tipo_sancion    = C4::AR::Sanciones::getTipoSancion($tipo_prestamo, $categoria_socio,$db);
-
   eval {  
         $tipo_sancion->actualizarTiposPrestamoQueAplica($tiposQueAplica,$db);
         $db->commit;
@@ -490,18 +412,14 @@ sub actualizarTiposPrestamoQueAplica {
     $db->rollback;
         $msg_object->{'error'}= 1;
         C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP014', 'params' => []} ) ;
-
     }
    
     $db->{connect_options}->{AutoCommit} = 1;
-
     return ($msg_object);
 }
-
 sub getReglaSancion{
   #Esta funcion recupera una regla si existe    
     my ($dias_sancion,$dias_demora)=@_;
-
    use C4::Modelo::CircReglaSancion::Manager;
    my $regla_sancion_array_ref = C4::Modelo::CircReglaSancion::Manager->get_circ_regla_sancion(
                                                               query => [ 
@@ -509,29 +427,18 @@ sub getReglaSancion{
                                                                       dias_demora     => { eq => $dias_demora},
                                                                         ],
                                                                         );
-
     if ($regla_sancion_array_ref->[0]) {return $regla_sancion_array_ref->[0];}
-
   return 0;
-
 }
-
-
 sub getReglasSancion{
   #Esta funcion recupera todas las reglas 
-
    use C4::Modelo::CircReglaSancion::Manager;
    my $reglas_sancion_array_ref = C4::Modelo::CircReglaSancion::Manager->get_circ_regla_sancion(
                                                               sort_by => 'dias_demora , dias_sancion'
                                                                         );
-
     if ($reglas_sancion_array_ref->[0]) {return $reglas_sancion_array_ref;}
-
   return 0;
-
 }
-
-
 sub getReglasSancionNoAplicadas{
   #Esta funcion recupera todas las reglas que no son aplicadas al tipo de sancion actual
    my ($tipo_sancion)=@_;
@@ -542,9 +449,7 @@ sub getReglasSancionNoAplicadas{
    my $reglas_tipo_sancion= C4::AR::Sanciones::getReglasTipoSancion($tipo_sancion);
   
   if ($reglas_sancion_array_ref) {
-
    my @reglas_resultado;
-
    foreach  my $regla1 (@$reglas_sancion_array_ref) {
             my $existe=0;
            if($reglas_tipo_sancion){
@@ -554,18 +459,13 @@ sub getReglasSancionNoAplicadas{
            }
             if(!$existe){push (@reglas_resultado,$regla1);}
    }
-
    if ($reglas_resultado[0]) {return \@reglas_resultado;}
   }
-
   return 0;
-
 }
-
 sub getReglasTipoSancion{
   #Esta funcion recupera las reglas de un tipo de sancion
    my ($tipo_sancion)=@_;
-
   if($tipo_sancion){
    use C4::Modelo::CircReglaTipoSancion::Manager;
    my $reglas_sanciones_array_ref = C4::Modelo::CircReglaTipoSancion::Manager->get_circ_regla_tipo_sancion(
@@ -575,19 +475,14 @@ sub getReglasTipoSancion{
                                                                     sort_by      => 'orden ASC',
                                                                     require_objetcs => ['ref_regla','sancion'],
                                     );
-
     if ($reglas_sanciones_array_ref->[0]) {
         return ($reglas_sanciones_array_ref);
       }
   }
   return (0,0);
-
 }
-
 sub agregarReglaTipoSancion {
-#Esta funcion agrega una regla a un tipo de sancion 
  my ($regla_sancion,$orden,$cantidad,$tipo_prestamo, $categoria_socio)=@_;
-
     my @infoMessages;
     my %messageObj;
     my ($msg_object)= C4::AR::Mensajes::create();
@@ -596,7 +491,6 @@ sub agregarReglaTipoSancion {
     $db->{connect_options}->{AutoCommit} = 0;
     $db->begin_work;
     my $tipo_sancion=&C4::AR::Sanciones::getTipoSancion($tipo_prestamo, $categoria_socio);
-
     eval{
          $regla_tipo_sancion->setTipo_sancion($tipo_sancion->getTipo_sancion);
          $regla_tipo_sancion->setRegla_sancion($regla_sancion);
@@ -613,17 +507,11 @@ sub agregarReglaTipoSancion {
                 $msg_object->{'error'}= 1;
                 C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP016', 'params' => []} ) ;
                 }
-
     $db->{connect_options}->{AutoCommit} = 1;
-
     return ($msg_object);
 }
-
-
 sub eliminarReglaTipoSancion {
-#Esta funcion elimina una regla a un tipo de sancion 
  my ($tipo_sancion,$regla_sancion)=@_;
-
     my @infoMessages;
     my %messageObj;
     my ($msg_object)= C4::AR::Mensajes::create();
@@ -644,18 +532,11 @@ sub eliminarReglaTipoSancion {
                 $msg_object->{'error'}= 1;
                 C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP018', 'params' => []} ) ;
                 }
-
     $db->{connect_options}->{AutoCommit} = 1;
-
     return ($msg_object);
 }
-
-
-
 sub agregarReglaSancion {
-#Esta funcion agrega una regla 
  my ($dias_sancion,$dias_demora)=@_;
-
     my @infoMessages;
     my %messageObj;
     my ($msg_object)= C4::AR::Mensajes::create();
@@ -686,32 +567,24 @@ sub agregarReglaSancion {
                 }
         $db->{connect_options}->{AutoCommit} = 1;
         }
-
     return ($msg_object);
 }
 sub cantUtilizacionReglaSancion {
-#Esta funcion retorna si se esta utilizando o no una regla en particular
  my ($regla_sancion)=@_;
-
   use C4::Modelo::CircReglaTipoSancion::Manager;
   my $reglas = C4::Modelo::CircReglaTipoSancion::Manager->get_circ_regla_tipo_sancion_count (
                                                                     query => [ 
                                                                          regla_sancion => { eq => $regla_sancion},
                                                                         ],
                                     );
-
   return $reglas;
 }
-
 sub eliminarReglaSancion {
-#Esta funcion elimina una regla
  my ($regla_sancion)=@_;
-
     my @infoMessages;
     my %messageObj;
     my ($msg_object)= C4::AR::Mensajes::create();
     my $cant_regla=C4::AR::Sanciones::cantUtilizacionReglaSancion($regla_sancion);
-
     if ($cant_regla > 0 ) {
     #Esta siendo utilizada!!
          $msg_object->{'error'}= 1;
@@ -737,19 +610,14 @@ sub eliminarReglaSancion {
                     }
         $db->{connect_options}->{AutoCommit} = 1;
     }
-
     return ($msg_object);
 }
-
 sub getHistorialSanciones{
   #Esta funcion recupera las sanciones históricas de un socio
    my ($nro_socio,$ini,$cantR,$orden)=@_;
-
     $cantR  = $cantR || 10;
     $ini    = $ini || 0;
-
   if($nro_socio){
-
     my $err         = "Error con la fecha";
     my $dateformat  = C4::Date::get_date_format();
     my $hoy         = C4::Date::format_date_in_iso(ParseDate("today"), $dateformat);
@@ -757,7 +625,6 @@ sub getHistorialSanciones{
     my @filtros;
     push(@filtros, and  => [ nro_socio      => { eq => $nro_socio }, 
                              fecha_comienzo    => { lt => $hoy }]);
-
     use C4::Modelo::RepHistorialSancion::Manager;
     my $historial_sanciones_array_ref = C4::Modelo::RepHistorialSancion::Manager->get_rep_historial_sancion (   
                                                                         query => \@filtros,
@@ -768,27 +635,20 @@ sub getHistorialSanciones{
                                 );
     my $historial_sanciones_array_ref_count = C4::Modelo::RepHistorialSancion::Manager->get_rep_historial_sancion_count(query => \@filtros,);
     return ($historial_sanciones_array_ref_count, $historial_sanciones_array_ref);
-
   }
   return 0;
-
 }
-
-
 =item
     Aplicar Sancion Manual a Socio
 =cut
 sub aplicarSancionManualSocio {
-
     my ($params)    = @_;
     my $msg_object  = C4::AR::Mensajes::create();
     my ($socio)     = C4::AR::Usuarios::getSocioInfoPorNroSocio($params->{'nro_socio'});
-
     if ($socio){
         my $db = $socio->db;
         $db->{connect_options}->{AutoCommit} = 0;
         $db->begin_work;
-
         eval {
             #$socio->setCredentialType($params->{'credenciales'});
               C4::AR::Debug::debug("***__________________________CALCULO COMIENZO SANCION MANUAL__________________***");   
@@ -813,12 +673,10 @@ sub aplicarSancionManualSocio {
                 $paramsSancion{'motivo_sancion'}    = $params->{'motivo'};
                 $sancion->insertar_sancion(\%paramsSancion);
               }
-
             $db->commit;
             C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'S207', 'params' => []} ) ;
             
         };
-
         if ($@){
             C4::AR::Mensajes::printErrorDB($@, 'B423',"INTRA");
             $msg_object->{'error'}= 1;
@@ -829,9 +687,6 @@ sub aplicarSancionManualSocio {
     }
     return ($msg_object);
 }
-
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__

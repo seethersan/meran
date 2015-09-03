@@ -1,5 +1,23 @@
-package C4::AR::Novedades;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::Novedades;
 use strict;
 use HTML::Entities;
 require Exporter;
@@ -7,7 +25,6 @@ use C4::Modelo::SysNovedad;
 use C4::Modelo::SysNovedad::Manager;
 use C4::Modelo::SysNovedadNoMostrar;
 use C4::Modelo::SysNovedadNoMostrar::Manager;
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw( 
@@ -22,10 +39,7 @@ use vars qw(@EXPORT @ISA);
     modPortadaOpac
     ordenPortadaOpac
 );
-
-
 sub agregar{
-
     my ($parametros)= @_;
     my $novedad     = C4::Modelo::SysNovedad->new();
     my $msg_object  = C4::AR::Mensajes::create();
@@ -42,8 +56,6 @@ sub agregar{
     my $imagenes_novedades_opac;   
     
     eval{
-
-
         #agregamos primero la novedad
         #para sacarle el id despues
         $novedad->agregar($datosNovedad);
@@ -61,7 +73,6 @@ sub agregar{
                 
             }
         }
-
         $novedad->save();
         C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'NOV00', 'intra'} );
         
@@ -78,11 +89,9 @@ sub agregar{
                 $imagenes_novedades_opac->saveImagenNovedad($image_name, $novedad->getId());    
                 $msg_object->{'error'}= 0;
             }
-
         }
         
     };
-
     if ($@){
     C4::AR::Debug::debug("ERROR  : " . $@);
        $msg_object->{'error'}= 1;
@@ -91,27 +100,19 @@ sub agregar{
     }
      
     return ($msg_object, $novedad);
-
 }
-
-
 sub editar{
-
     my ($input, $arrayNewFiles, $arrayDeleteImages) = @_;
     
     my $msg_object  = C4::AR::Mensajes::create();
-
     #novedad
     my $novedad     = getNovedad($input->param('novedad_id'));
-
     $novedad->setTitulo($input->param('titulo'));  
     $novedad->setContenido($input->param('contenido'));
     $novedad->setCategoria($input->param('categoria'));
     $novedad->setLinks($input->param('links'));
     $novedad->setNombreAdjunto($input->param('nombreAdjunto'));
-
     my $paramAdjunto = $input->upload('adjunto');
-
     if($paramAdjunto){
         my $adjuntoName = C4::AR::UploadFile::uploadAdjuntoNovedadOpac($paramAdjunto);
     
@@ -126,14 +127,12 @@ sub editar{
     $novedad->save();
     #fin novedad
     
-
     #imagenes a borrar
     eval{
     
         my $dirPath = C4::Context->config("novedadesOpacPath");
         
         if(scalar(@$arrayDeleteImages)){   
-
             foreach my $file ( @$arrayDeleteImages ){
             
                 C4::AR::Debug::debug("imagen a eliminar : " . $file);
@@ -169,7 +168,6 @@ sub editar{
                 if(!$image_name){
                     $msg_object->{'error'}= 1;
                     C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'UP13', 'intra'} );
-
                 }else{
                     $imagenes_novedades_opac = C4::Modelo::ImagenesNovedadesOpac->new();                 
                     $imagenes_novedades_opac->saveImagenNovedad($image_name, $input->param('novedad_id'));     
@@ -185,11 +183,8 @@ sub editar{
            
     }
     #fin nuevas imagenes
-
     return ($msg_object);
 }
-
-
 sub listar{
     my ($ini,$cantR) = @_;
     my $novedades_array_ref = C4::Modelo::SysNovedad::Manager->get_sys_novedad( 
@@ -197,7 +192,6 @@ sub listar{
                                                                                 limit   => $cantR,
                                                                                 offset  => $ini,
                                                                               );
-
     my $novedades_array_ref_count = C4::Modelo::SysNovedad::Manager->get_sys_novedad_count();
     if(scalar(@$novedades_array_ref) > 0){
         return ($novedades_array_ref_count, $novedades_array_ref);
@@ -205,18 +199,15 @@ sub listar{
         return (0,0);
     }
 }
-
 =item
     Esta funcion obtiene las novedades que no hay que mostrarle al socio recibido como parametro
 =cut
 sub getNovedadesNoMostrar{
-
     my ($nro_socio) = @_;
     
     my @filtros;
     
     push (@filtros, (usuario_novedad => {eq => $nro_socio}) );
-
     my $novedades_array_ref = C4::Modelo::SysNovedadNoMostrar::Manager->get_sys_novedad_no_mostrar( query => \@filtros,
                                                                               );
     if(scalar(@$novedades_array_ref) > 0){
@@ -225,12 +216,10 @@ sub getNovedadesNoMostrar{
         return (0,0);
     }
 }
-
 =item
     Esta funcion "elimina" la novedad recibida como parametro, la agrega a la tabla para no motrarla mas al user
 =cut
 sub noMostrarNovedad{
-
     my ($id_novedad) = @_;
     my %params;
     $params{'id_novedad'} = $id_novedad;
@@ -241,17 +230,14 @@ sub noMostrarNovedad{
     
     return "ok";
 }
-
 sub getUltimasNovedades{
     my ($limit) = @_;
     
     my $pref_limite = $limit || C4::AR::Preferencias::getValorPreferencia('limite_novedades');
-
     my $novedades_array_ref = C4::Modelo::SysNovedad::Manager->get_sys_novedad( 
                                                                                 sort_by => ['id DESC'],
                                                                                 limit   => $pref_limite,
                                                                               );
-
     #Obtengo la cant total de sys_novedads para el paginador
     my $novedades_array_ref_count = C4::Modelo::SysNovedad::Manager->get_sys_novedad_count();
     if(scalar(@$novedades_array_ref) > 0){
@@ -264,33 +250,25 @@ sub getUltimasNovedades{
         return (0,0);
     }
 }
-
 sub getNovedad{
-
     my ($id_novedad) = @_;
     my @filtros;
-
     push (@filtros, (id => {eq => $id_novedad}) );
     
     my $novedades_array_ref = C4::Modelo::SysNovedad::Manager->get_sys_novedad( query => \@filtros,
                                                                               );
-
     if(scalar(@$novedades_array_ref) > 0){
         return ($novedades_array_ref->[0]);
     }else{
         return (0);
     }
 }
-
-
 =item
     Trae las imagenes (si las hay) apartir de un id_novedad
 =cut
 sub getImagenesNovedad{
-
     my ($id_novedad) = @_;
     my @filtros;
-
     use C4::Modelo::ImagenesNovedadesOpac;
     use C4::Modelo::ImagenesNovedadesOpac::Manager;
     
@@ -298,7 +276,6 @@ sub getImagenesNovedad{
     
     my $novedades_array_ref = C4::Modelo::ImagenesNovedadesOpac::Manager->get_imagenes_novedades_opac( query => \@filtros,
                                                                               );
-
     if(scalar(@$novedades_array_ref) > 0){
         return ($novedades_array_ref, scalar(@$novedades_array_ref));
     }else{
@@ -306,17 +283,14 @@ sub getImagenesNovedad{
     }
     
 }
-
 =item
     Elimina la imagen recibida como parametro (nombre)
 =cut
 sub _eliminarImageneNovedadByNombre{
-
     my ($image_name) = @_;
     my @filtros;
     #viene vacio aveces, por la hash que pasamos desde editar_novedad.pl
     if($image_name){
-
         use C4::Modelo::ImagenesNovedadesOpac;
         use C4::Modelo::ImagenesNovedadesOpac::Manager;
         
@@ -324,7 +298,6 @@ sub _eliminarImageneNovedadByNombre{
         
         my $novedades_array_ref = C4::Modelo::ImagenesNovedadesOpac::Manager->get_imagenes_novedades_opac( query => \@filtros,
                                                                                   );
-
         if(scalar(@$novedades_array_ref) > 0){
         
             $novedades_array_ref->[0]->delete();
@@ -336,15 +309,12 @@ sub _eliminarImageneNovedadByNombre{
     }
     
 }
-
 =item
     Elimina las imagenes (si las hay) apartir de un id_novedad de la base
 =cut
 sub _eliminarImagenesNovedad{
-
     my ($id_novedad) = @_;
     my @filtros;
-
     use C4::Modelo::ImagenesNovedadesOpac;
     use C4::Modelo::ImagenesNovedadesOpac::Manager;
     
@@ -352,7 +322,6 @@ sub _eliminarImagenesNovedad{
     
     my $novedades_array_ref = C4::Modelo::ImagenesNovedadesOpac::Manager->get_imagenes_novedades_opac( query => \@filtros,
                                                                               );
-
     if(scalar(@$novedades_array_ref) > 0){
     
         foreach my $imagen (@$novedades_array_ref){
@@ -365,33 +334,26 @@ sub _eliminarImagenesNovedad{
     }
     
 }
-
 =item
     Elimina los archivos imagen de las novedades 
 =cut
 sub _eliminarArchivoImagenNovedad{
-
     my ($file_name) = @_;
     
     my $dirPath     = C4::Context->config("novedadesOpacPath");
-
     unlink($dirPath."/".$file_name);
     
 }
-
 =item
     Elimina una novedad completa
 =cut
 sub eliminar{
-
     my ($id_novedad) = @_;
     my @filtros;
-
     push (@filtros, (id => {eq => $id_novedad}) );
     
     my $novedades_array_ref = C4::Modelo::SysNovedad::Manager->get_sys_novedad( query => \@filtros,
                                                                               );
-
     if(scalar(@$novedades_array_ref) > 0){
         $novedades_array_ref->[0]->delete();
         _eliminarImagenesNovedad($id_novedad);
@@ -400,19 +362,15 @@ sub eliminar{
         return (0);
     }
 }
-
 =item
     Trae las novedades ordenadas por fecha
 =cut
 sub getNovedadesByFecha{
     my ($ini,$cantR) = @_;
-
     my $novedades_array_ref = C4::Modelo::SysNovedad::Manager->get_sys_novedad( 
                                                                                 sort_by => ['fecha DESC'],
                                                                                 limit   => $cantR,
-#                                                                                offset  => $ini,
                                                                               );
-
     #Obtengo la cant total de sys_novedads para el paginador
     my $novedades_array_ref_count = C4::Modelo::SysNovedad::Manager->get_sys_novedad_count();
     if(scalar(@$novedades_array_ref) > 0){
@@ -421,8 +379,6 @@ sub getNovedadesByFecha{
         return (0,0);
     }
 }
-
-
 sub getPortadaOpac{
 	
 	use C4::Modelo::PortadaOpac::Manager;
@@ -433,7 +389,6 @@ sub getPortadaOpac{
 	
 	return $portada;
 }
-
 sub getCantPortadaOpac{
     
     use C4::Modelo::PortadaOpac::Manager;
@@ -444,7 +399,6 @@ sub getCantPortadaOpac{
     
     return $portada;
 }
-
 sub addPortadaOpac{
 	my ($params,$postdata) = @_;
 	
@@ -466,7 +420,6 @@ sub addPortadaOpac{
 	return ($msg);
 	
 }
-
 sub modPortadaOpac{
     my ($params) = @_;
     
@@ -496,9 +449,6 @@ sub modPortadaOpac{
     return ($msg_object);
     
 }
-
-
-
 sub getPortadaOpacById{
     
     my ($id) = @_;
@@ -513,13 +463,10 @@ sub getPortadaOpacById{
     
     return $portada->[0];
 }
-
-
 sub delPortadaOpac{
     my ($id) = @_;
     
     my $msg_object  = C4::AR::Mensajes::create();
-
     my $portada = getPortadaOpacById($id);
     
     my $uploaddir       = C4::Context->config("opac_path")."/portada";
@@ -534,7 +481,6 @@ sub delPortadaOpac{
     return ($msg_object);
     
 }
-
 sub ordenPortadaOpac{
     my ($params) = @_;
     
@@ -544,7 +490,6 @@ sub ordenPortadaOpac{
     
     my $orden = 1;
     foreach my $p (@$order_array){
-
     	 my $portada = getPortadaOpacById($p);
     	 $portada->setOrden($orden++);
     	 
@@ -553,10 +498,8 @@ sub ordenPortadaOpac{
     return ();
 	
 }
-
 sub uploadCoverImage{
     my ($postdata) = @_;
-
     use Digest::MD5;
     
     my $uploaddir       = C4::Context->config("opac_path")."/uploads/portada";
@@ -564,7 +507,6 @@ sub uploadCoverImage{
     my $file            = $postdata;
     my $type            = "";
     my $msg_object  = C4::AR::Mensajes::create();
-
     my $new_name        = Digest::MD5::md5_hex(localtime());
     
     if ($file =~ /^GIF/i) {
@@ -576,13 +518,10 @@ sub uploadCoverImage{
     } else {
         $type = "jpg";
     }
-
-
     if (!$type) {
          $msg_object->{'error'}= 1;
          C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'UP00', 'params' => ['jpg','png','gif']} ) ;
     }
-
     
     if (!$msg_object->{'error'}){
     	eval{
@@ -613,8 +552,5 @@ sub uploadCoverImage{
     }
     
     return ($new_name.".".$type,$msg_object);
-
 }
-
-
 1;

@@ -1,5 +1,23 @@
-package C4::Modelo::AdqProveedor;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::AdqProveedor;
 use strict;
 use utf8;
 use C4::AR::Permisos;
@@ -8,12 +26,9 @@ use C4::Modelo::RefTipoDocumento;
 use C4::Modelo::RefPais;
 use C4::Modelo::RefProvincia;
 use C4::Modelo::RefLocalidad;
-
 use base qw(C4::Modelo::DB::Object::AutoBase2);
-
 __PACKAGE__->meta->setup(
     table   => 'adq_proveedor',
-
     columns => [
         id                              => { type => 'integer', overflow => 'truncate', not_null => 1 },
         apellido                        => { type => 'varchar', overflow => 'truncate', length => 255, not_null => 1},
@@ -30,8 +45,6 @@ __PACKAGE__->meta->setup(
         plazo_reclamo                   => { type => 'integer', overflow => 'truncate', length => 11},
         activo                          => { type => 'integer', overflow => 'truncate', default => 1, not_null => 1},
     ],
-
-
     relationships =>
     [
       ref_tipo_documento => 
@@ -47,8 +60,6 @@ __PACKAGE__->meta->setup(
         key_columns => {ref_localidad_id => 'id' },
         type        => 'one to one',
       },
-
-#     one to many asi trae monedas en un vector de objetos
       moneda_ref => 
       {
         class       => 'C4::Modelo::AdqProveedorMoneda',
@@ -62,22 +73,16 @@ __PACKAGE__->meta->setup(
         key_columns => { id => 'proveedor_id' },
         type        => 'one to many',
       },
-
     ],
     
     primary_key_columns => [ 'id' ],
     unique_key          => ['nro_doc'],
-
 );
-
-# ********************************************FUNCIONES DEL MODELO | PROVEEDORES*****************************************************
-
 sub desactivar{
     my ($self) = shift;
     $self->setActivo(0);
     $self->save();
 }
-
 sub agregarProveedor{
     my ($self)   = shift;
     my ($params) = @_;
@@ -86,7 +91,6 @@ sub agregarProveedor{
         $self->setTipoDoc($params->{'tipo_doc'});
         $self->setNroDoc($params->{'nro_doc'});
     }
-
     $self->setNombre($params->{'nombre'});
     $self->setApellido($params->{'apellido'});
     $self->setDomicilio($params->{'domicilio'});
@@ -98,12 +102,9 @@ sub agregarProveedor{
     $self->setCiudad($params->{'ciudad'});
     $self->setPlazoReclamo($params->{'plazo_reclamo'});
     $self->setActivo(1);
-
     $self->save();
 }
-
 sub editarProveedor{
-
     my ($self)   = shift;
     my ($params) = @_;
    
@@ -120,18 +121,8 @@ sub editarProveedor{
     $self->setCiudad($params->{'ciudad'});
     $self->setPlazoReclamo($params->{'plazo_reclamo'});
     $self->setActivo($params->{'proveedor_activo'});
-
     $self->save();
 }
-
-
-# *********************************FIN FUNCIONES DEL MODELO | PROVEEDORES********************************************************
-
-
-
-
-# *************************************************Getters y Setters**********************************************************
-
 sub setApellido{
     my ($self)     = shift;
     my ($apellido) = @_;
@@ -140,7 +131,6 @@ sub setApellido{
       $self->apellido($apellido);
     }
 }
-
 sub setNombre{
     my ($self)   = shift;
     my ($nombre) = @_;
@@ -149,14 +139,12 @@ sub setNombre{
       $self->nombre($nombre);
     }
 }
-
 sub setTipoDoc{
     my ($self)    = shift;
     my ($tipoDoc) = @_;
     utf8::encode($tipoDoc);
     $self->usr_ref_tipo_documento_id($tipoDoc);
 }
-
 sub setNroDoc{
     my ($self)                = shift;
     my ($docNumber, $docType) = @_;
@@ -166,7 +154,6 @@ sub setNroDoc{
       $self->nro_doc($docNumber);
     }
 }
-
 sub setRazonSocial{
     my ($self)        = shift;
     my ($razonSocial) = @_;
@@ -175,9 +162,6 @@ sub setRazonSocial{
       $self->razon_social($razonSocial);
     }
 }
-
-# VER COMO VALIDARLO
-
 sub setCuitCuil{
     my ($self)     = shift;
     my ($cuitCuil) = @_;
@@ -186,7 +170,6 @@ sub setCuitCuil{
       $self->cuit_cuil($cuitCuil);
     }
 }
-
 sub setCiudad{
     my ($self) = shift;
     my ($ciu)  = @_;
@@ -194,7 +177,6 @@ sub setCiudad{
     $self->ref_localidad_id($ciu);
     
 }
-
 sub setDomicilio{
     my ($self)      = shift;
     my ($domicilio) = @_;
@@ -203,7 +185,6 @@ sub setDomicilio{
       $self->domicilio($domicilio);
     }
 }
-
 sub setEmail{
     my ($self)  = shift;
     my ($email) = @_;
@@ -212,107 +193,83 @@ sub setEmail{
       $self->email($email);
     }
 }
-
 sub setTelefono{
     my ($self)     = shift;
     my ($telefono) = @_;
     utf8::encode($telefono);
     $self->telefono($telefono);
-
 }
-
 sub setFax{
     my ($self) = shift;
     my ($fax)  = @_;
     utf8::encode($fax);
     $self->fax($fax);
 }
-
 sub setPlazoReclamo{
     my ($self)     = shift;
     my ($plazoRec) = @_;
     utf8::encode($plazoRec);
     $self->plazo_reclamo($plazoRec);
 }
-
 sub setActivo{
     my ($self)   = shift;
     my ($activo) = @_;
     $self->activo($activo);
 }
-
-
-# ------GETTERS--------------------
-
 sub getId{
     my ($self) = shift;
     return ($self->id);
 }
-
 sub getApellido{
     my ($self) = shift;
     return ($self->apellido);
 }
-
 sub getNombre{
     my ($self) = shift;
     return ($self->nombre);
 }
-
 sub getTipoDoc{
     my ($self) = shift;
     return ($self->usr_ref_tipo_documento_id);
 }
-
 sub getNroDoc{
     my ($self) = shift;
     return ($self->nro_doc);
 }
-
 sub getRazonSocial{
     my ($self) = shift;
     return ($self->razon_social);
 }
-
 sub getCuitCuil{
     my ($self) = shift;
     return ($self->cuit_cuil);
 }
-
 sub getCiudad{
     my ($self) = shift;
     return ($self->ref_localidad_id);
 }
-
 sub getDomicilio{
     my ($self) = shift;
     return ($self->domicilio);
 }
-
 sub getTelefono{
     my ($self) = shift;
     return ($self->telefono);
 }
-
 sub getFax{
     my ($self) = shift;
     return ($self->fax);
 }
-
 sub getEmail{
     my ($self) = shift;
     return ($self->email);
 }
-
 sub getPlazoReclamo{
     my ($self) = shift;
     return ($self->plazo_reclamo);
 }
-
 sub getActivo{
     my ($self) = shift;
     return ($self->activo);
 }
-# ****************************************************FIN Getter y Setter**************************************************************
-
 1;

@@ -1,12 +1,27 @@
-package C4::Modelo::RepHistorialBusqueda;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::RepHistorialBusqueda;
 use strict;
-
 use base qw(C4::Modelo::DB::Object::AutoBase2);
-
 __PACKAGE__->meta->setup(
     table   => 'rep_historial_busqueda',
-
     columns => [
         idHistorial        => { type => 'serial', overflow => 'truncate', not_null => 1 },
         idBusqueda         => { type => 'integer', overflow => 'truncate', not_null => 1 },
@@ -16,39 +31,28 @@ __PACKAGE__->meta->setup(
         agent              => { type => 'varchar', overflow => 'truncate', length => 500},
         agregacion_temp     => { type => 'varchar', overflow => 'truncate', length => 255},
     ],
-
    primary_key_columns => [ 'idHistorial' ],
-
    relationships => [
          busqueda =>  {
             class       => 'C4::Modelo::RepBusqueda',
             key_columns => { idBusqueda => 'idBusqueda' },
             type        => 'one to one',
       },
-
     ],
 );
-
-
 sub agregarSimple{
    my $self = shift;
-
    my($id_rep_busqueda,$tipo_busqueda,$valor,$desde,$user_agent)=@_;
-
    $self->setIdBusqueda($id_rep_busqueda);
    $self->setCampo($tipo_busqueda);
    $self->setValor($valor);
    $self->setTipo($desde);
    $self->setAgent($user_agent);
    $self->save();
-
 }
-
-
 sub agregar{
    my $self = shift;
    my($nro_socio,$desde,$http_user_agent,$search_array)=@_;
-
    my $db = $self->db;
    my $rep_busqueda = C4::Modelo::RepBusqueda->new(db => $db);
    my $socio;
@@ -59,26 +63,21 @@ sub agregar{
       }
   }
   $rep_busqueda->agregar($nro_socio);
-# FIXME ver si se puede mejorar esta muy largo, se puede hacer generico???
-# parace q lo unico q es variable seria  'keyword', $search->{'keyword'}
    foreach my $search (@$search_array){
 		if (!C4::AR::Utilidades::isBrowser($http_user_agent)) { 
 				$http_user_agent =  'ROBOT';
 		}
 	
 		my $historial_temp = C4::Modelo::RepHistorialBusqueda->new(db => $db);
-
 		if (C4::AR::Utilidades::validateString($search->{'keyword'}) ){
 	#EN CADA IF HAY QUE CREAR DE NUEVO SINO SOLAMENTE SE ACTUALIZA
 			
 			$historial_temp->agregarSimple($rep_busqueda->getIdBusqueda, 'keyword', $search->{'keyword'}, $desde,$http_user_agent);
 		}
-
 	
 		if (C4::AR::Utilidades::validateString($search->{'signature'}) ){
 			$historial_temp->agregarSimple($rep_busqueda->getIdBusqueda, 'signature', $search->{'signature'}, $desde, $http_user_agent);
 		}  
-
 	
 		if (C4::AR::Utilidades::validateString($search->{'isbn'}) ){
 			$historial_temp->agregarSimple($rep_busqueda->getIdBusqueda, 'isbn', $search->{'isbn'}, $desde, $http_user_agent);
@@ -112,76 +111,51 @@ C4::AR::Debug::debug("logueo de busqueda => busco por titulo: ".$search->{'titul
 		}	
    }
 }# END agregar
-
 sub getIdBusqueda{
-
    my ($self) = shift;
    return ($self->idBusqueda);
 }
-
 sub setIdBusqueda{
-
    my ($self) = shift;
    my ($id_busqueda) = @_;
    $self->idBusqueda($id_busqueda);
 }
-
-
 sub getAgent{
-
    my ($self) = shift;
    return ($self->agent);
 }
-
 sub setAgent{
-
    my ($self) = shift;
    my ($http_user_agent) = @_;
    $self->agent($http_user_agent);
 }
-
 sub getCampo{
-
    my ($self) = shift;
    return ($self->campo);
 }
-
 sub setCampo{
-
    my ($self) = shift;
    my ($campo) = @_;
    $self->campo($campo);
 }
-
 sub getValor{
-
    my ($self) = shift;
    return ($self->valor);
 }
-
 sub setValor{
-
    my ($self) = shift;
    my ($valor) = @_;
    $self->valor($valor);
 }
-
 sub getTipo{
-
    my ($self) = shift;
    return ($self->tipo);
 }
-
 sub setTipo{
-
    my ($self) = shift;
    my ($tipo) = @_;
    $self->tipo($tipo);
 }
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__
-
-

@@ -1,47 +1,48 @@
-package C4::AR::ExportacionIsoMARC;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
-#para la exportacion de registros a marc
+# This file is part of Meran.
 #
-
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::ExportacionIsoMARC;
 use strict;
 require Exporter;
-
 use C4::Context;
 use MARC::Record;
 use MARC::File::USMARC;
 use MARC::File::XML;
-
 use C4::Modelo::CatRegistroMarcN1;
 use C4::Modelo::CatRegistroMarcN1::Manager;
-
 use C4::Modelo::CatRegistroMarcN2;
 use C4::Modelo::CatRegistroMarcN2::Manager;
-
 use C4::Modelo::CatRegistroMarcN3;
 use C4::Modelo::CatRegistroMarcN3::Manager;
-
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw(
-
 );
-
-
 =item sub marc_record_to_ISO
-
   pasa un marc_record_array_to_ISO a un arhivo ISO
 =cut
 sub marc_record_array_to_ISO {
     my ($marc_record_array_ref) = @_;
-
     foreach my $marc_record (@$marc_record_array_ref){
-#             $marc_record->encoding( 'UTF-8' );
           print $marc_record->as_usmarc();
     }
 }
-
 sub limpiar_enter_para_roble {
     my ($marc_record_unido) = @_;
     #Para ROBLE limpio de \n y \r de los campos de notas (520a,534a,500a)
@@ -76,13 +77,11 @@ sub limpiar_enter_para_roble {
         }
     return $marc_record_unido;
 }
-
 =item sub marc_record_to_ISO_from_range
   exporta un rago de registros pasados por parametro a un archivo ISO
 =cut
 sub marc_record_to_ISO_from_range {
     my ( $query ) = @_;
-
     my $records_array = C4::AR::ExportacionIsoMARC::getRecordsFromRange( $query );
     my $marc_record_array_ref;
     my $field_ident_universidad = MARC::Field->new('040','','','a' => C4::AR::Preferencias::getValorPreferencia("origen_catalogacion"));
@@ -105,11 +104,9 @@ sub marc_record_to_ISO_from_range {
                 my $grupos = $nivel1->getGrupos();
                 #Se exporta cad nivel2 a un registro para  Roble
                 foreach my $nivel2 (@$grupos){
-
                     my $marc_record_n2 =  $nivel2->getMarcRecordForRobleExport($query->param('exportar_ejemplares'));
                     
                     my $marc_record_unido = MARC::Record->new();
-
                 
                     #Genero el ID par Exportar
                     my $field_id   = MARC::Field->new('001', $nivel2->getId2);
@@ -123,7 +120,6 @@ sub marc_record_to_ISO_from_range {
                     my $primera_signatura = $signaturas->[0];
                     
                     my $id_biblio = C4::AR::Preferencias::getValorPreferencia("defaultUI")." ".$primera_signatura;
-
                     my $field_ident_biblioteca  = MARC::Field->new("910",'','','a' => $id_biblio);
                     
                     
@@ -141,7 +137,6 @@ sub marc_record_to_ISO_from_range {
                     
                     #Para ROBLE limpio de \n y \r de los campos de notas (520a,534a,500a,995u)
                     $marc_record_unido = C4::AR::ExportacionIsoMARC::limpiar_enter_para_roble($marc_record_unido);
-
                     my $registro_final = C4::AR::ExportacionIsoMARC::convertMarcRecordToMoose($marc_record_unido,'iso');
                 
                     print $registro_final;
@@ -149,16 +144,12 @@ sub marc_record_to_ISO_from_range {
             }
     }
 }
-
 =item sub getRecordsFromRange
-
 Retorna todos los registros para exportar
 =cut
 sub getRecordsFromRange {
     my ( $params ) = @_;
-
     my @filtros;
-
     
     C4::AR::Debug::debug("getRecordsFromRange => : ".$params->param('registro_ini'));
     
@@ -167,8 +158,6 @@ sub getRecordsFromRange {
     C4::AR::Debug::debug("getRecordsFromRange => : TIPO ".$params->param('tipo_nivel3_name'));
         push (@filtros, ( template => { eq => $params->param('tipo_nivel3_name')}));
     } 
-
-
     if ( ($params->param('registro_ini') ne "") && ($params->param('registro_fin') ne "") ){
         #filtro por rango de blbionumber
         push (@filtros, ( id => { ge => $params->param('registro_ini')}));
@@ -195,7 +184,6 @@ sub getRecordsFromRange {
     }
     return  $registros_array_ref;
 }
-
 sub convertMarcRecordToMoose {
     my ($marc_record) = @_;
     
@@ -204,7 +192,6 @@ sub convertMarcRecordToMoose {
     use MARC::Moose::Parser::Isis;
     use MARC::Moose::Record;
     use MARC::Moose::Formater::Iso2709;
-
   #CODIFICACION WINDOWS!!!
   my $converter   = Text::Iconv->new( "utf8", "cp850");
   
@@ -232,12 +219,9 @@ sub convertMarcRecordToMoose {
             }
         $record->append($new_field);
     }
-
     my $registro_roble = C4::AR::ExportacionIsoMARC::formatearIso2709( $record );   
     return $registro_roble;
     }
-
-
 sub formatearIso2709 {
     my ($record) = @_;
     my ( $directory, $fields, $from ) = ( '', '', 0 );
@@ -260,14 +244,11 @@ sub formatearIso2709 {
         $directory .= sprintf( "%03s%04d%05d", $field->tag, $len, $from );
         $from += $len;
     }
-
     # Update leader with calculated offset (data begining) and total length of
     # record
     my $offset = 24 + 12 * @{$record->fields} + 1;
     my $length = $offset + $from + 1;
     $record->set_leader_length( $length, $offset );
-
     return $record->leader . $directory . "#" . $fields . "#";
 }
-
 1;

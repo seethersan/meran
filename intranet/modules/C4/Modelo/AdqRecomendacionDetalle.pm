@@ -1,19 +1,33 @@
-package C4::Modelo::AdqRecomendacionDetalle;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::AdqRecomendacionDetalle;
 use strict;
 use utf8;
 use C4::AR::Permisos;
 use C4::AR::Utilidades;
 use C4::Modelo::AdqRecomendacion;
 use C4::Modelo::AdqRecomendacionDetalle;
-#use C4::Modelo::CatRegistroMarcN2;
 use base qw(C4::Modelo::DB::Object::AutoBase2);
-
 __PACKAGE__->meta->setup(
     table   => 'adq_recomendacion_detalle',
-
     columns => [  
-
           id                    => { type => 'integer', overflow => 'truncate', not_null => 1 },  
           adq_recomendacion_id  => { type => 'integer', overflow => 'truncate', not_null => 1 },  
           cat_nivel2_id         => { type => 'integer', overflow => 'truncate', not_null => 1 },
@@ -30,7 +44,6 @@ __PACKAGE__->meta->setup(
           reserva_material      => { type => 'integer', overflow => 'truncate', not_null => 1 },
         
     ],
-
     relationships =>
     [
       ref_adq_recomendacion => 
@@ -46,26 +59,19 @@ __PACKAGE__->meta->setup(
         key_columns => { cat_nivel2_id => 'id' },
         type        => 'one to one',
       },
-
     ],
     
     primary_key_columns => [ 'id' ],
     unique_key          => ['id'],
-
 );
-
-
 sub eliminar{
     my ($self)      = shift;
     my ($params)    = @_;
-
     $self->delete();    
 }
-
 sub agregarRecomendacionDetalle{
     my ($self)   = shift;
     my ($params) = @_;
-
     $self->setAdqRecomendacionId($params->{'id_recomendacion'});
     
     if ($params->{'nivel_2'}) {
@@ -84,21 +90,16 @@ sub agregarRecomendacionDetalle{
     $self->setReservaMaterial($params->{'reservar'});
   
     $self->save();
-
 }
-
 sub setearCantidad{
     my ($self)     = shift;
     my ($cantidad) = @_;
     $self->setCantidadEjemplares($cantidad);
     $self->save();
 }
-
 sub updateRecomendacionDetalle{
-
     my ($self)   = shift;
     my ($params) = @_;
-
     $self->setCatNivel2Id($params->{'cat_nivel'});
     $self->setAutor($params->{'autor'});
     $self->setTitulo($params->{'titulo'});
@@ -111,160 +112,130 @@ sub updateRecomendacionDetalle{
     $self->setMotivoPropuesta($params->{'motivo_propuesta'});
     $self->setComentario($params->{'comentario'});
     $self->setReservaMaterial($params->{'reserva_material'});
-
     $self->save();
 }
-
-
-#----------------------------------- GETTERS y SETTERS------------------------------------------------
-
 sub setAdqRecomendacionId{
     my ($self)          = shift;
     my ($recomendacion) = @_;
     utf8::encode($recomendacion);
     $self->adq_recomendacion_id($recomendacion);
 }
-
 sub setCatNivel2Id{
     my ($self) = shift;
     my ($cat)  = @_;
     $self->cat_nivel2_id($cat);
 }
-
 sub setAutor{
     my ($self)  = shift;
     my ($autor) = @_;
     utf8::encode($autor);
     $self->autor($autor);
 }
-
 sub setTitulo{
     my ($self)   = shift;
     my ($titulo) = @_;
     utf8::encode($titulo);
     $self->titulo($titulo);
 }
-
 sub setLugarPublicacion{
     my ($self)         = shift;
     my ($lugar_public) = @_;
     utf8::encode($lugar_public);
     $self->lugar_publicacion($lugar_public);
 }
-
 sub setEditorial{
     my ($self)      = shift;
     my ($editorial) = @_;
     utf8::encode($editorial);
     $self->editorial($editorial);
 }
-
 sub setFechaPublicacion{
     my ($self)         = shift;
     my ($fecha_public) = @_;
     utf8::encode($fecha_public);
     $self->fecha_publicacion($fecha_public);
 }
-
 sub setColeccion{
     my ($self)      = shift;
     my ($coleccion) = @_;
     utf8::encode($coleccion);
     $self->coleccion($coleccion);
 }
-
 sub setIsbnIssn {
     my ($self) = shift;
     my ($isbn_issn) = @_;
     utf8::encode($isbn_issn);
     $self->isbn_issn($isbn_issn);
 }
-
 sub setCantidadEjemplares {
     my ($self)            = shift;
     my ($cant_ejemplares) = @_;
     if (C4::AR::Validator::countAlphaChars($cant_ejemplares) == 0){
       $self->cantidad_ejemplares($cant_ejemplares);
     }  
-
  
 }
-
 sub setMotivoPropuesta {
     my ($self)   = shift;
     my ($motivo) = @_;
     utf8::encode($motivo);
     $self->motivo_propuesta($motivo);
 }
-
 sub setComentario {
     my ($self)       = shift;
     my ($comentario) = @_;
     utf8::encode($comentario);
     $self->comentario($comentario);
 }
-
 sub setReservaMaterial {
     my ($self)             = shift;
     my ($reserva_material) = @_;
     $self->reserva_material($reserva_material);
 }
-
 sub getId{
     my ($self) = shift;
     return ($self->id);
 }
-
 sub getAdqRecomendacionId{
     my ($self) = shift;
     return ($self->adq_recomendacion_id);
 }
-
 sub getCatNivel2Id{
     my ($self) = shift;
     return ($self->cat_nivel2_id);
 }
-
 sub getAutor{
     my ($self) = shift;
     return ($self->autor);
 }
-
 sub getTitulo{
     my ($self) = shift;
     return ($self->titulo);
 }
-
 sub getLugarPublicacion{
     my ($self) = shift;
     return ($self->lugar_publicacion);
 }
-
 sub getEditorial{
     my ($self) = shift;
     return ($self->editorial);
 }
-
 sub getFechaPublicacion{
     my ($self) = shift;
     return ($self->fecha_publicacion);
 }
-
 sub getColeccion{
     my ($self) = shift;
     return ($self->coleccion);
 }
-
 sub getIsbnIssn{
     my ($self) = shift;
     return ($self->isbn_issn);
 }
-
 sub getCantidadEjemplares{
     my ($self) = shift;
     return ($self->cantidad_ejemplares);
 }
-
 sub getMotivoPropuesta{
     my ($self) = shift;
     return ($self->motivo_propuesta);
@@ -279,5 +250,3 @@ sub getReservaMaterial{
     my ($self) = shift;
     return ($self->reserva_material);
 }   
-
-#----------------------------------- FIN GETTERS y SETTERS------------------------------------------------          

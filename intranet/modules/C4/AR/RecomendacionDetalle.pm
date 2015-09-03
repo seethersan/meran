@@ -1,5 +1,23 @@
-package C4::AR::RecomendacionDetalle;
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::RecomendacionDetalle;
 use strict;
 require Exporter;
 use DBI;
@@ -7,7 +25,6 @@ use C4::Modelo::AdqRecomendacion;
 use C4::Modelo::AdqRecomendacion::Manager;
 use C4::Modelo::AdqRecomendacionDetalle;
 use C4::Modelo::AdqRecomendacionDetalle::Manager;
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw(  
@@ -16,13 +33,10 @@ use vars qw(@EXPORT @ISA);
     &eliminarDetalleRecomendacion;
    
 );
-
-
 sub getDetalleRecomendacionPorId {
     my ($params) = @_;
     my $detalleTemp;
     my @filtros;
-
     if ($params){
         push (@filtros, ( id => { eq => $params}));
         $detalleTemp = C4::Modelo::AdqRecomendacionDetalle::Manager->get_adq_recomendacion_detalle( query => \@filtros );
@@ -31,10 +45,7 @@ sub getDetalleRecomendacionPorId {
  
     return 0;
 }
-
-
 sub eliminarDetalleRecomendacion {
-
      my ($id_rec_det, $msg_object) = @_;
     
      my $msg_object= C4::AR::Mensajes::create();
@@ -54,19 +65,13 @@ sub eliminarDetalleRecomendacion {
          $msg_object->{'error'}= 1;
          C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'RC01', 'params' => []} ) ;
      }
-
      return ($msg_object);
 }
-
-
-
 sub agregarDetalleARecomendacion{
   my ($obj, $recom_id) = @_;
    
   my %datos_recomendacion;
-
   my $msg_object;
-
   $datos_recomendacion{'id_recomendacion'}      = $recom_id;
   $datos_recomendacion{'nivel_2'}               = $obj->{'idNivel2'};
   $datos_recomendacion{'autor'}                 = $obj->{'autor'};
@@ -91,7 +96,6 @@ sub agregarDetalleARecomendacion{
   }
   
   my $recomendacion_detalle = C4::Modelo::AdqRecomendacionDetalle->new(); 
-
   my $db = $recomendacion_detalle->db;
   if (!($msg_object->{'error'})){
            
@@ -116,10 +120,6 @@ sub agregarDetalleARecomendacion{
     }
     return ($msg_object,$recomendacion_detalle->getId());
 }
-
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__
-
