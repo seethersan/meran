@@ -1,15 +1,32 @@
 #!/usr/bin/perl
-# Copyright (c) 2008 David Romano <unobe@cpan.org>
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 use strict;
 use warnings;
 use CGI;
 use WWW::Facebook::API;
-
 my $APP_NAME = 'Testing PERL Access';
 my $API_KEY = '09c58cc6d74ca90950f8aac3b850ebb1';
 my $SECRET = '988184f8610c456b03bb48f085c3480f';
 my $DESKTOP = 0;
-
 my $facebook = WWW::Facebook::API->new(
     app_path => $APP_NAME,
     parse    => 1,
@@ -17,7 +34,6 @@ my $facebook = WWW::Facebook::API->new(
     secret => $SECRET,
     desktop => $DESKTOP,
 );
-
 my %action_map = (
     tos         => sub {
        print q{
@@ -33,20 +49,13 @@ my %action_map = (
         my ( $facebook, $uid, @args ) = @_;
         print qq{<p>Hello <fb:name uid="$uid" useyou="false" />!</p>};
     },
-
-
 );
-
 sub start {
     my $facebook = shift;
-
     my $fb_params = $facebook->canvas->validate_sig( CGI->new );
-
     my $log_in = $facebook->require_login( undef,
         next => "$ENV{'PATH_INFO'}?$ENV{'QUERY_STRING'}" );
-
     print $facebook->query->header( -expires => 'now' );
-
     if ($log_in) {
         print $log_in;
         return;
@@ -62,27 +71,21 @@ sub start {
             return;
         }
     }
-
     find_action_for($facebook);
-
     return;
 }
-
 sub find_action_for {
     my $facebook = shift;
     my ( $action, $uid );
-
     ($action) = ( $facebook->query->path_info =~ m[^/(\w+)] );
     if ( exists $ENV{'QUERY_STRING'} ) {
         ($uid) = $ENV{'QUERY_STRING'} =~ /\bid=([^&]+)/;
     }
-
     if ( my $s = $action_map{$action} ) {
         my @args = split m[(?<!\\)/],
             ( $facebook->query->path_info =~ m[^/(?:\w+)/(.*)] )[0];
         @args = () unless @args;
         $uid ||= $facebook->session_uid;
-
         $s->( $facebook, $uid, @args );
     }
     else {
@@ -92,9 +95,4 @@ sub find_action_for {
     }
     return;
 }
-
-
 start($facebook);
-
-
-

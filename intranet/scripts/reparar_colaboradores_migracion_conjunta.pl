@@ -1,24 +1,34 @@
 #!/usr/bin/perl
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 use utf8;
 use lib "/usr/share/meran/dev/intranet/modules/";
 use C4::Context;
-
-
-
   sub aplicarSQL {
     my ($sql)=@_;
-
     my $PASSWD = C4::Context->config("pass");
     my $USER = C4::Context->config("user");
     my $BASE = C4::Context->config("database");
-
     system("mysql -f --default-character-set=utf8 $BASE -u$USER -p$PASSWD < $sql ") == 0 or print "Fallo el sql ".$sql." \n";
-
     }
-
-
-
     sub buscarReferenciaColaborador
     { my ($tipo) = @_;
         #No existe aún la tabla de referencias y el campo en Koha no está normalizado!
@@ -37,20 +47,14 @@ use C4::Context;
     
 print "Agregando tabla colaboradores \n";
 aplicarSQL("../scripts/reparar_colaboradores_migracion_conjunta.sql");
-
 my $dbh = C4::Context->dbh;
-
-
 use C4::Modelo::CatRegistroMarcN1;
 use C4::Modelo::CatRegistroMarcN1::Manager;
 use MARC::Record;
-
 my $n1s = C4::Modelo::CatRegistroMarcN1::Manager->get_cat_registro_marc_n1();
 my $cant=0;
 my $cant_colabs=0;
-
 foreach my $n1 (@$n1s){
-
    my $marc_record_base    = MARC::Record->new_from_usmarc($n1->getMarcRecord());
    my $registro_erroneo=0;
    my $log="";
@@ -84,7 +88,6 @@ foreach my $n1 (@$n1s){
             
             my $field700 = MARC::Field->new('700','','','a' => $colaborador);
             $field700->add_subfields( 'e' => 'ref_colaborador@'.$tipo_colaborador );
-
             $marc_record_base->append_fields($field700);
             $cant_colabs=$cant_colabs+1;
         }
@@ -99,7 +102,6 @@ foreach my $n1 (@$n1s){
         $n1->save();
        }
 }
-
 print "Eliminando tabla colaboradores \n";
 my $dropear=$dbh->prepare("DROP TABLE IF EXISTS `colaboradores`;");
    $dropear->execute();

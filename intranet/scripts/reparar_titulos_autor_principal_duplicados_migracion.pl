@@ -1,14 +1,30 @@
 #!/usr/bin/perl
-
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 use C4::Modelo::CatRegistroMarcN1;
 use C4::Modelo::CatRegistroMarcN1::Manager;
 use MARC::Record;
-
 my $n1s = C4::Modelo::CatRegistroMarcN1::Manager->get_cat_registro_marc_n1(); 
 my $cant=0;
-
 foreach my $n1 (@$n1s){
-
    my $marc_record_base    = MARC::Record->new_from_usmarc($n1->getMarcRecord());
    my $registro_erroneo=0;
    my $log="";
@@ -25,7 +41,6 @@ foreach my $n1 (@$n1s){
       $marc_record_base->append_fields($primer_titulo);
       
       }
-
    my @autores= $marc_record_base->field("100");
    if(scalar(@autores) > 1){
       $log .= " + Autor repetido id1=".$n1->getId1." = " .$autores[0]->subfield("a") ." (".scalar(@autores)." autores)";
@@ -46,6 +61,5 @@ foreach my $n1 (@$n1s){
         $n1->save();
        }
 }
-
 print "Errores en ".$cant." registros";
 1;

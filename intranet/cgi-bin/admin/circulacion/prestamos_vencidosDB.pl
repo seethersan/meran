@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,20 +19,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Auth;
 use JSON;
-
 my $input               = new CGI;
 my $authnotrequired     = 0;
 my $obj                 = $input->param('obj');
 $obj                    = C4::AR::Utilidades::from_json_ISO($obj);
 my $tipoAccion          = $obj->{'tipoAccion'}||"";
-
 if($tipoAccion eq "ENVIAR_TODOS_MAILS_PRESTAMOS_VENCIDOS"){
-
     my ($user, $session, $flags) = checkauth($input, 
                                             $authnotrequired, 
                                             {   ui              => 'ANY', 
@@ -48,18 +43,13 @@ if($tipoAccion eq "ENVIAR_TODOS_MAILS_PRESTAMOS_VENCIDOS"){
     my $msg_object            = C4::AR::Mensajes::create();
     
     C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'PV00'});
-
     my ($Messages_arrayref)   = $msg_object;
-
     my $infoOperacionJSON     = to_json $Messages_arrayref;
-
     C4::AR::Auth::print_header($session);
     print $infoOperacionJSON;
     
 }
-
 elsif($tipoAccion eq "ENVIAR_A_SELECCION_MAILS_PRESTAMOS_VENCIDOS"){
-
     my ($user, $session, $flags) = checkauth($input, 
                                             $authnotrequired, 
                                             {   ui              => 'ANY', 
@@ -73,9 +63,7 @@ elsif($tipoAccion eq "ENVIAR_A_SELECCION_MAILS_PRESTAMOS_VENCIDOS"){
     C4::AR::Preferencias::setVariable('enableMailPrestVencidos', 1);
     
     my ($Messages_arrayref) = C4::AR::Prestamos::setPrestamosVencidosTemp($obj->{'ids_prestamos'});
-
     my $infoOperacionJSON   = to_json $Messages_arrayref;
-
     C4::AR::Auth::print_header($session);
     print $infoOperacionJSON;
     

@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,20 +19,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 require Exporter;
 use C4::Output;  
 use C4::AR::Auth;
 use C4::AR::Novedades;
 use CGI;
-
-
-# my $t = $C4::AR::CacheMeran::CACHE_MERAN2;
-
 my $query =  CGI->new;
-
 my ($template, $session, $t_params)= get_template_and_user({
                                             template_name   => "opac-main.tmpl",
                                             query           => $query,
@@ -43,14 +36,8 @@ my ($template, $session, $t_params)= get_template_and_user({
                                                             accion          => 'CONSULTA', 
                                                             entorno         => 'undefined'},
                                     });
-
-
-
 my $nro_socio                       = $session->param('nro_socio');        
-
-#solo si hay socio logueado se hace todo esto
 if($nro_socio){
-
     my $orden                       = 'date_due desc';
     my $ini                         = 1;
     my ($ini,$pageNumber,$cantR)    = C4::AR::Utilidades::InitPaginador($ini);
@@ -59,11 +46,9 @@ if($nro_socio){
     my $sanciones                   = C4::AR::Sanciones::tieneSanciones($nro_socio);
     my $racount                     = 0;
     my $recount                     = 0;
-
     if ($reservas){
         my @reservas_asignadas;
         my @reservas_espera;
-
         foreach my $reserva (@$reservas) {
             if ($reserva->getId3) {
                 #Reservas para retirar
@@ -78,7 +63,6 @@ if($nro_socio){
         $t_params->{'RESERVAS_ASIGNADAS'}   = \@reservas_asignadas;
         $t_params->{'RESERVAS_ESPERA'}      = \@reservas_espera;
     }
-
     if ($sanciones){
         $t_params->{'sanciones'}            = $sanciones;
         $t_params->{'cant_sanciones'}       = scalar(@$sanciones) ;
@@ -91,14 +75,10 @@ if($nro_socio){
     $t_params->{'prestamos'}                = $prestamos_array_ref;
     $t_params->{'cantidad_prestamos'}       = $cant;
     $t_params->{'nro_socio'}                = $nro_socio;
-
 }
-#endif nro_socio
-
 my $apertura                        = C4::AR::Preferencias::getValorPreferencia("open");
 my $cierre                          = C4::AR::Preferencias::getValorPreferencia("close");
 my ($cantidad_novedades,$novedades) = C4::AR::Novedades::getUltimasNovedades(1);
-
 $t_params->{'novedad'}              = $novedades;
 $t_params->{'apertura_ui'}          = $apertura;
 $t_params->{'cierre_ui'}            = $cierre;
@@ -108,5 +88,4 @@ $t_params->{'partial_template'}     = "opac-content_data.inc";
 $t_params->{'noAjaxRequests'}       = 0;
 $t_params->{'portada'}              = C4::AR::Novedades::getPortadaOpac();
 $t_params->{'cant_portada'}         = C4::AR::Novedades::getCantPortadaOpac();
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

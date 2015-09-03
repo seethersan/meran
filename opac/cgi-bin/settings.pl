@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,17 +19,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
 use strict;
 use CGI;
 use C4::AR::Auth;
 use C4::AR::Utilidades;
-
 my $input       = new CGI;
 my $post_params = $input->Vars;
 my $token       = $input->param("token");
 my $socio       = undef;
-
 my ($template, $session, $t_params) = get_template_and_user ({
                                 template_name   => 'settings.tmpl',
                                 query           => $input,
@@ -40,15 +37,10 @@ my ($template, $session, $t_params) = get_template_and_user ({
                                                         accion          => 'CONSULTA', 
                                                         entorno         => 'undefined'},
                         });
-
-
-
 if ( (C4::AR::Utilidades::validateString($post_params->{'language'})) && (C4::AR::Utilidades::validateString($post_params->{'email'})) ){
     $socio = C4::AR::Usuarios::updateUserProfile($post_params);
     C4::AR::Auth::updateLoggedUserTemplateParams($session,$t_params,$socio);
     C4::AR::Auth::redirectTo(C4::AR::Utilidades::getUrlPrefix()."/settings.pl?token=".$token);
 }
-
 $t_params->{'languages'} = C4::AR::Filtros::getComboLang($session);
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

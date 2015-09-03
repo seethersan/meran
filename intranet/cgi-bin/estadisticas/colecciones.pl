@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,8 +19,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Auth;
 use CGI;
@@ -28,13 +26,9 @@ use C4::AR::Utilidades;
 use C4::AR::Reportes;
 use C4::AR::PdfGenerator;
 use C4::AR::XLSGenerator;
-
-
 my $input = new CGI;
 my $obj=$input->param('obj') || 0;
-
 my ($template, $session, $t_params, $data_url);
-
 ($template, $session, $t_params) = get_template_and_user({
                             template_name => "includes/partials/reportes/_reporte_colecciones_result.inc",
                             query => $input,
@@ -46,7 +40,6 @@ my ($template, $session, $t_params, $data_url);
                                                 entorno => 'undefined'},
                             debug => 1,
                     });
-
 if (!$obj) {
         $obj = $input->Vars;
         $obj->{'ui'}=  $obj->{'name_ui'};
@@ -59,30 +52,21 @@ if (!$obj) {
        
 $obj->{'fecha_ini'} =  C4::AR::Filtros::i18n($obj->{'fecha_ini'});
 $obj->{'fecha_fin'} =  C4::AR::Filtros::i18n($obj->{'fecha_fin'});
-
 if ($obj->{'fecha_ini'} eq "Desde"){
     $obj->{'fecha_ini'} = "";
 } 
-
 if ($obj->{'fecha_fin'} eq "Hasta"){
     $obj->{'fecha_fin'} = "";
 } 
-
 my $ini             = $obj->{'ini'};     
-
 my ($ini,$pageNumber,$cantR)    = C4::AR::Utilidades::InitPaginador($ini);
-
 $t_params->{'ini'}= $obj->{'ini'} = $ini;
 $t_params->{'cantR'}= $obj->{'cantR'} = $cantR;
-
 my ($data, $data_report, $cant_n3, $cant_n1, $cant_n2) = C4::AR::Reportes::reporteColecciones($obj);
-
 $t_params->{'cant_n3'} = $cant_n3;
 $t_params->{'cant_n2'} = $cant_n2;
 $t_params->{'cant_n1'} = $cant_n1;
-
 if ($obj->{'exportar'}) {
-
     if ($obj->{'formatoReporte'} eq 'XLS'){
         #XLS
         print C4::AR::XLSGenerator::xlsHeader(); 
@@ -98,11 +82,9 @@ if ($obj->{'exportar'}) {
         print C4::AR::PdfGenerator::pdfHeader(); 
         C4::AR::PdfGenerator::printPDF($filename);
     }
-
 } else {
     
     $t_params->{'paginador'}= C4::AR::Utilidades::crearPaginador($cant_n3,$cantR, $pageNumber,$obj->{'funcion'},$t_params);
     $t_params->{'data'} = $data;
-
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
 }

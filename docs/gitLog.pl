@@ -1,9 +1,9 @@
-#!/bin/bash 
-#
+#!/usr/bin/perl
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,6 +19,4 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 git log  --pretty=oneline --all  --since="$1 days ago" | cut -c42-1000 | awk '!x[$0]++'

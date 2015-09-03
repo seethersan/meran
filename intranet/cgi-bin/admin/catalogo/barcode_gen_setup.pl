@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,21 +19,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
-
 use strict;
 use CGI;
 use C4::AR::Auth;
 use C4::AR::Catalogacion;
 use JSON;
-
 my ($template, $session, $t_params);
 my $input   = new CGI;
 my $obj     = $input->param('obj') || 0;
-
 if ($obj){
-
     ($template, $session, $t_params) = get_template_and_user({
                     template_name => "includes/partials/modificar_value_input.tmpl",
                     query => $input,
@@ -45,8 +39,6 @@ if ($obj){
                                         entorno => 'estructura_catalogacion_n3'},
                     debug => 1,
             });
-
-
     $obj = C4::AR::Utilidades::from_json_ISO($obj);
     my $tipoAccion  = $obj->{'tipoAccion'};
     my $tipoN3      = $obj->{'id_tipo_doc'};
@@ -56,7 +48,6 @@ if ($obj){
         $t_params->{'tipo_doc'}     = C4::AR::Referencias::translateTipoNivel3($tipoN3);
         ($t_params->{'value'},$t_params->{'long_value'}) = C4::AR::Catalogacion::getBarcodeFormat($tipoN3,"NO");
         $t_params->{'function'}    = 'actualizarBarcode();';
-
         C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
         
     }
@@ -91,6 +82,5 @@ if ($obj){
 	$params_combo{'class'}          = 'horizontal';
 	my $comboTiposNivel3            = C4::AR::Utilidades::generarComboTipoNivel3(\%params_combo);
 	$t_params->{'selectItemType'}   = $comboTiposNivel3;
-
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
 }

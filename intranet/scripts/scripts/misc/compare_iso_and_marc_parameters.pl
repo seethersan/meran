@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,18 +19,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-# small script that dumps an iso2709 file.
-
-
 use strict;
-
-# Koha modules used
 use C4::Context;
 use MARC::File::USMARC;
 use MARC::Record;
 use MARC::Batch;
-
 use Getopt::Long;
 my ( $input_marc_file,$number,$nowarning,$frameworkcode) = ('',0);
 my $version;
@@ -41,9 +34,7 @@ GetOptions(
     'w' => \$nowarning,
 	'c' => \$frameworkcode,
 );
-
 $frameworkcode="" unless $frameworkcode;
-
 if ($version || ($input_marc_file eq '')) {
 	print <<EOF
 This script compare an iso2709 file and the MARC parameters
@@ -59,14 +50,12 @@ EOF
 ;
 die;
 }#/
-
 my $batch = MARC::Batch->new( 'USMARC', $input_marc_file );
 $batch->warnings_off() unless $nowarning;
 $batch->strict_off() unless $nowarning;
 my $dbh=C4::Context->dbh;
 my $sth = $dbh->prepare("select tagfield,tagsubfield,tab from marc_subfield_structure where frameworkcode=?");
 $sth->execute($frameworkcode);
-
 my %hash_unused;
 my %hash_used;
 while (my ($tagfield,$tagsubfield,$tab) = $sth->fetchrow) {
@@ -100,14 +89,9 @@ print "================================================\n";
 foreach my $key (sort keys %hash_unused) {
 	print "$key => ".($hash_unused{$key}-1)."\n" unless ($hash_unused{$key}==1);
 }
-
 print "Declared tag/subfields unused in the iso2709 file\n";
 print "=================================================\n";
 foreach my $key (sort keys %hash_used) {
 	print "$key => ".($hash_used{$key}-1)."\n" if ($hash_used{$key}==1);
 }
-
-# foreach my $x (sort keys %resB) {
-# 	print "$x => ".$resB{$x}."\n";
-# }
 print "\n==================\n$i record parsed\n";

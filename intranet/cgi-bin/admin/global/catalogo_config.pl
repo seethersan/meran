@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,14 +19,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use CGI;
 use C4::AR::Auth;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params, $socio)  = get_template_and_user({
                             template_name       => "admin/global/catalogoResultConfig.tmpl",
                             query               => $input,
@@ -38,15 +34,9 @@ my ($template, $session, $t_params, $socio)  = get_template_and_user({
                                                         entorno         => 'undefined'},
                             debug               => 1,
                  });
-
 my ($contPreferenciasCatalogo,$preferenciasCatalogo) = C4::AR::Preferencias::getPreferenciasByCategoria('catalogo');
-
-#trae las preferencias que son renderizadas como un radio button de bootstrap
 my $preferenciasBooleanas   = C4::AR::Preferencias::getPreferenciasBooleanas('catalogo');
-
-#si estamos haciendo el post del form hay que guardar los cambios
 if($input->param('editando')){
-
     my $msg_object = C4::AR::Mensajes::create();
     my $tmp;
     
@@ -57,20 +47,14 @@ if($input->param('editando')){
     }
     
     C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP000', 'params' => []} ) ;
-
     $t_params->{'mensaje'} = C4::AR::Mensajes::getMensaje('SP000','intranet');
     $t_params->{'mensaje_class'}    = 'alert-success';
     
 }
-
-#hay que recargarlas de nuevo para mostrar los valores actualizados
 ($contPreferenciasCatalogo,$preferenciasCatalogo) = C4::AR::Preferencias::getPreferenciasByCategoria('catalogo');
-
 my @arrayPreferencias;
 my $campo       = "";
 my $tabla       = "";
-
-#armamos la data para pasar al template
 foreach my $preferencia (@$preferenciasCatalogo){
         
     if($preferencia->getOptions ne ""){              
@@ -81,8 +65,6 @@ foreach my $preferencia (@$preferenciasCatalogo){
                       $campo = $array[1];                   
            }
     }
-
-
     my $nuevoCampo;
     my @labels;
     my @values;
@@ -90,7 +72,6 @@ foreach my $preferencia (@$preferenciasCatalogo){
     my %hash;
     
     $hash{'preferencia'} = $preferencia;
-
     if($preferencia->getType eq "bool"){
         push(@values, 1);
         push(@values, 0);
@@ -113,19 +94,15 @@ foreach my $preferencia (@$preferenciasCatalogo){
         $nuevoCampo = C4::AR::Utilidades::crearComponentes("combo",$preferencia->getVariable,\@values,\%labels,$preferencia->getValue);
         $hash{'tabla'} = $tabla;
         $hash{'campo'} = $campo;
-
     }  elsif($preferencia->getType eq "text"){
         $nuevoCampo = C4::AR::Utilidades::crearComponentes("text",$preferencia->getVariable,50,0,$preferencia->getValue);
     }
-
     $hash{'tipo'}  = $preferencia->getType;
     $hash{'valor'} = $nuevoCampo;
     
     push(@arrayPreferencias, \%hash);
 }
-
 $t_params->{'preferencias'}             = \@arrayPreferencias;
 $t_params->{'preferenciasBooleanas'}    = $preferenciasBooleanas;
 $t_params->{'page_sub_title'}           = C4::AR::Filtros::i18n("Preferencias del Cat&aacute;logo");   
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

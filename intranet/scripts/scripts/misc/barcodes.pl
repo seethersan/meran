@@ -1,60 +1,41 @@
 #!/usr/bin/perl
-
-
-
-####################
-# Variable Section #
-####################
-
-# Copyright 2000-2002 Katipo Communications
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
-# This file is part of Koha.
+# This file is part of Meran.
 #
-# Koha is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# Koha; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-# Suite 330, Boston, MA  02111-1307 USA
-
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 my $pretext='T ';
 my $startnumber=1000;
 my $pages=2;
 my $libraryname='Copper Mountain Elementary';
-
-# Shifts are given in millimeters. Positive numbers move up and to the right.
-# These variables shift the whole page to account for printer differences.
 my $shiftx=0;
 my $shifty=0;
-
-####################
-
-
-
 my $leftmargin=5;
 my $rightmargin=3;
 my $topmargin=18;
 my $botmargin=10;
-
-
 my $rightside=215;
 my $topside=280;
-
-
 my $barcodewidth=length("$pretext$startnumber")+2;
-
 my $bcwidthfactor=8-$barcodewidth/2;
 print STDERR "$barcodewidth $bcwidthfactor\n";
-
 my $width=$rightside-($leftmargin+$rightmargin);
 my $height=$topside-$topmargin-$botmargin;
-
 print << "EOF";
 %!PS-Adobe-2.0
 %%Title: barcode.ps
@@ -64,13 +45,11 @@ print << "EOF";
 %%DocumentFonts: Helvetica Code39
 %%BoundingBox: 0 0 595 842
 %%EndComments
-
 /newfont 10 dict def
 newfont begin
 /FontType 3 def
 /FontMatrix [0.01 0 0 0.01 0 0] def
 /FontBBox [0 0 100 100] def
-
 /Encoding 256 array def
 0 1 255 {Encoding exch /.notdef put} for
 Encoding 32 /barSpace put
@@ -117,7 +96,6 @@ Encoding 87 /barW put
 Encoding 88 /barX put
 Encoding 89 /barY put
 Encoding 90 /barZ put
-
 /CharProcs 45 dict def
 CharProcs begin
 /.notdef {} def
@@ -210,7 +188,6 @@ neg 0 rlineto 0 -100 rlineto closepath add neg 0 rmoveto} repeat fill} def
 /barZ {0 7 17 17 7 17 7 7 7 7 newpath 93 0 moveto 5 {dup 0 100 rlineto
 neg 0 rlineto 0 -100 rlineto closepath add neg 0 rmoveto} repeat fill} def
 end
-
 /BuildChar
 { 100 0 0 0 93 100 setcachedevice
   exch
@@ -221,13 +198,9 @@ end
   exec
 } def
 end
-
 /Code39 newfont definefont pop
-
 %%EndProlog
-
 EOF
-
 my $number=$startnumber;
 while ($page<$pages) {
     my $data='';
@@ -251,35 +224,22 @@ $x $schooly moveto
 /Helvetica findfont 2.3 scalefont setfont
 $x $labely moveto
 ($pretext$number) dup stringwidth pop 2 div neg 0 rmoveto show
-
-
 EOF
 	    $number++;
 	}
     }
-
-
     $page++;
     print << "EOF";
 %%Page: $page $page
 %%PagerFonts:
-
 $shiftx $shifty translate
 72 25.4 div dup scale
-
 /Code39 findfont [4 0 0 5 0 0] makefont setfont
 /Times-Roman findfont
 1 scalefont
 setfont
 $data
-
-
-
-
-
 showpage
-
-
 EOF
 }
 print "%%Trailer\n";

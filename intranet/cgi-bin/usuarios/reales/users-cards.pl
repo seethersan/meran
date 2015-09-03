@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,11 +19,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
   
 use strict;
 use C4::AR::Auth;
-
 use CGI;
 use C4::AR::PdfGenerator;
 use C4::AR::Busquedas;
@@ -31,9 +29,7 @@ use C4::AR::Busquedas;
 my $input = new CGI;
  
 my $op=$input->param('op');
-
 if ($op eq 'pdf') {
-
     my $obj;
     $obj->{'orden'}             = $input->param('orden')||'apellido';
     $obj->{'apellido1'}         = $input->param('surname1');
@@ -53,11 +49,8 @@ if ($op eq 'pdf') {
     $obj->{'to_alta_persona'}   = $input->param('to_alta_persona');
     $obj->{'from_alta_persona'} = $input->param('from_alta_persona');
     $obj->{'export'}            = 1;
-
     my ($cantidad,$results)=C4::AR::Usuarios::BornameSearchForCard($obj);
-
     C4::AR::Utilidades::printARRAY($results);
      #HAY QUE GENERAR EL PDF CON LOS CARNETS
     C4::AR::PdfGenerator::batchCardsGenerator($cantidad,$results);
-
 }

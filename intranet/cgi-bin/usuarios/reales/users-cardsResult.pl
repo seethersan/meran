@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,18 +19,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
-
 use strict;
 use C4::AR::Auth;
-
 use CGI;
 use C4::AR::PdfGenerator;
 use C4::AR::XLSGenerator;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params) = get_template_and_user({
                             template_name => "usuarios/reales/users-cardsResult.tmpl",
                             query => $input,
@@ -42,7 +36,6 @@ my ($template, $session, $t_params) = get_template_and_user({
                                                 entorno => 'undefined'},
                             debug => 1,
                 });
-
 my $op=$input->param('op');
 my $obj;
 if ($op) {#POST
@@ -65,53 +58,37 @@ if ($op) {#POST
     $obj->{'to_alta_persona'}   = $input->param('to_alta_persona');
     $obj->{'from_alta_persona'} = $input->param('from_alta_persona');
     $obj->{'export'}            = 1;
-
 }else { #AJAX
     $obj=C4::AR::Utilidades::from_json_ISO($input->param('obj'));
 }
-
 if (($obj->{'op'} ne 'PDF_REPORT') &&($obj->{'op'} ne 'XLS_REPORT')) {
-
     $obj->{'ini'} = $obj->{'ini'} || 1;
     my $ini=$obj->{'ini'};
     my $inicial=$obj->{'inicial'} || 0;
     my $funcion = $obj->{'funcion'};
-
     $obj->{'orden'}=$obj->{'orden'}||'apellido';
     $obj->{'apellido1'}=$obj->{'surname1'};
     $obj->{'apellido2'}=$obj->{'surname2'};
-
-
     my ($ini,$pageNumber,$cantR)=C4::AR::Utilidades::InitPaginador($ini);
-
     $obj->{'cantR'} = $cantR;
     $obj->{'pageNumber'} = $pageNumber;
     $obj->{'ini'}=$ini;
-
     my ($cantidad,$results)=C4::AR::Usuarios::BornameSearchForCard($obj);
-
-
     $t_params->{'paginador'}= C4::AR::Utilidades::crearPaginador($cantidad,$cantR, $pageNumber,$funcion,$t_params);
-
     #Se realiza la busqueda si al algun campo no vacio
     $t_params->{'RESULTSLOOP'}=$results;
     $t_params->{'cantidad'}=$cantidad;
-
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
-
 } 
 else{
   
     $obj->{'export'} = 1;
     $obj->{'apellido1'}=$obj->{'surname1'};
     $obj->{'apellido2'}=$obj->{'surname2'};
-
     my ($cantidad,$results)=C4::AR::Usuarios::BornameSearchForCard($obj);
-
     #Se realiza la busqueda si al algun campo no vacio
     $t_params->{'RESULTSLOOP'}=$results;
     $t_params->{'cantidad'}=$cantidad;
-
     if ($obj->{'op'} eq 'XLS_REPORT'){
         #XLS
         print C4::AR::XLSGenerator::xlsHeader(); 
@@ -121,9 +98,7 @@ else{
         #PDF
         my $out                     = C4::AR::Auth::get_html_content($template, $t_params);
         my $filename                = C4::AR::PdfGenerator::pdfFromHTML($out, $obj);
-
         print C4::AR::PdfGenerator::pdfHeader(); 
         C4::AR::PdfGenerator::printPDF($filename);
     }
-
 }

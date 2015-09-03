@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,16 +19,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use CGI;
 use C4::AR::Auth;
 use C4::AR::Utilidades;
-
 my $input   = new CGI;
 my $obj     = $input->param('obj');
-
 my ($template, $session, $t_params)  = get_template_and_user({  
                     template_name => "herramientas/importacion/esquemas_importacion.tmpl",
                     query => $input,
@@ -41,14 +37,10 @@ my ($template, $session, $t_params)  = get_template_and_user({
                                         tipo_permiso => 'general'},
                     debug => 1,
                 });
-
 my %params_combo                            = {};
 $params_combo{'onChange'}                   = 'showEsquemaImportacion()';
-
 my $combo_esquemas_importacion              = C4::AR::Utilidades::generarComboEsquemasImportacion(\%params_combo);
-
 $t_params->{'combo_esquemas_importacion'}   = $combo_esquemas_importacion;
 $t_params->{'id_esquema'}                   = $input->param('id_esquema') || 0;
 $t_params->{'page_sub_title'}               = C4::AR::Filtros::i18n("Esquemas de importaci&oacute;n");
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

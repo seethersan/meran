@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,18 +19,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
 use strict;
 require Exporter;
 use CGI;
 use C4::AR::Auth;         # checkauth, getnro_socio.
-
 use C4::AR::Novedades;
-
 my $query = new CGI;
-
 my $input = $query;
-
 my ($template, $session, $t_params)= get_template_and_user({
                                     template_name   => "opac-main.tmpl",
                                     query           => $query,
@@ -41,8 +36,6 @@ my ($template, $session, $t_params)= get_template_and_user({
                                                         accion          => 'CONSULTA', 
                                                         entorno         => 'undefined'},
              });
-
-
 eval{
 	my $id_novedad                      = $input->param('id');
 	my $novedad                         = C4::AR::Novedades::getNovedad($id_novedad);
@@ -63,9 +56,7 @@ eval{
 	$t_params->{'partial_template'}     = "ver_novedad.inc";
 	
 };
-
 if ($@){
     C4::AR::Auth::redirectTo(C4::AR::Utilidades::getUrlPrefix().'/opac-main.pl?token='.$session->param('token'));	
 }
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
