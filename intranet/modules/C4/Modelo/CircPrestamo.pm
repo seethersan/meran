@@ -1,23 +1,4 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::CircPrestamo;
+package C4::Modelo::CircPrestamo;
 
 use strict;
 use Date::Manip;
@@ -262,10 +243,12 @@ sub agregar {
     $self->fecha_vencimiento_reporte($self->getFecha_vencimiento());
     $self->save();
 
+#**********************************Se registra el movimiento en rep_historial_circulacion***************************
     $self->debug("Se loguea en historico de circulacion el prestamo");
     my $responsable = $data_hash->{'responsable'};
     my $tipo_operacion = "PRESTAMO";
     C4::AR::Prestamos::agregarPrestamoAHistorialCirculacion($self,$tipo_operacion,$responsable);
+#*******************************Fin***Se registra el movimiento en rep_historial_circulacion*************************
 }
 
 sub prestar {
@@ -289,6 +272,12 @@ sub prestar {
     my ( $reservas )  = C4::AR::Reservas::getReservasDeSocio( $nro_socio, $id2 ,$self->db);
 
     my $cant_reservas_total                     = $cant_reservas_asignadas + $cant_reservas_espera;
+#********************************        VER!!!!!!!!!!!!!! *************************************************
+# Si tiene un ejemplar prestado de ese grupo no devuelve la reserva porque en el where estado <> P, Salta error cuando se quiere crear una nueva reserva por el else de abajo. El error es el correcto, pero se puede detectar antes.
+# Tendria que devolver todas las reservas y despues verificar los tipos de prestamos de cada ejemplar (notforloan)
+# Si esta prestado la clase de prestamo que se quiere hacer en este momento.
+# Si no esta prestado se puede hacer lo de abajo, lo que sigue (estaba pensado para esa situacion).
+# Tener en cuenta los prestamos especiales, $tipo_prestamo ==> ES ---> SA. **** VER!!!!!!
     my $disponibilidad = C4::AR::Reservas::getDisponibilidad($id3);
 
     my $ejemplar  = C4::AR::Nivel3::getNivel3FromId3($id3);
@@ -302,6 +291,9 @@ sub prestar {
         if (($reservas->[0]->getId3)&&( $id3 != $reservas->[0]->getId3 )) {
             $self->debug("Los ids son distintos, se intercambian");
 
+#se le esta entregando un item que es <> al que se le asigno al relizar la reserva
+#Se intercambiaron los id3 de las reservas, si el item que se quiere prestar esta prestado se devuelve el error.
+#Los ids son distintos, se intercambian.
             $reservas->[0]->intercambiarId3( $id3, $msg_object , $self->db);
         }
 
@@ -390,6 +382,7 @@ sub prestar {
         $self->debug(
             "se realizan las verificacioines luego de realizar el prestamo");
 
+#se realizan lgetFecha_vencimiento_formateadaas verificacioines luego de realizar el prestamo
         $self->_verificacionesPostPrestamo( $params, $msg_object );
     }
 
@@ -427,6 +420,7 @@ sub _verificacionesPostPrestamo {
     my ($self) = shift;
     my ( $params, $msg_object ) = @_;
 
+#Se verifica si el usuario llego al maximo de prestamos, se caen las demas reservas
     if (
         C4::AR::Prestamos::_verificarMaxTipoPrestamo(
             $params->{'nro_socio'},
@@ -588,18 +582,23 @@ sub devolver {
 
         $self->debug("Se borra la reserva");
 
+#Haya o no uno esperando elimino el que existia porque la reserva se esta cancelando
         $reserva->delete();
 
         $self->debug("Se loguea en historico de circulacion la devolucion");
 
+#**********************************Se registra el movimiento en rep_historial_circulacion***************************
     $self->debug("Se loguea en historico de circulacion el prestamo");
     my $tipo_operacion = "DEVOLUCION";
     C4::AR::Prestamos::agregarPrestamoAHistorialCirculacion($self,$tipo_operacion,$responsable);
+#*******************************Fin***Se registra el movimiento en rep_historial_circulacion*************************
 
+### SANCIONES  Se sanciona al usuario si es necesario, solo si se devolvio el item correctamente
         my $hasdebts = 0;
         my $sanction = 0;
         my $fechaFinSancion;
 
+# Hay que ver si devolvio el ejemplar a termino para, en caso contrario, aplicarle una sancion
         my $daysissue = $self->tipo->getDias_prestamo;
 
         use C4::AR::Sanciones;
@@ -613,6 +612,7 @@ sub devolver {
         if ( $diasSancion > 0 ) {
 
 
+# Se calcula el tipo de sancion que le corresponde segun la categoria del prestamo devuelto tardiamente y la categoria de usuario que tenga
 
             $self->debug("SANCION!!  DIAS: $diasSancion");
 
@@ -627,6 +627,8 @@ sub devolver {
             if ( C4::AR::Sanciones::tieneLibroVencido( $self->getNro_socio , $self->db ) )
             {
 
+# El usuario tiene libros vencidos en su poder (es moroso)
+#SE INSERTA UNA SANCION PENDIENTE (se va a hacer efectiva al devolver el ultimo libro!!)
                 $self->debug("SE INSERTA UNA SANCION PENDIENTE");
                 use C4::Modelo::CircSancion;
                 my $sancion = C4::Modelo::CircSancion->new( db => $self->db );
@@ -648,6 +650,7 @@ sub devolver {
                 $self->debug("SANCION EFECTIVA a ".$self->getNro_socio);
                 my $err;
 
+# Se calcula la fecha de fin de la sancion en funcion de la fecha actual (hoy + cantidad de dias de sancion)
                 $fechaFinSancion = C4::Date::format_date_in_iso(
                     Date::Manip::DateCalc(
                         Date::Manip::ParseDate("today"), "+ " . $diasSancion . " days",
@@ -676,7 +679,9 @@ sub devolver {
                 $reserva->cancelar_reservas_socio( \%paramsSancion );
             }
         }
+### FIN SANCIONES
 
+#**********************************Se registra el movimiento en rep_historial_prestamo***************************
         use C4::Modelo::RepHistorialPrestamo;
         my $historial_prestamo =  C4::Modelo::RepHistorialPrestamo->new( db => $self->db );
         $historial_prestamo->agregarPrestamo($self,$fechaVencimiento);
@@ -684,6 +689,7 @@ sub devolver {
         #AHORA SE BORRA EL PRESTAMO DEVUELTO PASADO AL HISTORICO DE PRESTAMOS
         $self->delete();
 
+#**********************************Se registra el movimiento en rep_historial_prestamo***************************
 
     }
 
@@ -696,6 +702,7 @@ sub estaEnFechaDeRenovacion {
     my $dateformat = C4::Date::get_date_format();
     my $hoy =  C4::Date::format_date_in_iso(Date::Manip::DateCalc( Date::Manip::ParseDate("today"), "+ 0 days", \$err ), $dateformat );
 
+#Agregados para que renueve los sabados tambien
     my $apertura               =C4::AR::Preferencias::getValorPreferencia("open");
     my $cierre                 =C4::AR::Preferencias::getValorPreferencia("close");
     my $first_day_week         =C4::AR::Preferencias::getValorPreferencia("primer_dia_semana");
@@ -705,6 +712,7 @@ sub estaEnFechaDeRenovacion {
     $actual=($hora).':'.$min;
     Date_Init("WorkDayBeg=".$apertura,"WorkDayEnd=".$cierre);
     Date_Init("WorkWeekBeg=".$first_day_week,"WorkWeekEnd=".$last_day_week);
+#fin agregados
 
     my $desde = C4::Date::format_date_in_iso(Date::Manip::DateCalc($self->getFecha_vencimiento,"- ".$self->tipo->getDias_antes_renovacion . " business days",\$err),$dateformat );
     my $flag = Date_Cmp( $desde, $hoy );
@@ -713,6 +721,8 @@ sub estaEnFechaDeRenovacion {
     #comparo la fecha de hoy con el inicio del plazo de renovacion
     if ( !( $flag gt 0 ) ) {
 
+#quiere decir que la fecha de hoy es mayor o igual al inicio del plazo de renovacion
+#ahora tengo que ver que la fecha de hoy sea anterior al vencimiento
         my $flag2 = Date_Cmp( $self->getFecha_vencimiento, $hoy );
         if ( !( $flag2 lt 0 ) ) {
 

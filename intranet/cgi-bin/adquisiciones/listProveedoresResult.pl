@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,12 +19,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 use strict;
 use C4::AR::Auth;
 use CGI;
 use C4::Date;
 use C4::AR::Proveedores;
+
 my $input = new CGI;
+
 my ($template, $session, $t_params)= get_template_and_user({
                                 template_name   => "adquisiciones/listProveedoresResult.tmpl",
                                 query           => $input,
@@ -37,14 +41,18 @@ my ($template, $session, $t_params)= get_template_and_user({
                                                         entorno => 'adq_intra'}, # FIXME
                                 debug           => 1,
                  });
+
   my $accion    = $input->param('accion');
   my $obj       = C4::AR::Utilidades::from_json_ISO($input->param('obj'));
+
   my $orden     = $obj->{'orden'}||'nombre';
   my $funcion   = $obj->{'funcion'};
   my $inicial   = $obj->{'inicial'};
   my $proveedor = $obj->{'nombre_proveedor'};
   my $ini       = $obj->{'ini'} || 1;
+
   my $funcion   = $obj->{'funcion'};
+
   my ($cantidad,$proveedores);
   my ($ini,$pageNumber,$cantR) = C4::AR::Utilidades::InitPaginador($ini);
  
@@ -69,4 +77,5 @@ my ($template, $session, $t_params)= get_template_and_user({
       $t_params->{'proveedor_busqueda'} = $proveedor;
  
   }#END if($proveedores)
+
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

@@ -1,33 +1,22 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::Sphinx;
+package C4::AR::Sphinx;
+
 use strict;
+
 require Exporter;
+
 use C4::Modelo::RefEstado;
 use C4::Modelo::RefEstado::Manager;
+
 use C4::Modelo::IndiceBusqueda;
 use C4::Modelo::IndiceBusqueda::Manager;
+
 use C4::Modelo::IndiceSugerencia;
 use C4::Modelo::IndiceSugerencia::Manager;
+
 use C4::Modelo::CatRegistroMarcN1;
 use C4::Modelo::CatRegistroMarcN1::Manager;
+
+
 use vars qw(@EXPORT @ISA);
 @ISA = qw(Exporter);
 @EXPORT = qw(
@@ -35,11 +24,15 @@ use vars qw(@EXPORT @ISA);
                 reindexar
                 sphinx_start
 );
+
+
 =head2
     sub reindexar
 =cut
 sub reindexar{
     C4::AR::Debug::debug("Sphinx => reindexar => run_indexer => indexado => ".C4::AR::Preferencias::getValorPreferencia('indexado'));
+
+#    if(C4::AR::Preferencias::getValorPreferencia('indexado')){
  #       C4::AR::Debug::debug("Sphinx => reindexar => EL INDICE SE ENCUENTRA ACTUALIZADO!!!!!!!");
   #  } else {
 	C4::AR::Debug::debug("Sphinx => reindexar => EL INDICE SE ENCUENTRA DESACTUALIZADO!!!!!!!!");
@@ -56,7 +49,9 @@ sub reindexar{
         C4::AR::Debug::debug("Sphinx => reindexando indice =>". $index_to_use);
         C4::AR::Preferencias::setVariable('indexado', 1);
     # }
+
 }
+
 =head2
     sub sphinx_start
     verifica si sphinx esta levantado, sino lo está lo levanta, sino no hace nada
@@ -87,12 +82,17 @@ sub sphinx_start{
       #$mgr->searchd_sudo("sudo");
       my $pids = $mgr->get_searchd_pid;
       if(scalar(@$pids) == 0){
+#           C4::AR::Debug::debug("Utilidades => generar_indice => el sphinx esta caido!!!!!!! => ");
           $mgr->start_searchd;
+#           C4::AR::Debug::debug("Utilidades => generar_indice => levantó sphinx!!!!!!! => ");
       }
   }
 }
+
 sub limpiarIndice {
+
     my $indice_busqueda_array_ref = C4::Modelo::IndiceBusqueda::Manager->get_indice_busqueda();
+
     foreach my $indice (@$indice_busqueda_array_ref){
         #si no existe más el nivel 1 se elimina la entrada del índice
         if (!$indice->nivel1){
@@ -100,40 +100,52 @@ sub limpiarIndice {
         }
     }
 }
+
+
 sub getIndiceBusquedaById {
     my ($id)   = @_;
+
     my @filtros;
     push(@filtros, ( id => { eq => $id }) );
     my $indice_busqueda_array_ref = C4::Modelo::IndiceBusqueda::Manager->get_indice_busqueda( query => \@filtros );
+
     if(scalar(@$indice_busqueda_array_ref) > 0){
         return ($indice_busqueda_array_ref->[0]);
     } else {
         return 0;
     }
 }
+
 sub getAllIndiceBusqueda {
+
     my $indice_busqueda_array_ref = C4::Modelo::IndiceBusqueda::Manager->get_indice_busqueda();
+
     if(scalar(@$indice_busqueda_array_ref) > 0){
         return ($indice_busqueda_array_ref);
     } else {
         return 0;
     }
 }
+
 =head2
     sub generar_indice
 =cut
 sub generar_indice {
     my ($id1, $flag, $action)   = @_;
+
     $id1 = $id1 || 0;
+
     if ($flag eq "R_PARTIAL") {
         #Se va a modificar un único nivel 1
         C4::AR::Debug::debug("C4::AR::Sphinx::generar_indice => action ".$action);
         if ($action eq 'DELETE') {
             #se va a eliminar un registro en particular
              my $indice_busueda = C4::AR::Sphinx::getIndiceBusquedaById($id1);
+
              if($indice_busueda){
                  $indice_busueda->delete();
                  }
+
             }
         else{
             #se va a modificar un registro en particular
@@ -142,6 +154,7 @@ sub generar_indice {
                  eval{
                     $nivel1->generarIndice();
                 }; #END eval
+
                 if ($@){
                     C4::AR::Debug::debug("ERROR AL GENERAR EL INDICE EN EL REGISTRO: ". $id1." !!! ( ".$@." )");
                 }
@@ -150,6 +163,7 @@ sub generar_indice {
     }
     else{
         #Se van a reindexar varios niveles
+
         #Vaciamos el indice
         C4::AR::Sphinx::limpiarIndice();
         #Obtenemos todos los niveles 1
@@ -159,6 +173,7 @@ sub generar_indice {
             push(@filtros, ( id => { ge => $id1 }) );
         }
         my $niveles1 = C4::Modelo::CatRegistroMarcN1::Manager->get_cat_registro_marc_n1( query => \@filtros );
+
         foreach my $nivel1 (@$niveles1 ){
             eval{
                 $nivel1->generarIndice();
@@ -168,10 +183,14 @@ sub generar_indice {
                 next;
             }
         } #END foreach
+
      } #END else
+
 }
 =pod
+
 =back
+
 =cut
 sub limpiarIndiceSugerencias{
     my $indice_sugerencia_array_ref = C4::Modelo::IndiceSugerencia::Manager->get_indice_sugerencia();
@@ -179,6 +198,7 @@ sub limpiarIndiceSugerencias{
             $indice->delete();
     }
 }
+
 sub generar_sugerencias {
   limpiarIndiceSugerencias();
   my $mgr = Sphinx::Manager->new({ config_file => C4::Context->config("sphinx_conf") , bindir => C4::Context->config("sphinx_bin_dir"), searchd_bin=> C4::Context->config("sphinx_bin_dir")});
@@ -208,6 +228,8 @@ sub generar_sugerencias {
     }
   }
 }
+
 END { }
 1;
+
 __END__

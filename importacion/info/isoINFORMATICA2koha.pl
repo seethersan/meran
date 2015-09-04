@@ -1,26 +1,14 @@
-#!/usr/bin/perl
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#!/usr/bin/perl -w
 
+# ---------------------------------------------------------------------------
+#	iso2txt.pl	<version 0.1.3>
+#	(c) François Lemarchand 2002
+#	francois.banholzer@free.fr
+#	converts an ISO 2709 file in "human readable" file
+#	requires Perl >= 5.0
+# ---------------------------------------------------------------------------
 
+# pragmas
 
 use strict ;
 require Exporter;
@@ -28,6 +16,7 @@ use diagnostics;
 use ImportacionIso3;
 
 
+# some special chars in ISO 2709 (ISO 6630 and ISO 646 set)
 
 my $IS3 = '##\n' ;		# IS3 : record end
 my $ISubcampo = '\x5e' ;		# IS3 : el ^record end
@@ -36,11 +25,13 @@ my $IS1 = '\x1f' ;		# IS1 : begin subfield
 my $NSB = '\x88' ;		# NSB : begin Non Sorting Block
 my $NSE = '\x89' ;		# NSE : Non Sorting Block end
 
+#Variable que recupera los datos del la tabla iso2709 para no tener que hacer n consultas!
 my %tabla;
 my %tablaK;
 %tabla=ImportacionIso3->list; 
 %tablaK=ImportacionIso3->listK; 
 
+# check Perl version
 
 open (L,">/tmp/fin");
 
@@ -48,6 +39,7 @@ open (L,">/tmp/fin");
 
 require 5 ;
 
+# local declarations
 
 my $recordid = 0 ;
 my $iso2txt_version="0.1" ;
@@ -55,6 +47,7 @@ my $awk_style = 0 ;
 my $help = 0 ;
 my $version = 0 ;
 
+# Processing command line parameters
 
 my $i=0;
 foreach (@ARGV)
@@ -104,7 +97,9 @@ HELP_MESSAGE
 }
 
 
+# opening source(s) file(s)
 undef $/;
+#$/ = '';
  
 foreach my $file (@ARGV) {
 	open(F, $file) || die "$!";
@@ -219,12 +214,15 @@ foreach my $file (@ARGV) {
 		$subcampo= substr($field[$ind],4,1);
 						}#if (length($field[$ind]) >= 5) {
 
+#PREGUNTO POR EL K42 QUE ES EL QUE NO SE USA
 	if ($tabla{$campo,$subcampo}{'k'} ne 'k42'){
 
+#RELACION
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k50'){
 		
 		$relacion=$data[$ind];
 						}
+#BIBLIO
        if ($tbiblio < 7) { #chequeo por las variables de biblio hasta que junto todos los datos
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k01'){
 		$biblio{'title'}=$data[$ind];
@@ -293,6 +291,7 @@ foreach my $file (@ARGV) {
 	  else{$biblio{'subjectheadings'}=$data[$ind];}
 						}
        
+#BIBLIOITEM
 	if ($tbibitem < 222) { #chequeo por las variables de biblioitem hasta que junto todos los datos
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k10'){
 
@@ -351,6 +350,7 @@ foreach my $file (@ARGV) {
 						}
 
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k20'){
+#en Econo el campo k20 puede ser ISBN, ISBNSEC, o ISSN por eso hago estos chequeos
 	#	if ($subcampo eq "t"){$tipo=$data[$ind];    
 	#		       	      $tipo=~ tr/A-Z/a-z/ ;}
 	#			    else{
@@ -395,6 +395,7 @@ foreach my $file (@ARGV) {
 		$tbibitem++;
 						}
 	}
+#ITEMS
 	
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k30'){
 	        if (exists($items[$nroitem]{'barcode'})) {#actualizar($nroitem,@items,@bulk,@bulkdata);
@@ -408,10 +409,19 @@ foreach my $file (@ARGV) {
 							  $nroitem++}
 		$items[$nroitem]{'barcode'}="DIF-".$data[$ind];
 						}
+#	if ($tabla{$campo,$subcampo}{'k'} eq 'k31'){# hay que hacer una busqueda en la tabla de referencia
+#	        if (exists($items[$nroitem]{'homebranch'})) {
+#				  if ($bulk[0]==1){$items[$nroitem]{'bulk'}=$bulkdata[0];
+#				  		if ($bulk[1]==1){$items[$nroitem]{'bulk'}=$items[$nroitem]{'bulk'}." ".$bulkdata[1];}
+#				  		if ($bulk[2]==1){$items[$nroitem]{'bulk'}=$items[$nroitem]{'bulk'}." T. ".$bulkdata[2];}
  #      							 }elsif ($bulk[1]==1){$items[$nroitem]{'bulk'}=$bulkdata[1];
  #                    							      if ($bulk[2]==1){$items[$nroitem]{'bulk'}=$items[$nroitem]{'bulk'}." t. ".$bulkdata[2];}}
  #                       					  elsif ($bulk[2]==1){$items[$nroitem]{'bulk'}=" T. ".$bulkdata[2];}
 						
+#						@bulk=(0,0,0);
+#						$nroitem++}
+#		$items[$nroitem]{'homebranch'}=$data[$ind];
+#						}
 
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k32'){#hay que hacer una busqueda en la tabla de referenci
 		if ($tabla{$campo,$subcampo}{'orden'} eq '1'){
@@ -518,6 +528,7 @@ foreach my $file (@ARGV) {
 	if ($data[$ind] eq 'SALA'){$items[$nroitem]{'notforloan'}=1;}
 				else{$items[$nroitem]{'notforloan'}=0;}
 					}
+#OPERACION
 	if ($tabla{$campo,$subcampo}{'k'} eq 'k44'){
 		$modificacion{'fechaAlta'}=$data[$ind];
 						}
@@ -547,6 +558,8 @@ foreach my $file (@ARGV) {
 		
 		#	print_field($field[$ind],$data[$ind]) ;
 		}#while
+#ACA HAY QUE LLAMAR A UN SCRIPT EN UN pm QUE LLAME A TODOS LOS AGREGAR, HAY QUE PASARLE 1 BIBLIO, 1 BIBITEM, N ITEMS, RESPONSABLE, K50 .... EL BIBLIO DEBERIA CHEQUEAR QUE NO EXISTA YA!
+#ACTUALIZO LA ULTIMA SIG TOP que faltaba
 if ($bulk[0]==1){$items[$nroitem]{'bulk'}=$bulkdata[0];
                  if ($bulk[1]==1){$items[$nroitem]{'bulk'}=$items[$nroitem]{'bulk'}." ".$bulkdata[1];}
                  if ($bulk[2]==1){$items[$nroitem]{'bulk'}=$items[$nroitem]{'bulk'}." T. ".$bulkdata[2];}
@@ -554,9 +567,11 @@ if ($bulk[0]==1){$items[$nroitem]{'bulk'}=$bulkdata[0];
                                      if ($bulk[2]==1){$items[$nroitem]{'bulk'}=$items[$nroitem]{'bulk'}." T. ".$bulkdata[2];}}
                                                      elsif ($bulk[2]==1){$items[$nroitem]{'bulk'}=" T. ".$bulkdata[2];}
 
+#	printf L "BIBLIO \n";
 
 
 if ($onlyitem eq 1){
+#Solo 1 item hay que buscar en relationIso
 my ($biblionumber,$biblioitemnumber)=buscarRelacion($relacion);
 if (($biblionumber eq '') or ($biblioitemnumber eq '')) {print ('NO EXISTE EL BIBLIO : '.$relacion);
 								printf L  $record."\n";}
@@ -569,15 +584,21 @@ foreach my $ai (@items)
 		                }                
 }
 else {
+#Agrego los biblios
 my $nrobiblio= agregarBiblio("importacionEinar",$relacion,%biblio);
+#Agrego los Biblioitems
 my $nrobiblioitem= agregarBibItem("importacionEinar",$nrobiblio,$relacion,%bibitem);
 
 foreach my $ai (@items)
 		{
+#Agrego los items
 $ai->{'homebranch'}="DIF";
 $ai->{'holdingbranch'}="DIF";
 agregarItem("importacionEinar",$nrobiblio,$nrobiblioitem,$relacion,%$ai);
 
+#foreach my $prueba (values(%$ai))
+#{printf L $prueba."\n"}
+#printf L $nroitem."\n"
 		}
 }
 		
@@ -586,6 +607,7 @@ agregarItem("importacionEinar",$nrobiblio,$nrobiblioitem,$relacion,%$ai);
 }
 
 
+# closing source file
 
 close L;
 close(F);

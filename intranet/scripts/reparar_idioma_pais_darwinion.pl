@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,9 +19,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 use CGI::Session;
 use C4::Context;
 use  C4::AR::ImportacionIsoMARC;
+
 my $id = $ARGV[0] || 1;
 my $found=0;
 my $notfound=0;
@@ -37,6 +40,7 @@ foreach my $registro ($importacion->registros){
     my $idioma 	= $marc->subfield('064','Z');
     my $titulo 	= $registro->getTitulo();
     my $autor 	= $registro->getAutor();
+
 	if ($titulo && $autor){
 		my ($resultados) = buscar_registro($titulo->[0],$autor->[0]);
 	  
@@ -45,14 +49,18 @@ foreach my $registro ($importacion->registros){
 	                        print " notfound ";
 	                    }elsif(scalar(@$resultados) == 1){
 	                    	$found++;
+
 	                    	my $n1 = $resultados->[0]->nivel1;
 	                    	my $grupos = $n1->getGrupos();
+
 							#de los grupos saco su marc record con los ejemplares
 							    foreach my $nivel2 (@$grupos){
 							        my $marc_record_n2  =$nivel2->getMarcRecordObject();
+
 							       # Idioma ref_idioma@ print $marc_record_n2->subfield("041","a");
 							       #print $marc_record_n2->subfield("041","a") ." === ".$idioma." ===> ".getIdioma($idioma)." \n";
 							       
+
 							       my $new_idioma = getIdioma($idioma);
 							       if ($new_idioma){
 							       	if($marc_record_n2->field("041")){
@@ -62,8 +70,11 @@ foreach my $registro ($importacion->registros){
                 						$marc_record_n2->append_fields($new_field);
 							       	}
 							       }
+
 							       # Pais ref_pais@  print $marc_record_n2->subfield("043","c");
 							       #print $marc_record_n2->subfield("043","c") ." === ".$pais." ===> ".getPais($pais)." \n";
+
+
 							       my $new_pais = getPais($pais);
 							       if ($new_pais){
 							      	if($marc_record_n2->field("043")){
@@ -77,11 +88,13 @@ foreach my $registro ($importacion->registros){
 						            #print $marc_record_n2->as_formatted; 
 						            $nivel2->save();
 							       }
+
 	                    	print " found ";
 	                    }else{
 	                    	$multi++;
 	                    	print " multi ";
 	                    }
+
     }
     else{
     	$nada++;
@@ -94,9 +107,14 @@ print "NO ENCONTRADOS: ".$notfound."\n";
 print "MULTIPLES: ".$multi."\n";
 print "ARREGLADOS : ".$fixed."\n";
 print "NADA : ".$nada."\n";
+
+
+
 sub buscar_registro {
     my ($titulo,$autor) = @_;
+
     my $db = C4::Modelo::IndiceBusqueda->new()->db();
+
     my @filtros;
     if ($titulo){
     	push (@filtros, ( titulo => { eq => $titulo } ));
@@ -104,19 +122,28 @@ sub buscar_registro {
     if ($autor){
     	push (@filtros, ( autor =>  { like => '%'.$autor.'%'} ));
 	}
+
     my $indice_array_ref = C4::Modelo::IndiceBusqueda::Manager->get_indice_busqueda (
                                                                         db => $db,
 																		query => \@filtros,
                                                                 );
+
+
     return $indice_array_ref;
+
 }
+
+
 sub getPais{
     my ($pais) = @_;
     
     use C4::Modelo::RefPais;
+
     # Si hay un () es porque viene nombre (codigo), busco con código, luego con nombre
+
     my $codigo =undef;
     my $nombre =undef;
+
     if ( index($pais,'(') != -1 ){
      ($codigo) =  $pais =~ /\((.*)\)/; 
      $nombre =  substr($pais, 0, index($pais,'(')); 
@@ -124,9 +151,11 @@ sub getPais{
     else{
         $nombre = $pais;
     }
+
     my @textos =();
     push (@textos, $nombre);
     if ($codigo){ push (@textos, $codigo);}
+
     foreach my $texto (@textos){
         $texto = C4::AR::Utilidades::trim($texto);
         #Casos raros
@@ -160,6 +189,7 @@ sub getPais{
                 $texto = "DEU";
                 }
         }
+
         if (length($texto) le 3 ){
             # no es un código
             my ($cantidad, $objetos) = (C4::Modelo::RefPais->new())->getPaisByIso($texto);
@@ -168,6 +198,7 @@ sub getPais{
                  return  $objetos->[0]->getIso();
             }
         }
+
             #NO lo encontre por iso voy a buscar por nombre exacto
             my ($cantidad, $objetos) = (C4::Modelo::RefPais->new())->getPaisByName($texto);
             if($cantidad){
@@ -175,13 +206,19 @@ sub getPais{
             }
     }
 }
+
+
+
 sub getIdioma{
     my ($idioma) = @_;
     
     use C4::Modelo::RefIdioma;
+
     # Si hay un () es porque viene nombre (codigo), busco con código, luego con nombre
+
     my $codigo =undef;
     my $nombre =undef;
+
     if ( index($idioma,'(') != -1 ){
      ($codigo) =  $idioma =~ /\((.*)\)/; 
      $nombre =  substr($idioma, 0, index($idioma,'(')); 
@@ -189,9 +226,12 @@ sub getIdioma{
     else{
         $nombre = $idioma;
     }
+
     my @textos =();
     if ($codigo){ push (@textos, $codigo);}
     push (@textos, $nombre);
+
+
     foreach my $texto (@textos){
         $texto = C4::AR::Utilidades::trim($texto);
         #Casos raros
@@ -223,4 +263,5 @@ sub getIdioma{
         }
     }
 }
+
 1;

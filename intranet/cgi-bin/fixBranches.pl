@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,9 +19,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# script to fix all the branch settings in the items table of the koha database.
+
 use strict;
 use DBI;
 use C4::Context;
+
+# This script makes the following substitutions.
+# on homebranch field:
 my $home_default = 'C';
 my %home = ( 'F'  => 'FP' ,
 	     'FM' => 'FP' ,
@@ -37,6 +44,8 @@ my %home = ( 'F'  => 'FP' ,
 	     'SP' => 'SP' ,
 	     'LP' => 'LP' ,
 	     'C'  => 'C' );
+
+# on holdingbranch field:
 my $hold_default = 'L';
 my %hold = ( 'F'  => 'F' ,
 	     'FM' => 'FM' ,
@@ -52,11 +61,17 @@ my %hold = ( 'F'  => 'F' ,
 	     'C'  => 'L' ,
 	     'SP' => 'S' ,
 	     'LP' => 'L' );
+
+
+# do the substitutions.....
 my $dbh = C4::Context->dbh;
+
 my $sth = $dbh->prepare("SELECT barcode, holdingbranch, homebranch FROM items");
 $sth->execute();
+
 my $today = localtime(time());
 print "Output from fixBranches.pl   $today \n\n";
+
 while (my $item = $sth->fetchrow_hashref) {
     my $oldhold = $item->{'holdingbranch'};
     my $newhold = $hold{$oldhold} ? $hold{$oldhold} : $hold_default ;
@@ -75,4 +90,5 @@ while (my $item = $sth->fetchrow_hashref) {
 	$uth->finish;
     }
 }
+
 print "\nFinished output from fixbranches.pl\n";

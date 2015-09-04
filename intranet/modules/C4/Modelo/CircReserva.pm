@@ -1,28 +1,12 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::CircReserva;
+package C4::Modelo::CircReserva;
+
 use strict;
 use Date::Manip;
 use base qw(C4::Modelo::DB::Object::AutoBase2);
+
 __PACKAGE__->meta->setup(
     table   => 'circ_reserva',
+
     columns => [
         id2              => { type => 'integer', overflow => 'truncate', not_null => 1 },
         id3              => { type => 'integer', overflow => 'truncate' },
@@ -35,8 +19,11 @@ __PACKAGE__->meta->setup(
         fecha_recordatorio  => { type => 'varchar', overflow => 'truncate' },
         timestamp        => { type => 'timestamp', not_null => 1 },
     ],
+
     primary_key_columns => [ 'id_reserva' ],
+
     unique_key => [ 'nro_socio', 'id3' ],
+
     relationships => [
         nivel3 => {
             class       => 'C4::Modelo::CatRegistroMarcN3',
@@ -60,53 +47,65 @@ __PACKAGE__->meta->setup(
         },
     ],
 );
+
 use C4::Modelo::CircSancion::Manager;
 use C4::Modelo::RepHistorialCirculacion;
 use C4::Modelo::CircSancion;
 use C4::Modelo::CircReserva::Manager;
 use C4::Modelo::CircReserva;
+
 sub getId_reserva{
     my ($self) = shift;
     return ($self->id_reserva);
 }
+
 sub setId_reserva{
     my ($self) = shift;
     my ($id_reserva) = @_;
     $self->id_reserva($id_reserva);
 }
+
 sub getId3{
     my ($self) = shift;
     return ($self->id3);
 }
+
 sub setId3{
     my ($self) = shift;
     my ($id3) = @_;
     $self->id3($id3);
 }
+
 sub getId2{
     my ($self) = shift;
     return ($self->id2);
 }
+
 sub setId2{
     my ($self) = shift;
     my ($id2) = @_;
     $self->id2($id2);
 }
+
 sub getNro_socio{
     my ($self) = shift;
     return ($self->nro_socio);
 }
+
 sub setNro_socio{
     my ($self) = shift;
     my ($nro_socio) = @_;
     $self->nro_socio($nro_socio);
 }
+
 sub getFecha_reserva{
     my ($self) = shift;
     return ($self->fecha_reserva);
 }
+
 sub estaVencida{
     my ($self) = shift; 
+
     my $dateformat = C4::Date::get_date_format();
     my $hoy = C4::Date::format_date_in_iso(Date::Manip::ParseDate("today"), $dateformat);
     my $fecha_vencimiento = $self->getFecha_notificacion_formateada();
@@ -118,76 +117,93 @@ sub estaVencida{
     return (0);
 	
 }
+
 sub getFecha_reserva_formateada{
     my ($self) = shift; 
 	my $dateformat = C4::Date::get_date_format();
     return C4::Date::format_date(C4::AR::Utilidades::trim($self->getFecha_reserva),$dateformat);
 }
+
 sub setFecha_reserva{
     my ($self) = shift;
     my ($fecha_reserva) = @_;
     $self->fecha_reserva($fecha_reserva);
 }
+
 sub getFecha_notificacion{
     my ($self) = shift;
     return ($self->fecha_notificacion);
 }
+
 sub getFecha_notificacion_formateada{
     my ($self) = shift; 
 	my $dateformat = C4::Date::get_date_format();
 		$self->debug("Fecha de notificacion: ".$self->getFecha_notificacion);
     return C4::Date::format_date(C4::AR::Utilidades::trim($self->getFecha_notificacion),$dateformat);
 }
+
 sub setFecha_notificacion{
     my ($self) = shift;
     my ($fecha_notificacion) = @_;
     $self->fecha_notificacion($fecha_notificacion);
 }
+
 sub getFecha_recordatorio{
     my ($self) = shift;
     return ($self->fecha_recordatorio);
 }
+
 sub getFecha_recordatorio_formateada{
     my ($self) = shift; 
 	my $dateformat = C4::Date::get_date_format();
 	$self->debug("Fecha de recordatorio: ".$self->getFecha_recordatorio);
     return C4::Date::format_date(C4::AR::Utilidades::trim($self->getFecha_recordatorio),$dateformat);
 }
+
 sub setFecha_recordatorio{
     my ($self) = shift;
     my ($fecha_recordatorio) = @_;
     $self->fecha_recordatorio($fecha_recordatorio);
 }
+
 sub getId_ui{
     my ($self) = shift;
     return ($self->id_ui);
 }
+
 sub setId_ui{
     my ($self) = shift;
     my ($id_ui) = @_;
     $self->id_ui($id_ui);
 }
+
 sub getEstado{
     my ($self) = shift;
     return ($self->estado);
 }
+
 sub setEstado{
     my ($self) = shift;
     my ($estado) = @_;
     $self->estado($estado);
 }
+
 sub getTimestamp{
     my ($self) = shift;
     return ($self->timestamp);
 }
+
+
 sub esEspera{
     my ($self)      = shift;
+
     return (!C4::AR::Utilidades::validateString($self->getId3()));	
 }
 =item
 agregar
 Funcion que agrega una reserva
 =cut
+
 sub agregar {
     my ($self)      = shift;
     my ($data_hash) = @_;
@@ -203,9 +219,14 @@ sub agregar {
     $self->setId_ui($data_hash->{'id_ui'});
     $self->setEstado($data_hash->{'estado'});
     $self->save();
+
+
     eval{
         $self->nivel2->nivel1->hit();
     };
+
+#**********************************Se registra el movimiento en rep_historial_circulacion***************************
+
     #Este IF se agrega para que no se registre en historico de circulacion la reserva automatica
     if (rindex($session_type,'intra') == -1 ){
         my $tipo="";
@@ -218,19 +239,27 @@ sub agregar {
         }
         my $hasta              = C4::Date::format_date($data_hash->{'fecha_recordatorio'}, C4::Date::get_date_format());
         my $responsable     = $data_hash->{'nro_socio'};
+
         $self->debug("Se loguea en historico de circulacion la reserva que viene del opac");
         C4::AR::Reservas::agregarReservaAHistorial($self,$tipo,$responsable,$hasta);
+
+#*******************************Fin***Se registra el movimiento en rep_historial_circulacion*************************
     }
 }
+
 =item
 agregar
 Funcion para reservar
 =cut
+
 sub reservar {
 	my ($self)=shift;
 	my($params)=@_;
+
+
 	$self->debug("RESERVA: tipo: ".$params->{'tipo'}." id2: ".$params->{'id2'}." id3: ".$params->{'id3'}." tipo_p:".$params->{'tipo_prestamo'});
 	$self->debug("RESERVA: socio: ".$params->{'nro_socio'}." resp: ".$params->{'responsable'});
+
 	my $dateformat = C4::Date::get_date_format();
 	my $id3= $params->{'id3'}||'';
 	if($params->{'tipo'} eq 'OPAC'){
@@ -238,6 +267,8 @@ sub reservar {
 		if($nivel3){ $id3=$nivel3->getId3;}
 		$self->debug("RESERVA: es para OPAC se buscan algún nivel 3 para reservar");
 	}
+
+
     C4::AR::Debug::debug("***_______________________________CALCULO DÍAS DE RESERVA_______________________***");	
 	#Numero de dias que tiene el usuario para retirar el libro si la reserva se efectua sobre un item
 	my $numeroDias                          = C4::AR::Preferencias::getValorPreferencia("reserveItem");
@@ -245,6 +276,7 @@ sub reservar {
 	
     C4::AR::Debug::debug("C4::AR::CircReserva => reservar => desde => ".$desde);
     C4::AR::Debug::debug("C4::AR::CircReserva => reservar => hasta => ".$hasta);
+
 	my %paramsReserva;
 	$paramsReserva{'id1'}                   = $params->{'id1'};
 	$paramsReserva{'id2'}                   = $params->{'id2'};
@@ -262,18 +294,26 @@ sub reservar {
 	$paramsReserva{'desdeh'}                = $apertura;
 	$paramsReserva{'hastah'}                = $cierre;
 	$paramsReserva{'tipo_prestamo'}         = $params->{'tipo_prestamo'};
+
+
     $self->debug("RESERVA: estado: ".$paramsReserva{'estado'}." id_ui: ".	$paramsReserva{'id_ui'});
+
+
 	$self->agregar(\%paramsReserva);
+
+
 	C4::AR::Debug::debug("C4::AR::CircReserva => reservar => desde hash2 => ".$paramsReserva{'desde'});
 	C4::AR::Debug::debug("C4::AR::CircReserva => reservar => hasta hash2 => ".$paramsReserva{'hasta'});
 		
 	$paramsReserva{'id_reserva'}= $self->getId_reserva;
+
 	if( ($id3 ne '')&&($params->{'tipo'} eq 'OPAC') ){
 		#es una reserva de ITEM, se le agrega una SANCION al usuario al comienzo del dia siguiente
 		#al ultimo dia que tiene el usuario para ir a retirar el libro
 		
 		C4::AR::Debug::debug("***__________________________CALCULO COMIENZO SANCION RESERVA__________________***");		
     my ($fin_reserva,$comienzo_sancion,$apertura,$cierre)    = C4::Date::proximosHabiles(1,1,$hasta);
+
 		my $fechaHoy =  C4::Date::format_date_in_iso( Date::Manip::ParseDate("today"), $dateformat );		
 		my $diasDeSancionReserva =  C4::AR::Sanciones::diasDeSancion( $comienzo_sancion,$fin_reserva,$self->socio->getCod_categoria ,'RE' );
 		C4::AR::Debug::debug("***___________________________________DIAS SANCION RESERVA___________________________".$diasDeSancionReserva);	
@@ -298,11 +338,15 @@ sub reservar {
 			$paramsSancion{'fecha_final'}       = $fecha_fin_sancion;
 			$paramsSancion{'dias_sancion'}      = $diasDeSancionReserva;
 			$paramsSancion{'id3'}		        = $self->getId3;
+
 			$sancion->insertar_sancion(\%paramsSancion);
 		}
 	}
+
 	return (\%paramsReserva);
 }
+
+
  
 =item
  cancelar_reserva
@@ -314,6 +358,7 @@ sub cancelar_reserva{
 	my $nro_socio   = $params->{'nro_socio'};
 	my $responsable = $params->{'responsable'};
     my $nota        = $params->{'nota'};
+
 	if($self->getId3){
 		$self->debug("Es una reserva asignada se trata de reasignar");
         # Si la reserva que voy a cancelar estaba asociada a un item tengo que reasignar ese item a otra reserva para el mismo grupo
@@ -322,20 +367,27 @@ sub cancelar_reserva{
 		$self->debug("Se borra la sancion de la reserva");
 		$self->borrar_sancion_de_reserva();
 	}
+
 	$self->debug("Se loguea en historico de circulacion la cancelacion");
     C4::AR::Reservas::agregarReservaAHistorial($self,'CANCELACION',$responsable,"",$nota);
 	$self->debug("Se cancela efectivamente");
     #Haya o no uno esperando elimino el que existia porque la reserva se esta cancelando
 	$self->delete();
 }
+
+
+
 =item sub actualizarDatosReservaEnEspera
 Funcion que actualiza la reserva que estaba esperando por un ejemplar.
 =cut
 sub actualizarDatosReservaEnEspera{
 	my ($self) = shift;
+
 	my ($responsable) = @_;
+
 	my $dateformat = C4::Date::get_date_format();
 	my $hoy = C4::Date::format_date_in_iso(Date::Manip::ParseDate("today"), $dateformat);
+
     #Se actualiza la reserva
 	my ($desde,$hasta,$apertura,$cierre) = C4::Date::proximosHabiles(C4::AR::Preferencias::getValorPreferencia("reserveGroup"),1);
 	$self->setEstado('E');
@@ -343,6 +395,8 @@ sub actualizarDatosReservaEnEspera{
 	$self->setFecha_notificacion($hoy);
 	$self->setFecha_recordatorio($hasta);
 	$self->save();
+
+
 		C4::AR::Debug::debug("***___actualizarDatosReservaEnEspera___CALCULO COMIENZO SANCION RESERVA__________________***");		
     my ($fin_reserva,$comienzo_sancion,$apertura,$cierre)    = C4::Date::proximosHabiles(1,1,$hasta);
 	
@@ -367,8 +421,10 @@ sub actualizarDatosReservaEnEspera{
 			$paramsSancion{'fecha_final'}       = $fecha_fin_sancion;
 			$paramsSancion{'dias_sancion'}      = $diasDeSancionReserva;
 			$paramsSancion{'id3'}		        = $self->getId3;
+
 			$sancion->insertar_sancion(\%paramsSancion);
 		}
+
 	my $params;
 	$params->{'cierre'}= $cierre;
 	$params->{'fecha'}= $hasta;
@@ -376,8 +432,10 @@ sub actualizarDatosReservaEnEspera{
 	$params->{'apertura'}= $apertura;
 	$params->{'responsable'}= $responsable;
 	#Se envia una notificacion al usuario avisando que se le asigno una reserva
+
 	   C4::AR::Reservas::Enviar_Email_Asignacion_Reserva($self,$params);
 }
+
 =item sub getReservaEnEspera
 Funcion que trae los datos de la primer reserva de la cola que estaba esperando que se desocupe un ejemplar del grupo de esta misma reserva.
 =cut
@@ -386,11 +444,13 @@ sub getReservaEnEspera{
     my @filtros;
     push(@filtros, ( id2 => { eq => $self->getId2 }));
     push(@filtros, ( id3 => undef ));
+
     my $reservas_array_ref = C4::Modelo::CircReserva::Manager->get_circ_reserva(    db      => $self->db,
 										    query   => \@filtros,
                                                                                     sort_by => 'timestamp',
                                                                                     limit   => 1
                                                                 ); 
+
     if(scalar(@$reservas_array_ref) > 0){
         return ($reservas_array_ref->[0]);
     }else{
@@ -398,6 +458,8 @@ sub getReservaEnEspera{
         return 0;
     }
 }
+
+
 =item
 cancelar_reservas_inmediatas
 Se cancelan todas las reservas del usuario que viene por parametro cuando este llega al maximo de prestamos de un tipo determinado.
@@ -406,7 +468,9 @@ sub cancelar_reservas_inmediatas{
 	my ($self)=shift;
 	my ($params)=@_;
 	my $socio=$params->{'nro_socio'};
+
     $params->{'nota'} = "PRESTAMOS MÁXIMOS";
+
    	my $reservas_array_ref = C4::Modelo::CircReserva::Manager->get_circ_reserva(
 					db=>$self->db,
 					query => [ nro_socio => { eq => $socio }, estado => {ne => 'P'}, id3 => undef ]
@@ -415,8 +479,12 @@ sub cancelar_reservas_inmediatas{
 	foreach my $reserva (@$reservas_array_ref){
 		$reserva->cancelar_reserva($params);
 	}
+
 }
+
+
 sub cancelar_reservas{
+# Este procedimiento cancela todas las reservas de los usuarios recibidos como parametro
 	my ($self)=shift;
 	my ($responsable,$nro_socios,$nota)= @_;
 	my $params;
@@ -424,14 +492,18 @@ sub cancelar_reservas{
 	$params->{'responsable'}= $responsable;
 	$params->{'tipo'}= 'INTRA';
     $params->{'nota'} = $nota;
+
 	foreach (@$nro_socios) {
 		my $reservas_array_ref = C4::Modelo::CircReserva::Manager->get_circ_reserva( db => $self->db,
 									query => [ nro_socio => { eq => $_ }, estado => {ne => 'P'}]); 
+
 		foreach my $reserva (@$reservas_array_ref){
 			$reserva->cancelar_reserva($params);
 		}
 	}
 }
+
+
 =item
 cancelar_reservas_sancionados
 Se cancelan todas las reservas de usuarios sancionados.
@@ -439,10 +511,13 @@ Se cancelan todas las reservas de usuarios sancionados.
 sub cancelar_reservas_sancionados {
 	my ($self)=shift;
 	my ($responsable)= @_;
+
 	#Se buscan los socios sancionados
 	my $dateformat = C4::Date::get_date_format();
 	my $hoy=C4::Date::format_date_in_iso(Date::Manip::ParseDate("today"), $dateformat);
+
         $self->debug("cancelar_reservas_sancionados => HOY = ".$hoy);
+
 	my $sanciones_array_ref = C4::Modelo::CircSancion::Manager->get_circ_sancion ( db=>$self->db, 
 									query => [ 
 											fecha_comienzo 	=> { le => $hoy },
@@ -450,13 +525,17 @@ sub cancelar_reservas_sancionados {
 										],
 									select => ['nro_socio'],
 									);
+
 	my @socios_sancionados;
 	foreach my $sancion (@$sanciones_array_ref){
 	      $self->debug("cancelar_reservas_sancionados => Usuario Sancionado = ".$sancion->getNro_socio);
 	      push (@socios_sancionados,$sancion->getNro_socio);
 	}
+
 	$self->cancelar_reservas($responsable,\@socios_sancionados,"SANCION");
 }
+
+
 =item
 cancelar_reservas_no_regulares
 Se cancelan todas las reservas de usuarios que perdieron la regularidad.
@@ -464,12 +543,15 @@ Se cancelan todas las reservas de usuarios que perdieron la regularidad.
 sub cancelar_reservas_no_regulares {
   my ($self)=shift;
   my ($responsable)= @_;
+
     my $params;
     $params->{'responsable'}= $responsable;
     $params->{'tipo'}= 'INTRA';
     $params->{'nota'} = "NO REGULAR";
+
     my $reservas_array_ref = C4::Modelo::CircReserva::Manager->get_circ_reserva( db => $self->db,
 										    query => [ estado => {ne => 'P'}]);
+
     foreach my $reserva (@$reservas_array_ref){
 	if(! $reserva->socio->esRegular){
 	    $self->debug("cancelar_reservas_no_regulares => Usuario Irregular = ".$reserva->socio->getNro_socio." se cancela la reserva ".$reserva->getId_reserva );
@@ -477,16 +559,26 @@ sub cancelar_reservas_no_regulares {
 	  }
     }
 }
+
+
+#========================================================================================================================================
+
+
 =item sub reasignarEjemplarASiguienteReservaEnEspera
+
     Esta funcion asgina el ejemplar a una reserva (SI EXISTE) que se encontraba en la cola de espera para un grupo determinado
     Esta reserva ya tenia el ejemplar asignado
+
     @Parametros:
         $responsable: el usuario logueado
 =cut
 sub reasignarEjemplarASiguienteReservaEnEspera{
     my ($self) = shift;
+
     my ($responsable) = @_;
+
     my ($reservaGrupo) = $self->getReservaEnEspera(); #retorna la primer reserva en espera SI EXISTE
+
     if($reservaGrupo){
         #Si hay al menos un ejemplar esperando se reasigna
         $reservaGrupo->setId3($self->getId3);
@@ -497,47 +589,62 @@ sub reasignarEjemplarASiguienteReservaEnEspera{
         C4::AR::Reservas::agregarReservaAHistorial($reservaGrupo,'ASIGNACION',$responsable);
     }
 }
+
+
 =item sub cancelar_reservas_socio
     Este procedimiento cancela todas las reservas del usuario recibido como parametro
+
     @Parametros
         responsable = usuario logueado en el sistema
         nro_socio    = socio al que se le cancelan las reservas
 =cut
 sub cancelar_reservas_socio{
     my ($self) = shift;
+
     my ($params) = @_;
     $params->{'tipo'}= 'INTRA';
+
     my ($reservas_array_ref) = C4::Modelo::CircReserva::Manager->get_circ_reserva( 
                                                                 db      => $self->db,
                                                                 query   => [    nro_socio   => { eq => $params->{'nro_socio'} }, 
                                                                                 estado      => { ne => 'P'} 
                                                                             ]
                                                         );
+
     foreach my $reserva (@$reservas_array_ref){
         $reserva->cancelar_reserva($params);
     }
 }
+
+
 =item
 eliminarReservasVencidas
 Elimina las reservas vencidas al dia de la fecha y actualiza la reservas de grupo, si es que exiten, para los item liberados.
 =cut
 sub cancelar_reservas_vencidas {
     my ($self) = shift;
+
     my ($responsable) = @_;
+
     #Se buscan las reservas vencidas!!!!
     my ($reservas_vencidas_array_ref) = $self->getReservasVencidas();
+
    $self->debug("cancelar_reservas_vencidas => cant_reservas => ".scalar(@$reservas_vencidas_array_ref));
+
     #Se buscan si hay reservas esperando sobre el grupo que se va a elimninar la reservas vencidas
     foreach my $reserva (@$reservas_vencidas_array_ref){
        $reserva->reasignarEjemplarASiguienteReservaEnEspera($responsable);
         #Haya o no uno esperando elimino el que existia porque la reserva se esta cancelando
+
         $self->debug("Se loguea en historico de circulacion la cancelacion");
         my $nota="RESERVA VENCIDA";
         C4::AR::Reservas::agregarReservaAHistorial($reserva,'CANCELACION',$responsable,"",$nota);
+
         $self->debug("cancelar_reservas_vencidas => SE CANCELA LA RESERVA : ". $reserva->getId_reserva);
        $reserva->delete();
     }# END foreach my $reserva (@$reservasVencidas)
 }
+
 =item
 cancelar_reservas_usuarios_morosos
 Se cancelan las reservas de usuarios con prestamos vencidos
@@ -545,13 +652,16 @@ Se cancelan las reservas de usuarios con prestamos vencidos
 sub cancelar_reservas_usuarios_morosos {
   my ($self)=shift;
   my ($responsable)= @_;
+
     my $params;
     $params->{'responsable'}= $responsable;
     $params->{'tipo'}= 'INTRA';
+
     my $socios_reservas_array_ref = C4::Modelo::CircReserva::Manager->get_circ_reserva( db => $self->db,
 										 distinct => 1,
 										 select   => [ 'nro_socio' ],
 										 query => [ estado => {ne => 'P'}]);
+
     foreach my $reserva (@$socios_reservas_array_ref){
         my ($vencidos,$prestados) = C4::AR::Prestamos::cantidadDePrestamosPorUsuario($reserva->nro_socio);
 		if( $vencidos ){
@@ -560,15 +670,21 @@ sub cancelar_reservas_usuarios_morosos {
 		    $params->{'nota'} = "MOROSO";
             $self->cancelar_reservas_socio($params);
 		  }
+
     }
 }
+
+
+
 =item sub getReservasVencidas
     Retorna un arreglo de objetos reserva que se encuentran VENCIDAS
 =cut
 sub getReservasVencidas {
     my ($self) = shift;
+
     my $dateformat  = C4::Date::get_date_format();
     my $hoy         = C4::Date::format_date_in_iso(Date::Manip::ParseDate("today"), $dateformat);
+
     #Se buscan las reservas vencidas!!!!
     my ($reservas_vencidas_array_ref) = C4::Modelo::CircReserva::Manager->get_circ_reserva(
                                                                         db => $self->db,
@@ -580,6 +696,7 @@ sub getReservasVencidas {
                                                         );
     return ($reservas_vencidas_array_ref);
 }
+
 =item sub borrar_sancion_de_reserva
 Borra la sancion que corresponde a esta reserva
 FIXME Se borra del historial si no se llegó a efectivizar la sancion!!
@@ -587,13 +704,18 @@ FIXME Se borra del historial si no se llegó a efectivizar la sancion!!
 sub borrar_sancion_de_reserva{
     my ($self) = shift;
     my ($db) = @_;
+
+
     $db = $db || $self->db; 
+
     my $dateformat  = C4::Date::get_date_format();
     my $hoy         = C4::Date::format_date_in_iso(Date::Manip::ParseDate("today"), $dateformat);
     my @filtros;
     push(@filtros, ( id_reserva     => { eq => $self->getId_reserva}));
     push(@filtros, ( fecha_comienzo => { gt => $hoy} ));
+
     my ($sancion_reserva_array_ref) = C4::Modelo::CircSancion::Manager->get_circ_sancion( db => $db, query => \@filtros);
+
     if(scalar(@$sancion_reserva_array_ref) > 0){
         #Primero eliminamos la sancion del historial
         my $sancion = $sancion_reserva_array_ref->[0];
@@ -603,6 +725,7 @@ sub borrar_sancion_de_reserva{
         push(@filtrosHistorial, ( fecha_final     => { eq => $sancion->getFecha_final()}));
         push(@filtrosHistorial, ( tipo_sancion    => { eq => $sancion->getTipo_sancion()}));
         my ($historial_sancion_array_ref) = C4::Modelo::RepHistorialSancion::Manager->get_rep_historial_sancion( db => $db, query => \@filtrosHistorial);
+
         if(scalar(@$historial_sancion_array_ref) > 0){
             #Se elimina del historial la sancion de la reserva
             $historial_sancion_array_ref->[0]->delete();
@@ -612,27 +735,34 @@ sub borrar_sancion_de_reserva{
         $sancion->delete();
     }
 }
+
 sub pasar_a_espera{
     my ($self) = shift;
+
     # Se borra la sancion correspondiente a la reserva si es que la sancion todavia no entro en vigencia
     $self->debug("Se borra la sancion de la reserva");
     $self->borrar_sancion_de_reserva();
+
     $self->debug("Se pasa la reserva a GRUPAL");
     $self->setEstado('G');
     $self->setId3(undef);
     $self->save();
 }
+
 =item sub intercambiarId3
+
     Este metodo intercambia el id3 de la reserva, por el id3 pasado por parametro
 =cut
 sub intercambiarId3{
     my ($self) = shift;
+
     my ($nuevo_Id3, $msg_object, $db) = @_;
     
     C4::AR::Debug::debug("intercambiarId3 => se va a intercambiar el id3: ".$self->getId3." por nuevo_Id3: ".$nuevo_Id3);
     my @filtros;
     push(@filtros, ( id3 => { eq => $nuevo_Id3 } ));
     my ($reserva_array_ref) = C4::Modelo::CircReserva::Manager->get_circ_reserva( db => $db, query => \@filtros);
+
     if (scalar(@$reserva_array_ref) > 0){ 
         #Ya existe una reserva sobre ese Id3
         if($reserva_array_ref->[0]->getEstado eq "E"){ 
@@ -654,8 +784,14 @@ sub intercambiarId3{
         $self->setId3($nuevo_Id3);
         $self->save();
     }
+
 }
+
 sub defaultSort{
+
     return ("fecha_recordatorio DESC");
 }
+
+
 1;
+

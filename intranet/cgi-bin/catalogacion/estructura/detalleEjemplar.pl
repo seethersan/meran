@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,11 +19,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 use strict;
 use C4::AR::Auth;
 use CGI;
 use C4::AR::Nivel3 qw(getNivel3FromId3);
 my $input = new CGI;
+
 my ($template, $session, $t_params) = get_template_and_user({
                                         template_name => "catalogacion/estructura/detalleEjemplar.tmpl",
                                         query => $input,
@@ -35,12 +38,16 @@ my ($template, $session, $t_params) = get_template_and_user({
                                                                 entorno => 'datos_nivel1'},
                                         debug => 1,
     });
+
+
 my $obj=$input->param('obj');
 if($obj) {
     $obj=C4::AR::Utilidades::from_json_ISO($obj);
     my $tipo= $obj->{'tipo'};
     my $id3 = $obj->{'id3'};
+
     if($tipo eq "VER_HISTORICO_DISPONIBILIDAD"){
+
     my ($template, $session, $t_params) = get_template_and_user({
                                             template_name => "catalogacion/estructura/detalleEjemplarDisponibilidad.tmpl",
                                             query => $input,
@@ -52,19 +59,26 @@ if($obj) {
                                                                     entorno => 'datos_nivel3'},
                                             debug => 1,
         });
+
     my $ini = $obj->{'ini'} || 0;
+
     my $nivel3 = C4::AR::Nivel3::getNivel3FromId3($id3);
+
     if ($nivel3) {
         my ($ini,$pageNumber,$cantR)    =   C4::AR::Utilidades::InitPaginador($ini);
         my ($cant_historico,$historico_disponibilidad) = C4::AR::Nivel3::getHistoricoDisponibilidad($id3,$ini,$cantR);
+
         $t_params->{'paginador'} = C4::AR::Utilidades::crearPaginador($cant_historico,$cantR, $pageNumber,$obj->{'funcion'},$t_params);
         $t_params->{'nivel3'} = $nivel3;
         $t_params->{'historico_disponibilidad'} = $historico_disponibilidad;
         $t_params->{'cant_historico'} = $cant_historico;
     }
+
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
+
     }
     elsif($tipo eq "VER_HISTORICO_CIRCULACION"){
+
     my ($template, $session, $t_params) = get_template_and_user({
                                             template_name   => "catalogacion/estructura/detalleEjemplarCirculacion.tmpl",
                                             query           => $input,
@@ -76,14 +90,19 @@ if($obj) {
                                                                     entorno         => 'datos_nivel3'},
                                             debug => 1,
         });
+
     my $ini = $obj->{'ini'} || 0;
+
     my $nivel3 = C4::AR::Nivel3::getNivel3FromId3($id3);
+
     if ($nivel3) {
         my $fecha_inicial   = $obj->{'fecha_inicial'};
         my $fecha_final     = $obj->{'fecha_final'};
         my $orden           = $obj->{'orden'} || 'fecha DESC';
+
         my ($ini,$pageNumber,$cantR)    =   C4::AR::Utilidades::InitPaginador($ini);
         my ($cant_historico,$historico_circulacion) = C4::AR::Nivel3::getHistoricoCirculacion($id3,$ini,$cantR,$fecha_inicial,$fecha_final,$orden);
+
         $t_params->{'paginador'} = C4::AR::Utilidades::crearPaginador($cant_historico,$cantR, $pageNumber,$obj->{'funcion'},$t_params);
         $t_params->{'nivel3'}                   = $nivel3;
         $t_params->{'fecha_inicial'}            = $fecha_inicial;
@@ -91,7 +110,9 @@ if($obj) {
         $t_params->{'historico_circulacion'}    = $historico_circulacion;
         $t_params->{'cant_historico'}           = $cant_historico;
     }
+
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
+
     }
 }
 else {
@@ -106,8 +127,10 @@ else {
                                                                     entorno => 'datos_nivel3'},
                                             debug => 1,
         });
+
     my $id3     = $input->param('id3');
     my $nivel3  = C4::AR::Nivel3::getNivel3FromId3($id3);
+
     if ($nivel3) {
         $t_params->{'nivel3'} = $nivel3;
 	    if ($nivel3->estaPrestado){
@@ -122,6 +145,8 @@ else {
 	    $t_params->{'socio_reserva'}    = $socio_reserva; 
 	    
 	    C4::AR::Debug::debug("socio reserva : ".$socio_reserva);
+
     }    
+
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
 }

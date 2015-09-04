@@ -1,26 +1,13 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::DB::Object::AutoBase2;
+package C4::Modelo::DB::Object::AutoBase2;
+
 use base 'Rose::DB::Object';
+#use base 'Rose::DB::Object::Cached';
+
+
 use C4::Modelo::DB::AutoBase1;
 use base qw(Rose::DB::Object::Helpers);
+
+
 sub init_db { 
     if (!$DB){
        $DB = C4::Modelo::DB::AutoBase1->new_or_cached;
@@ -35,28 +22,43 @@ sub init_db {
 =cut
 sub load{
     my $self = $_[0]; # Copy, not shift
+
     my $error = 1;
+
     eval {
     
          unless( $self->SUPER::load(speculative => 1, nonlazy => 1,) ){
+#                  C4::AR::Debug::debug("AutoBase2 =>  dentro del unless, no existe el objeto SUPER load");
                 $error = 0;
          }
+
+#         C4::AR::Debug::debug("AutoBase2 =>  SUPER load");
         return $self->SUPER::load(@_);
     };
+
     if($@){
+#         C4::AR::Debug::debug("AutoBase2 =>  no existe el objeto");
         $error = undef;
     }
+
     return $error;
 }
+
+
 =item
+
 Imprime el nombre de la clase
 =cut
  
 sub getPk{
+
     my ($self) = shift;
+
     return (''.$self->meta->primary_key);
 }
+
 sub getByPk{
+
     my ($self) = shift;
     my ($value_id) = @_;
    
@@ -64,14 +66,20 @@ sub getByPk{
     my $pk = $self->meta->primary_key;
     my $self_like = $self->meta->class->new($pk => $value_id);
   
+#     SI NO SE TRABAJA CON CACHE, COMENTAR LA SIGUIENTE LINEA
+
+#    $self_like->forget;
     
     $self_like->load();
+
     return($self_like);
 }
+
 sub getInvolvedFilterString{
 	
     my ($self) = shift;
     my ($tabla, $value)= @_;
+
     my @filtros;
     
     my $table_name = $tabla->meta->table;
@@ -79,61 +87,111 @@ sub getInvolvedFilterString{
     my $instance = $tabla->getByPk($value);
     
     $value = $instance->get_key_value();
+
     my $filter_string = $table_name."@".$value;
+
     push (@filtros, ( marc_record => {like => '%'.$filter_string.'%'} ) );
+
    C4::AR::Debug::debug("********************* REFERENCIAS ************************** \n getInvolvedFilterString en $table_name =========> TABLA $tabla VALUE $value ************************************** \n");
+
     return($filter_string,\@filtros);
 	
 }
+
 sub get_key_value{
     my ($self) = shift;
     
     return ($self->getPkValue);
 }
+
 sub replaceByThis{
+
     my ($self) = shift;
     my ($new_id)=@_;
+
     my @filtros;
+
     my ($used_or_not,$referer_involved,$data_array) = C4::AR::Referencias::mostrarReferencias($self->getAlias(),$self->getPkValue);
+
+
     foreach my $tabla (@$data_array){
         if (!$tabla->{'tabla_catalogo'}){
             my ($clave_tabla_referente,$tabla_referente) = C4::AR::Referencias::getTablaInstanceByTableName($tabla->{'tabla_object'}->getTabla_referente);
             $tabla_referente->replaceBy($tabla->{'tabla_object'}->getCampo_referente,$self->get_key_value,$new_id);
         }
     }
+
 }
+
 sub getRelated{
+
     my ($self)=shift;
     my @filtros;
+
     my $related = $self->getAll(0,0,1);
+
     return ($related);
 }
+
+
+
 sub getPkValue{
+
     my ($self) = shift;
+
     return ($self->{$self->getPk});
 }
+
 sub getInvolvedCount{
  
+# ESTE METODO LO DEBEN IMPLEMENTAR TODAS LAS CLASES QUE USEN ALGUNA REFERENCIA, SI O SI
      return (0);
 }
+
 sub toString{
     my ($self)=shift;
+
     return $self->meta->class;
 }
+
 sub getTableName{
+
     my ($self)=shift;
+
     return $self->meta->table;
+
 }
 =item
+
     CHAIN OF RESPONSIBILITY
+
     HandleRequest = createFromAlias, implementado como un  TemplateMethod compuesto por 
+
     createFromAlias (TemplateMethod), nextChain, nextMember (HookMethods)
+
 =cut
+# sub createFromAlias{
+#     my ($self)=shift;
+#     my $classAlias = shift;
+# 
+#     if ($classAlias eq $self->getAlias){
+#         return ($self);
+#     }else
+#         {
+#             return($self->nextChain($classAlias));
+#         }
+# }
+
+
+# TODO feo pero el tren hace muchas consultas
 sub createFromAlias{
     my ($self)      = shift;
     my $classAlias  = shift;
     my $class;
+
+
     use Switch;
+
     switch ($classAlias) {
         case 'autor' { return C4::Modelo::CatAutor->new()}
         case 'tipo_ejemplar' {return C4::Modelo::CatRefTipoNivel3->new()}
@@ -154,16 +212,36 @@ sub createFromAlias{
         case 'colaborador' {return C4::Modelo::RefColaborador->new()}
         case 'signatura' {return C4::Modelo::RefSignatura->new()}
         case 'acm' {return C4::Modelo::RefAcm->new()}
+# TODO para el link de analiticas
         case 'nivel2' {return C4::Modelo::CatRegistroMarcN2->new()}
         case 'usr_estado' {return C4::Modelo::UsrEstado->new()}
         case 'usr_regularidad' {return C4::Modelo::UsrRegularidad->new()}
 	    else {C4::AR::Debug::debug("NO EXISTE LA TABLA DE REFERENCIA ".$classAlias) }
     }
 }
+
+# 
+# sub nextChain{
+#     my ($self)=shift;
+#     my $classAlias = shift;
+#     if ($self->lastTable){
+#         return ($self->default);
+#     }
+#     else
+#         {
+#             return($self->nextMember->createFromAlias($classAlias));
+#         }
+# }
+
+
 sub printAsTableElement{
+
     my ($self)=shift;
     my $classAlias = shift;
+
+
     my $campos = $self->getCamposAsArray;
+
     my $td;
     my $editId = 1;
     foreach my $campo (@$campos){
@@ -173,13 +251,19 @@ sub printAsTableElement{
     }
     return ($td);
 }
+
+
 sub modifyFieldValue{
+
     my ($self)=shift;
     my ($field,$value) = @_;
+
     $self->{$field} = $value;
+
     if ($self->meta->class eq "C4::Modelo::CatAutor"){
       $self->setCompleto();
     }
+
     $self->save;
 }
     
@@ -191,27 +275,43 @@ sub getCamposAsHash{
     my @arregloJSON;
     my $camposArray = $self->meta->columns;
     use C4::Modelo::PrefTablaReferenciaConf;
+
+#     C4::AR::Debug::debug("AutoBase2 => getCamposAsHash => ".$self->meta->table);
+
     foreach my $campo (@$camposArray){
         my $ptrc    = C4::Modelo::PrefTablaReferenciaConf->new();
         my $c       = $ptrc->getConf($self->meta->table, $campo);
+
+#         C4::AR::Debug::debug("AutoBase2 => getCamposAsHash => campo => ".$campo);
         if($c){
+#             C4::AR::Debug::debug("AutoBase2 => getCamposAsHash => TIENE CONF => ".$campo);
             if($c->getVisible()){
     ## FIXME ."" se esta concatenando $campo con "" pq sino se rompe, cosa de locos
+#                 C4::AR::Debug::debug("AutoBase2 => getCamposAsHash => AGREGO CAMPOOO => ".$campo);
+#                 push (@arregloJSON, {'campo' => $c->getCampoAlias()."" });
                 my %hash_temp; 
                 $hash_temp{'key'}               = $campo."";
                 $hash_temp{'value'}             = $c->getCampoAlias();
+#                 $hash_temp{'default_value'}     = $self->getDefaultValue($self->meta->table);
+# C4::AR::Debug::debug("AutoBase2 => getCamposHash => ".$hash_temp{'default_value'});
                 push (@arregloJSON, \%hash_temp);
             }
         }
     }
+
+#     C4::AR::Debug::debug("AutoBase2 => getCamposAsHash => cant campos => ".scalar(@arregloJSON));
     return(@arregloJSON);
 }
+
 sub getDefaultValue{
     my ($self) = shift;
  
     my $classAlias  = shift;
     my $class;
+
+
     use Switch;
+
     switch ($classAlias) {
         case 'cat_autor' { return C4::AR::Preferencias::getValorPreferencia("defaultUI");}
         case 'tipo_ejemplar' {return C4::AR::Preferencias::getValorPreferencia("defaultTipoNivel3");}
@@ -222,16 +322,22 @@ sub getDefaultValue{
         case 'tipo_prestamo' {return C4::AR::Preferencias::getValorPreferencia("defaultissuetype");}
         case 'soporte' {return C4::AR::Preferencias::getValorPreferencia("defaultSoporte");}
         case 'nivel_bibliografico' {return C4::AR::Preferencias::getValorPreferencia("defaultNivelBibliografico");}
+#         case 'tema' {return C4::AR::Preferencias::getValorPreferencia("defaultUI");}
+#         case 'tipo_socio' {return C4::AR::Preferencias::getValorPreferencia("defaultUI");}
         case 'tipo_documento_usr' {return C4::AR::Preferencias::getValorPreferencia("defaultTipoDoc");}
         case 'estado' {return C4::AR::Preferencias::getValorPreferencia("defaultEstado");}
         case 'ciudad' {return C4::AR::Preferencias::getValorPreferencia("defaultCiudad");}
+#         case 'editorial' {return C4::AR::Preferencias::getValorPreferencia("defaultUI");}
         else {C4::AR::Debug::debug("NO EXISTE LA TABLA DE REFERENCIA ".$classAlias) }
     }
 }
+
 sub getCamposAsArray{
     my ($self)=shift;
+
     my $arreglo;
     my $camposArray = $self->meta->columns;
+
     my @campos_sin_id;
     my $pk = $self->getPk;
     
@@ -241,35 +347,50 @@ sub getCamposAsArray{
       }
     
     }    
+
     return(\@campos_sin_id);
 }
+
 sub validate_fields {
     my ($self)  = shift;
     my ($fields_array_ref_to_validate)  = @_;
+
     my $result              = 0; 
     my $fields_array_ref    = $self->getCamposAsArray();
+
     foreach my $fv (@$fields_array_ref_to_validate){
+
         @res = grep(/$fv/, @$fields_array_ref); 
         if (scalar(@res) > 0) {
             $result = 1;
         }
     }
+
     if($result == 0){
         C4::AR::Debug::debug("AutoBase2 => validate_fields => ERROR en la configuaracion del catalogo tabla => ".$self->meta->table);        
     }
+
     return $result;
 }
+
+
 sub getCampos{
     my ($self) = shift;
     my $fieldsString = C4::AR::Utilidades::joinArrayOfString($self->meta->columns);
+
     return($fieldsString);
 }
+
+
 sub addNewRecord{
     my ($self) = shift;
+
     my $fields = $self->getCamposAsArray();
+
     foreach my $field (@$fields){
       $self->{$field} = C4::AR::Filtros::i18n('_SIN_VALOR_');
     }
+
     $self->save();
     
     #parche loco
@@ -282,7 +403,9 @@ sub addNewRecord{
     #}
     
     return $self;
+
 }
+
 sub getAlias{
     use C4::Modelo::PrefTablaReferencia;
     my ($self)=shift;
@@ -290,42 +413,58 @@ sub getAlias{
     my $prefTablaRef = C4::Modelo::PrefTablaReferencia->new();
     return($prefTablaRef->getAliasForTable($nombreTabla));
 }
+
 =item
 Devuelve si es o no la ultima tabla de la cadena de referencias
 =cut
 sub lastTable {
     return (0);
 }
+
 sub default {
     return (0);
 }
+
 sub log{
     my ($self)=shift;
     use C4::AR::Debug;
     my ($data, $metodoLlamador)=@_;
+
     C4::AR::Debug::log($self, $data, $metodoLlamador);
 }
+
 sub debug{
     my $self = shift;
+
 	foreach my $msg (@_){
 		C4::AR::Debug::debugObject($self, $msg);
 	}
 }
+
 sub sortByString{
+
     my ($self)=shift;
     my ($campo)=@_;
     my $fieldsString = " ".$self->getCampos;
+# 	C4::AR::Debug::debug("AutoBase2 => fieldsString: ".$fieldsString);
     my $index = rindex $fieldsString," ".$campo." ";
     if ($index != -1){
+# 		C4::AR::Debug::debug("AutoBase2 => sortByString=> retrun: ".$campo);
         return ($campo);
     }
     else
         {
+# 			C4::AR::Debug::debug("AutoBase2 => sortByString=> antes de self->defaultSort:");
+# 			C4::AR::Debug::debug("AutoBase2 => sortByString=> self->defaultSort: ".$self->defaultSort);
             return ($self->defaultSort);
         }
 }
+
+
 =item
 $self->meta
+
+
        key: column_db_value_hash_keys => value:
        key: nonlazy_column_names_string_sql => value:
        key: db => value:
@@ -394,5 +533,8 @@ $self->meta
        key: column_rw_method => value: HASH(0xa491acc)
        key: lazy_column_names => value:
        key: method_columns => value:
+
 =cut
+
+
 1;

@@ -1,9 +1,9 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -T -w 
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,11 +19,25 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Este script general las entradas ldif a partir de un archivo de texto. Recibe 2 parametros, el 1ero es el archivo de guarani y la rama del arbol de ldap donde se alojaran los usuarios
+#
+
+# Carga los modulos requeridos
 use Digest::MD5 qw(md5_base64);
 use Net::LDAP;
 use MIME::Base64;
+
+# Abre el archivo cuyo nombre se mando como primer parametro
 open(ARCHIVO,$ARGV[0]) || die("El archivo no abre");
+#$/ = "";
+#Saca la linea que tiene los nombres de columna
+#$line = <ARCHIVO>; 	
 my $anterior="";
+# Realiza un loop por cada una de las lineas del archivo
+#open (L,">arbolLDIF");
+# Realiza un loop por cada una de las lineas del archivo
 my $db = Net::LDAP->new("localhost");
 my $res = $db->bind( 'anonymous', password => '') or die "$@";
 while ($line = <ARCHIVO>) {
@@ -72,5 +86,7 @@ while ($line = <ARCHIVO>) {
             $anterior=$uid;
         }
     }
+# Fin del while
 }
 close ARCHIVO;
+#exit;

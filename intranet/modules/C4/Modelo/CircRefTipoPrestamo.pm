@@ -1,27 +1,12 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::CircRefTipoPrestamo;
+package C4::Modelo::CircRefTipoPrestamo;
+
 use strict;
+
 use base qw(C4::Modelo::DB::Object::AutoBase2);
+
 __PACKAGE__->meta->setup(
     table   => 'circ_ref_tipo_prestamo',
+
     columns => [
         id     => { type => 'serial', overflow => 'truncate', not_null => 1 },
         id_tipo_prestamo    => { type => 'character', overflow => 'truncate', length => 4, not_null => 1 },
@@ -34,8 +19,10 @@ __PACKAGE__->meta->setup(
         dias_antes_renovacion => { type => 'integer', overflow => 'truncate', default => '0', not_null => 1 },
         habilitado      => { type => 'integer', overflow => 'truncate', default => 1 },
     ],
+
     primary_key_columns => [ 'id' ],
     unique_key => [ 'id_tipo_prestamo' ],
+
 	relationships => [
 	    disponibilidad => {
             class      => 'C4::Modelo::RefDisponibilidad',
@@ -47,10 +34,13 @@ __PACKAGE__->meta->setup(
 use C4::Modelo::CircRefTipoPrestamo::Manager;
 use C4::Modelo::RefSoporte;
 use Text::LevenshteinXS;
+
 sub toString{
     my ($self) = shift;
+
     return ($self->getDescripcion);
 }
+
 sub getId_tipo_prestamo{
     my ($self) = shift;
     return ($self->id_tipo_prestamo);
@@ -61,26 +51,33 @@ sub setId_tipo_prestamo{
     my ($id_tipo_prestamo) = @_;
     $self->id_tipo_prestamo($id_tipo_prestamo);
 }
+
 sub getDescripcion{
     my ($self) = shift;
+
     return ($self->descripcion);
 }
     
 sub setDescripcion{
     my ($self) = shift;
     my ($descripcion) = @_;
+
     $self->descripcion($descripcion);
 }
+
 sub getCodigo_disponibilidad{
     my ($self) = shift;
+
     return ($self->codigo_disponibilidad);
 }
     
 sub setCodigo_disponibilidad{
     my ($self) = shift;
     my ($disponibilidad) = @_;
+
     $self->codigo_disponibilidad($disponibilidad);
 }
+
 sub getPrestamos{
     my ($self) = shift;
     return ($self->prestamos);
@@ -91,6 +88,7 @@ sub setPrestamos{
     my ($prestamos) = @_;
     $self->prestamos($prestamos);
 }
+
 sub getDias_prestamo{
     my ($self) = shift;
     return ($self->dias_prestamo);
@@ -101,6 +99,8 @@ sub setDias_prestamo{
     my ($dias_prestamo) = @_;
     $self->dias_prestamo($dias_prestamo);
 }
+
+
 sub getRenovaciones{
     my ($self) = shift;
     return ($self->renovaciones);
@@ -111,6 +111,8 @@ sub setRenovaciones{
     my ($renovaciones) = @_;
     $self->renovaciones($renovaciones);
 }
+
+
 sub getDias_renovacion{
     my ($self) = shift;
     return ($self->dias_renovacion);
@@ -121,6 +123,7 @@ sub setDias_renovacion{
     my ($dias_renovacion) = @_;
     $self->dias_renovacion($dias_renovacion);
 }
+
 sub getDias_antes_renovacion{
     my ($self) = shift;
     return ($self->dias_antes_renovacion);
@@ -131,6 +134,7 @@ sub setDias_antes_renovacion{
     my ($dias_antes_renovacion) = @_;
     $self->dias_antes_renovacion($dias_antes_renovacion);
 }
+
 sub getHabilitado{
     my ($self) = shift;
     return ($self->habilitado);
@@ -141,16 +145,21 @@ sub setHabilitado{
     my ($habilitado) = @_;
     $self->habilitado($habilitado);
 }
+
 sub obtenerValoresCampo {
     my ($self)              = shift;
     my ($campo,$orden)      = @_;
+
     my @array_valores;
     my @fields  = ($campo, $orden);
     my $v       = $self->validate_fields(\@fields);
+
     if($v){
+
         my $ref_valores = C4::Modelo::CircRefTipoPrestamo::Manager->get_circ_ref_tipo_prestamo
                             ( select  => ['id_tipo_prestamo' ,$campo],
                               sort_by => ($orden) );
+
         for(my $i=0; $i<scalar(@$ref_valores); $i++ ){
             my $valor;
             $valor->{"clave"}=$ref_valores->[$i]->getId_tipo_prestamo;
@@ -161,6 +170,7 @@ sub obtenerValoresCampo {
 	
     return (scalar(@array_valores), \@array_valores);
 }
+
 sub obtenerValorCampo {
 	my ($self)=shift;
     my ($campo,$id)=@_;
@@ -168,6 +178,7 @@ sub obtenerValorCampo {
 						( select   => [$campo],
 						  query =>[ id_tipo_prestamo => { eq => $id} ]);
     	
+# 	return ($ref_valores->[0]->getCampo($campo));
   if(scalar(@$ref_valores) > 0){
     return ($ref_valores->[0]->getCampo($campo));
   }else{
@@ -175,9 +186,11 @@ sub obtenerValorCampo {
     return undef;
   }
 }
+
 sub getCampo{
     my ($self) = shift;
 	my ($campo)=@_;
+
 	if ($campo eq "id_tipo_prestamo") {return $self->getId_tipo_prestamo;}
 	if ($campo eq "descripcion") {return $self->getDescripcion;}
 	if ($campo eq "codigo_disponibilidad") {return $self->getCodigo_disponibilidad;}
@@ -187,23 +200,31 @@ sub getCampo{
 	if ($campo eq "dias_renovacion") {return $self->getDias_renovacion;}
 	if ($campo eq "dias_antes_renovacion") {return $self->getDias_antes_renovacion;}
 	if ($campo eq "habilitado") {return $self->getHabilitado;}
+
 	return (0);
 }
+
 sub nextMember{
     return(C4::Modelo::RefSoporte->new());
 }
+
+
 =item
 modificar
 Funcion que modificar un tipo de prestamo
 =cut
+
 sub modificar {
     my ($self)=shift;
     my ($data_hash)=@_;
     #Asignando data...
+
     $self->setId_tipo_prestamo($data_hash->{'id_tipo_prestamo'});
     $self->setDescripcion($data_hash->{'descripcion'});
+
     if($data_hash->{'disponibilidad'} eq '0'){ $data_hash->{'disponibilidad'}='CIRC0000'; }
     elsif($data_hash->{'disponibilidad'} eq '1'){$data_hash->{'disponibilidad'}='CIRC0001';}
+
     $self->setCodigo_disponibilidad($data_hash->{'disponibilidad'});
     $self->setPrestamos($data_hash->{'prestamos'});
     $self->setDias_prestamo($data_hash->{'dias_prestamo'});
@@ -212,8 +233,11 @@ sub modificar {
     $self->setDias_antes_renovacion($data_hash->{'dias_antes_renovacion'});
     $self->setHabilitado($data_hash->{'habilitado'});
     $self->save();
+
 }
+
 sub getAll{
+
     my ($self) = shift;
     my ($limit,$offset,$matchig_or_not,$filtro)=@_;
     $matchig_or_not = $matchig_or_not || 0;
@@ -237,6 +261,7 @@ sub getAll{
     }
     my $ref_cant = C4::Modelo::CircRefTipoPrestamo::Manager->get_circ_ref_tipo_prestamo_count(query => \@filtros,);
     my $self_descripcion = $self->getDescripcion;
+
     my $match = 0;
     if ($matchig_or_not){
         my @matched_array;
@@ -252,4 +277,6 @@ sub getAll{
       return($ref_cant,$ref_valores);
     }
 }
+
 1;
+

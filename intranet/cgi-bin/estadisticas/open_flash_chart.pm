@@ -1,24 +1,6 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.use strict; use warnings;
+use strict; use warnings;
 
+# This class manages all functions of the open flash chart api.
 package chart;
 
 my $open_flash_chart_seqno = 0;
@@ -76,6 +58,7 @@ sub set_axis() {
   $self->{'axis'}->{$axis->{'name'}} = $axis;
 }
 
+# elements are the data series items, usually containing values to plot
 sub get_element() {
   my ($self, $element_name) = @_;
   
@@ -86,6 +69,8 @@ sub get_element() {
   } 
 }
 
+# Should be not used for single value elements
+# Your axis min/max will not be set
 sub add_element() {
   my ($self, $element) = @_;
   push(@{$self->{'elements'}}, $element);
@@ -125,6 +110,9 @@ sub render_chart_data() {
   return $tmp;
 }
 
+#
+#
+#
 sub render_swf {
 	my ($self, $props) = @_;
   #my ($self, $width, $height, $data) = @_;
@@ -226,10 +214,14 @@ sub render_swf {
 
 
 
+#Not Yet Supported
+#"hbar",
 
 
 
+#############################
 sub _____ELEMENT_OBJECTS_____(){}
+#############################
 package element;
 use Carp qw(cluck);
 
@@ -336,6 +328,11 @@ sub new() {
 
 
 
+#
+#
+# LINE TYPES
+#
+#
 package line;
 our @ISA = qw(bar_and_line_base);
 sub new() {
@@ -369,6 +366,11 @@ sub new() {
 }
 
 
+#
+#
+# BAR TYPES
+#
+#
 package bar;
 our @ISA = qw(bar_and_line_base);
 sub new() {
@@ -462,6 +464,7 @@ sub new() {
   return $self;
 }
 
+#stackbar must override set_min_max() because of nested value list
 sub set_min_max {
   my ($self, $min, $max) = @_;
 
@@ -653,7 +656,9 @@ sub set_min_max {
 
 }
 
+#############################
 sub _____AXIS_OBJECT_____(){}
+#############################
 package axis;
 use Carp qw(cluck);
 
@@ -743,6 +748,11 @@ sub DESTROY {  }
 
 
 
+#
+#
+# GENERAL HELPERS
+#
+#
 package main;
 sub to_json {
   my ($data_structure, $name) = @_;
@@ -817,6 +827,7 @@ sub random_color {
   return "\#" . $hex[0] . $hex[1] . $hex[2];
 }
 
+# URL-encode string
 sub url_escape {
     my($toencode) = @_;
     $toencode=~s/([^a-zA-Z0-9_\-. ])/uc sprintf("%%%02x",ord($1))/eg;
@@ -825,6 +836,8 @@ sub url_escape {
 }
 
 
+# round the number up a bit to a nice round number
+# also changes number to an int
 sub smoother {
 	my $number = shift;
 	my $min_max = shift;

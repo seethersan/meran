@@ -1,24 +1,7 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Modelo::UsrRefCategoriaSocio;
+package C4::Modelo::UsrRefCategoriaSocio;
+
 use base qw(C4::Modelo::DB::Object::AutoBase2);
+
 __PACKAGE__->meta->setup
   (
     table   => 'usr_ref_categoria_socio',
@@ -41,25 +24,36 @@ __PACKAGE__->meta->setup
         
     primary_key_columns => ['id'], 
     unique_key => ['categorycode'],
+
 );
+
 use C4::Modelo::UsrRefTipoDocumento;
 use C4::Modelo::UsrRefCategoriaSocio::Manager;
 use Text::LevenshteinXS;
     
+
 sub toString{
     my ($self) = shift;
+
     return ($self->getDescription);
 }
+
+
 sub nextMember{
     
     return(C4::Modelo::UsrRefTipoDocumento->new());
 }
+
+
 sub conformarUsrRegularidad{
     my ($self)=shift;
+
     my ($estados_array_ref)  = C4::AR::Referencias::obtenerEstados();
+
     foreach my $estado (@$estados_array_ref) {
         my $regularidad = C4::Modelo::UsrRegularidad->new();
         my %data_hash ={};
+
         $data_hash{'usr_estado_id'} = $estado->getId_estado;
         $data_hash{'usr_ref_categoria_id'} = $self->getId();
         $data_hash{'Condicion'} = 0;
@@ -67,129 +61,161 @@ sub conformarUsrRegularidad{
     }    
     
 }
+
 sub getId{
     my ($self) = shift;
     return ($self->id);    
 }
+
 sub getCategory_code{
     my ($self) = shift;
     return ($self->categorycode);
 }
+
 sub setCategory_code{
     my ($self) = shift;
     my ($category_code) = @_;
     $self->categorycode($category_code);
 }
+
+
 sub getDescription{
     my ($self) = shift;
     return (C4::AR::Utilidades::trim($self->description));
 }
+
 sub setDescription{
     my ($self) = shift;
     my ($description) = @_;
     $self->description($description);
 }
+
 sub getEnrolment_period{
     my ($self) = shift;
     return ($self->enrolment_period);
 }
+
 sub setEnrolment_period{
     my ($self) = shift;
     my ($enrolment_period) = @_;
     $self->enrolment_period($enrolment_period);
 }
+
 sub getUpper_age_limit{
     my ($self) = shift;
     return ($self->upper_age_limit);
 }
+
 sub setUpper_age_limit{
     my ($self) = shift;
     my ($upper_age_limit) = @_;
     $self->upper_age_limit($upper_age_limit);
 }
+
 sub getDate_of_birth_required{
     my ($self) = shift;
     return ($self->date_of_birth_required);
 }
+
 sub setDate_of_birth_required{
     my ($self) = shift;
     my ($date_of_birth_required) = @_;
     $self->date_of_birth_required($date_of_birth_required);
 }
+
 sub getFine_type{
     my ($self) = shift;
     return ($self->fine_type);
 }
+
 sub setFine_type{
     my ($self) = shift;
     my ($fine_type) = @_;
     $self->fine_type($fine_type);
 }
+
 sub getBulk{
     my ($self) = shift;
     return ($self->bulk);
 }
+
 sub setBulk{
     my ($self) = shift;
     my ($bulk) = @_;
     $self->bulk($bulk);
 }
+
 sub getEnrolment_fee{
     my ($self) = shift;
     return ($self->enrolment_fee);
 }
+
 sub setEnrolment_fee{
     my ($self) = shift;
     my ($enrolment_fee) = @_;
     $self->enrolment_fee($enrolment_fee);
 }
+
 sub getOver_due_notice_required{
     my ($self) = shift;
     return ($self->over_due_notice_required);
 }
+
 sub setOver_due_notice_required{
     my ($self) = shift;
     my ($over_due_notice_required) = @_;
     $self->over_due_notice_required($over_due_notice_required);
 }
+
 sub getIssue_limit{
     my ($self) = shift;
     return ($self->issue_limit);
 }
+
 sub setIssue_limit{
     my ($self) = shift;
     my ($issue_limit) = @_;
     $self->issue_limit($issue_limit);
 }
+
 sub getReserve_fee{
     my ($self) = shift;
     return ($self->reserve_fee);
 }
+
 sub setReserve_fee{
     my ($self) = shift;
     my ($reserve_fee) = @_;
     $self->reserve_fee($reserve_fee);
 }
+
 sub getBorrowing_days{
     my ($self) = shift;
     return ($self->borrowing_days);
 }
+
 sub setBorrowing_days{
     my ($self) = shift;
     my ($borrowing_days) = @_;
     $self->borrowing_days($borrowing_days);
 }
+
+
 sub obtenerValoresCampo {
     my ($self)              = shift;
     my ($campo, $orden)     = @_;
+
     my @array_valores;
     my @fields  = ($campo, $orden);
     my $v       = $self->validate_fields(\@fields);
+
     if($v){
     
         my $ref_valores = C4::Modelo::UsrRefCategoriaSocio::Manager->get_usr_ref_categoria_socio
                             ( select   => [$self->meta->primary_key ,$campo],
                               sort_by => ($orden) );
+
+
         for(my $i=0; $i<scalar(@$ref_valores); $i++ ){
             my $valor;
             $valor->{"clave"}=$ref_valores->[$i]->getCategory_code;
@@ -200,6 +226,7 @@ sub obtenerValoresCampo {
     
     return (scalar(@array_valores), \@array_valores);
 }
+
 sub obtenerValorCampo {
     my ($self)=shift;
     my ($campo,$id)=@_;
@@ -207,6 +234,7 @@ sub obtenerValorCampo {
                         ( select   => [$campo],
                           query =>[ categorycode => { eq => $id} ]);
         
+#   return ($ref_valores->[0]->getCampo($campo));
   if(scalar(@$ref_valores) > 0){
     return ($ref_valores->[0]->getCampo($campo));
   }else{
@@ -214,15 +242,20 @@ sub obtenerValorCampo {
     return undef;
   }
 }
+
 sub getCampo{
     my ($self) = shift;
     my ($campo)=@_;
     
     if ($campo eq "categorycode") {return $self->getCategory_code;}
     if ($campo eq "description") {return $self->getDescription;}
+
     return (0);
 }
+
+
 sub getAll{
+
     my ($self) = shift;
     my ($limit,$offset,$matchig_or_not,$filtro)=@_;
     $matchig_or_not = $matchig_or_not || 0;
@@ -246,6 +279,7 @@ sub getAll{
     }
     my $ref_cant = C4::Modelo::UsrRefCategoriaSocio::Manager->get_usr_ref_categoria_socio_count(query => \@filtros,);
     my $self_descripcion = $self->getDescription;
+
     my $match = 0;
     if ($matchig_or_not){
         my @matched_array;
@@ -261,23 +295,35 @@ sub getAll{
       return($ref_cant,$ref_valores);
     }
 }
+
 sub getCamposAsArray{
     my ($self)=shift;
+
     my @camposArray;
+
     push(@camposArray, "Código de Categoría");
     push(@camposArray, "Descripción");
+
     return(\@camposArray);
 }
+
+#ESTA HORRIBLE!!! HAY QUE VER COMO HACERLO MAS PROLIJO
 sub printAsTableElement{
+
     my ($self)=shift;
+
     my $td;
       
     $td.="<td class='editable' id='".$self->getAlias."___"."categorycode"."___".$self->getPkValue."___".$editId."'>".$self->{'categorycode'}."</td>";
     $td.="<td class='editable' id='".$self->getAlias."___"."description"."___".$self->getPkValue."___".$editId."'>".$self->{'description'}."</td>";
+
     return ($td);
 }
+
+#ESTA HORRIBLE!!! HAY QUE VER COMO HACERLO MAS PROLIJO
 sub addNewRecord{
     my ($self) = shift;
+
     $self->{"categorycode"} = C4::AR::Filtros::i18n('_SIN_VALOR_');
     $self->{"description"} = C4::AR::Filtros::i18n('_SIN_VALOR_');
     
@@ -293,5 +339,8 @@ sub addNewRecord{
     #}
     
     return $self;
+
 }
+
+
 1;

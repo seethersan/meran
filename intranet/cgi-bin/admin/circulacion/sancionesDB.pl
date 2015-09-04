@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,17 +19,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 use strict;
 use CGI;
 use C4::AR::Auth;
+
 use C4::AR::Sanciones;
 use C4::AR::Prestamos;
 use JSON;
+
 my $input = new CGI;
 my $obj=$input->param('obj');
 $obj=C4::AR::Utilidades::from_json_ISO($obj);
+
 my $accion = $obj->{'tipoAccion'};
 my $authnotrequired= 0;
+
+
 if($accion eq "TIPOS_PRESTAMOS_SANCIONADOS"){
 		my ($template, $session, $t_params)  = get_template_and_user({
 								template_name   => "admin/circulacion/sanciones_tipo_de_prestamos.tmpl",
@@ -58,13 +65,17 @@ if($accion eq "TIPOS_PRESTAMOS_SANCIONADOS"){
 		C4::AR::Debug::debug("tipos sancion        ".$tipo_sancion);
 		
 		$t_params->{'tipo_sancion'}     = $tipo_sancion;
+
 		my $tipo_prestamos              = C4::AR::Prestamos::getTiposDePrestamos();
 		
 		
 		$t_params->{'TIPOS_PRESTAMOS'}  = $tipo_prestamos;
+
 		C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
 }#end if($accion eq "TIPOS_PRESTAMOS_SANCIONADOS")
+
 elsif ($accion eq "GUARDAR_TIPOS_PRESTAMOS_QUE_APLICA") {
+
 	my ($userid, $session, $flags) = checkauth( $input, 
                                             $authnotrequired,
                                             {   ui => 'ANY', 
@@ -73,14 +84,17 @@ elsif ($accion eq "GUARDAR_TIPOS_PRESTAMOS_QUE_APLICA") {
                                                 entorno => 'undefined'},
                                             "intranet"
                                 );
+
 	my $tipos_que_aplica=$obj->{'tipos_que_aplica'};
 	my $tipo_prestamo=$obj->{'tipo_prestamo'};
 	my $categoria_socio=$obj->{'categoria_socio'};
+
     my $Message_arrayref = C4::AR::Sanciones::actualizarTiposPrestamoQueAplica($tipo_prestamo,$categoria_socio,$tipos_que_aplica);
     my $infoOperacionJSON=to_json $Message_arrayref;
     C4::AR::Auth::print_header($session);
     print $infoOperacionJSON;
 }
+
 elsif($accion eq "REGLAS_SANCIONES"){
     my ($template, $session, $t_params)  = get_template_and_user({
                             template_name => "admin/circulacion/sanciones_reglas.tmpl",
@@ -93,11 +107,14 @@ elsif($accion eq "REGLAS_SANCIONES"){
                                                 entorno => 'undefined'},
                             debug => 1,
                 });
+
     my $tipo_prestamo=$obj->{'tipo_prestamo'};
     my $categoria_socio=$obj->{'categoria_socio'};
+
     my $tipo_sancion= C4::AR::Sanciones::getTipoSancion($tipo_prestamo, $categoria_socio);
     my $reglas_tipo_sancion;
     my $cantidad = 0;
+
     if($tipo_sancion){
       $t_params->{'tipo_sancion'}= $tipo_sancion;
       ($reglas_tipo_sancion)= C4::AR::Sanciones::getReglasTipoSancion($tipo_sancion);
@@ -107,7 +124,10 @@ elsif($accion eq "REGLAS_SANCIONES"){
       }
       $t_params->{'cantidad'}= $cantidad;
       $t_params->{'tipos_prestamo_aplica'} = $tipo_sancion->tiposPrestamoQueAplica();
+
+
     }
+
     ######################Combos de las reglas de sancion##################################
     my $reglas_sancion= C4::AR::Sanciones::getReglasSancionNoAplicadas($tipo_sancion);
     if ($reglas_sancion) {
@@ -124,6 +144,7 @@ elsif($accion eq "REGLAS_SANCIONES"){
                             -labels   => \%regla_sancionlabels,
                             -size     => 1,
                             -multiple => 0 );
+
     $t_params->{'reglas_de_sancion'}= $CGIregla_sancion;
     }
     ######################Combos Orden##################################
@@ -142,6 +163,7 @@ elsif($accion eq "REGLAS_SANCIONES"){
     }
     }
     $sugestedOrder++;
+
     my $CGIorden=CGI::scrolling_list(
                             -name => 'orden',
                             -id => 'orden',
@@ -150,7 +172,9 @@ elsif($accion eq "REGLAS_SANCIONES"){
                             -default => $sugestedOrder,
                             -size     => 1,
                             -multiple => 0 );
+
     $t_params->{'ordenes'}= $CGIorden;
+
     ######################Combos Cantidades##################################
     my %cantidad;
     my @cantidad;
@@ -160,6 +184,7 @@ elsif($accion eq "REGLAS_SANCIONES"){
             push @cantidad, $i;
             $cantidad{$i} = $i;
     }
+
     my $CGIcantidad=CGI::scrolling_list(
                             -name => 'cantidad', 
                             -id => 'cantidad',
@@ -168,10 +193,15 @@ elsif($accion eq "REGLAS_SANCIONES"){
                             -default => 1,
                             -size     => 1,
                             -multiple => 0 );
+
     $t_params->{'cantidades'}= $CGIcantidad;
+
     C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
 }#end if($accion eq "REGLAS_SANCIONES")
+
+
 elsif ($accion eq "ELIMINAR_REGLA_TIPO_SANCION") {
+
     my ($userid, $session, $flags) = checkauth( $input, 
                                             $authnotrequired,
                                             {   ui => 'ANY', 
@@ -180,14 +210,18 @@ elsif ($accion eq "ELIMINAR_REGLA_TIPO_SANCION") {
                                                 entorno => 'undefined'},
                                             "intranet"
                                 );
+
     my $tipo_sancion=$obj->{'tipo_sancion'};
     my $regla_sancion=$obj->{'regla_sancion'};
+
     my $Message_arrayref = &C4::AR::Sanciones::eliminarReglaTipoSancion($tipo_sancion,$regla_sancion);
     my $infoOperacionJSON=to_json $Message_arrayref;
     C4::AR::Auth::print_header($session);
     print $infoOperacionJSON;
 }
+
 elsif ($accion eq "AGREGAR_REGLA_TIPO_SANCION") {
+
     my ($userid, $session, $flags) = checkauth( $input, 
                                             $authnotrequired,
                                             {   ui => 'ANY', 
@@ -196,16 +230,19 @@ elsif ($accion eq "AGREGAR_REGLA_TIPO_SANCION") {
                                                 entorno => 'undefined'},
                                             "intranet"
                                 );
+
     my $orden=$obj->{'orden'};
     my $regla_sancion=$obj->{'regla_sancion'};
     my $cantidad=$obj->{'cantidad'};
     my $tipo_prestamo=$obj->{'tipo_prestamo'};
     my $categoria_socio=$obj->{'categoria_socio'};
+
     my $Message_arrayref = &C4::AR::Sanciones::agregarReglaTipoSancion($regla_sancion,$orden,$cantidad,$tipo_prestamo, $categoria_socio);
     my $infoOperacionJSON=to_json $Message_arrayref;
     C4::AR::Auth::print_header($session);
     print $infoOperacionJSON;
 }
+
 elsif($accion eq "MODIFICAR_REGLAS"){
         my ($template, $session, $t_params)  = get_template_and_user({
                                 template_name => "admin/circulacion/sanciones_editar_reglas.tmpl",
@@ -220,9 +257,13 @@ elsif($accion eq "MODIFICAR_REGLAS"){
                     });
         my $reglas_sancion=&C4::AR::Sanciones::getReglasSancion();
         $t_params->{'REGLAS_SANCIONES'}= $reglas_sancion;
+
         C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
 }#end if($accion eq "MODIFICAR_REGLAS")
+
+
 elsif ($accion eq "ELIMINAR_REGLA_SANCION") {
+
     my ($userid, $session, $flags) = checkauth( $input, 
                                             $authnotrequired,
                                             {   ui => 'ANY', 
@@ -231,13 +272,17 @@ elsif ($accion eq "ELIMINAR_REGLA_SANCION") {
                                                 entorno => 'undefined'},
                                             "intranet"
                                 );
+
     my $regla_sancion=$obj->{'regla_sancion'};
+
     my $Message_arrayref = &C4::AR::Sanciones::eliminarReglaSancion($regla_sancion);
     my $infoOperacionJSON=to_json $Message_arrayref;
     C4::AR::Auth::print_header($session);
     print $infoOperacionJSON;
 }
+
 elsif ($accion eq "AGREGAR_REGLA_SANCION") {
+
     my ($userid, $session, $flags) = checkauth( $input, 
                                             $authnotrequired,
                                             {   ui => 'ANY', 
@@ -246,8 +291,10 @@ elsif ($accion eq "AGREGAR_REGLA_SANCION") {
                                                 entorno => 'undefined'},
                                             "intranet"
                                 );
+
     my $dias_sancion=$obj->{'dias_sancion'};
     my $dias_demora=$obj->{'dias_demora'};
+
     my $Message_arrayref = &C4::AR::Sanciones::agregarReglaSancion($dias_sancion,$dias_demora);
     my $infoOperacionJSON=to_json $Message_arrayref;
     C4::AR::Auth::print_header($session);

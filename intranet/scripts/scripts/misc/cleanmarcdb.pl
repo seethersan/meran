@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,12 +19,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+# small script that rebuilds the non-MARC DB
+
 use strict;
+
+# Koha modules used
+# use MARC::File::USMARC;
 use MARC::Record;
 use MARC::Batch;
 use C4::Context;
 use C4::Biblio;
 use Time::HiRes qw(gettimeofday);
+
 use Getopt::Long;
 my ( $input_marc_file, $number) = ('',0);
 my ($version, $confirm,$test_parameter);
@@ -33,6 +40,7 @@ GetOptions(
 	'h' => \$version,
 	't' => \$test_parameter,
 );
+
 if ($version || (!$confirm)) {
 	print <<EOF
 This script cleans unused subfields in the MARC DB.
@@ -47,11 +55,14 @@ EOF
 ;#'
 die;
 }
+
 my $dbh = C4::Context->dbh;
 my $i=0;
 my $starttime = gettimeofday;
 my $cleansubfield = $dbh->prepare("delete from marc_subfield_table where tag=? and subfieldcode=?");
 my $cleanword = $dbh->prepare("delete from marc_word where tag=? and subfieldid=?");
+
+# get tags structure
 my $tags = MARCgettagslib($dbh,1);
 foreach my $tag (sort keys(%{$tags})) {
 	foreach my $subfield (sort keys(%{$tags->{$tag}})) {

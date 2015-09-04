@@ -1,37 +1,23 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::OAI::Record;
+package C4::AR::OAI::Record;
+
 use strict;
 use warnings;
 use diagnostics;
 use HTTP::OAI;
 use HTTP::OAI::Metadata::OAI_DC;
 use MARC::File::XML ( BinaryEncoding => 'utf8');
+
 use base ("HTTP::OAI::Record");
+
 sub new {
     my ($class, $repository, $marc_record, $timestamp,$id, %args) = @_;
     my $self = $class->SUPER::new(%args);
+#     $timestamp =~ s/ /T/, $timestamp .= 'Z';
     $self->header( new HTTP::OAI::Header(
         identifier  => $args{identifier},
         datestamp   => $timestamp,
     ) );
+
     if ( $args{metadataPrefix} eq 'marcxml' ) {
         #Registro en MARCXML
         my $marcxml     = MARC::File::XML::record( $marc_record );
@@ -42,12 +28,17 @@ sub new {
     else {
         #registro en OAI_DC
          $self->metadata(HTTP::OAI::Metadata::OAI_DC->new(dc => getOAI_DCfromMARC_Record($marc_record,$id) ));
+
     }
+
+
     return $self;
 }
+
 sub getOAI_DCfromMARC_Record {
     my ($marc_record,$id) = @_;
     my $dc = {};
+
     # DC:Title ==> Titulo: Subtitulo
     my @title;
     if($marc_record->subfield('245','a')) {
@@ -58,7 +49,9 @@ sub getOAI_DCfromMARC_Record {
         push (@title, cleanStrings($titulo));
     }
     push (@{$dc->{ 'title' }}, @title);
+
     # DC:Creator => Autor
+
     if ($marc_record->subfield('100',"a")){
         push (@{$dc->{ 'creator' }}, cleanStrings($marc_record->subfield('100',"a")));
     }
@@ -68,6 +61,7 @@ sub getOAI_DCfromMARC_Record {
     if ($marc_record->subfield('111',"a")){
         push (@{$dc->{ 'creator' }}, cleanStrings($marc_record->subfield('111',"a")));
     }
+
     # DC:Subject => Temas
     foreach my $campo650 ($marc_record->field('650')){
         if ($campo650->subfield("a")){
@@ -84,10 +78,12 @@ sub getOAI_DCfromMARC_Record {
             push (@{$dc->{ 'subject' }}, cleanStrings($campo653->subfield("a")));
         }
     }
+
     # DC:Description ==> Resumen;
     if($marc_record->subfield('520','a')) {
         push (@{$dc->{ 'description' }}, cleanStrings($marc_record->subfield('520','a')));
     }
+
     # DC:Publisher => Editor
     foreach my $campo260 ($marc_record->field('260')){
         my $editor=$campo260->subfield("b");
@@ -95,11 +91,14 @@ sub getOAI_DCfromMARC_Record {
             $editor.=" - ".$campo260->subfield("a");
         }
         push (@{$dc->{ 'publisher' }},cleanStrings($editor));
+
         # DC:Date => Año de publicacion
         if($campo260->subfield('c')) {
             push (@{$dc->{ 'date' }}, cleanStrings($campo260->subfield('c')));
         }
+
     }
+
     # DC:Contributor => Colaboradores
     foreach my $campo700 ($marc_record->field('700')){
         if ($campo700->subfield("a")){
@@ -116,13 +115,16 @@ sub getOAI_DCfromMARC_Record {
     if($marc_record->subfield('910','a')) {
         push (@{$dc->{ 'type' }}, cleanStrings($marc_record->subfield('910','a')));
     }
+
     # DC:Format => Formato 
     if($marc_record->subfield('856','q')) {
         push (@{$dc->{ 'format' }}, cleanStrings($marc_record->subfield('856','q')));
     }
+
     # DC:Identifier => ISBN + ISSN + URI
     #url
         push (@{$dc->{ 'identifier' }}, "http://".C4::AR::Preferencias::getValorPreferencia("serverName")."/meran/opac-detail.pl?id1=".$id);
+
     #isbn
     if($marc_record->subfield('020','a')) {
         my @isbns=$marc_record->subfield('020','a');
@@ -134,14 +136,19 @@ sub getOAI_DCfromMARC_Record {
     if($marc_record->subfield('022','a')) {
         push (@{$dc->{ 'identifier' }}, cleanStrings("ISSN: ".$marc_record->subfield('022','a')));
     }
+
     # DC:Language => Lenguaje 
+
     foreach my $campo41 ($marc_record->field('041')){
         if ($campo41->subfield("a")){
             push (@{$dc->{ 'language' }}, cleanStrings($campo41->subfield("a")));
         }
     }
+
     return $dc;
 }
+
+
 sub cleanStrings{
     my ($data) = @_;
     if($data){
@@ -150,4 +157,6 @@ sub cleanStrings{
     }
     return ($data);
 }
+
+# __END__ C4::AR::OAI::Record
 1;

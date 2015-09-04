@@ -1,32 +1,22 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+package C4::AR::Preferencias;
+
 #
-# This file is part of Meran.
+#Este modulo sera el encargado del manejo de las preferencias del sistema.
 #
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::Preferencias;
+
 use strict;
 require Exporter;
+#use C4::Context;
 use C4::Date;
 use C4::Modelo::PrefPreferenciaSistema;
 use C4::Modelo::PrefPreferenciaSistema::Manager;
 use C4::Modelo::PrefAbout;
 use C4::Modelo::PrefAbout::Manager;
+
 use vars qw(@EXPORT_OK @ISA),qw($PREFERENCES);
+
 @ISA=qw(Exporter);
+
 @EXPORT_OK=qw(
     updateInfoAbout
     getInfoAbout
@@ -43,6 +33,8 @@ use vars qw(@EXPORT_OK @ISA),qw($PREFERENCES);
     getMetodosAuth
     getPreferenciasBooleanas
 );
+
+
 =item
     Esta funcion actualiza pref_about.
 =cut
@@ -76,18 +68,25 @@ sub updateInfoAbout{
     }      
     return ($msg_object);
 }
+
 =item
     Esta funcion retorna 0 si alguna preferencia de las requeridas en el arreglo no existe, 
     y devuelve en $variable el nombre de la primer preferencia no encontrada
     Devuelve un objeto o 0.
 =cut
 sub verificar_preferencias{
+
     my ($variables_array)= @_;
+
     my @filtros;
     my %preferencias_hash;
+
     foreach my $variable (@$variables_array){
+
         push (@filtros, (  variable => {eq => $variable} ) );
+
     }
+
     my $preferencias_array_ref = 
         C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( 
                                                                         query => [ or  => \@filtros ]
@@ -106,6 +105,7 @@ sub verificar_preferencias{
     return($existe,$variable);
     
 }
+
 =item
     Esta funcion trae la informacion de pref_about.
     Devuelve un objeto o 0.
@@ -121,57 +121,82 @@ sub getInfoAbout{
         return C4::Modelo::PrefAbout->new();
     }
 }
+
+
 sub reloadAllPreferences {
        $PREFERENCES = undef;
        $PREFERENCES = C4::AR::Preferencias::getAllPreferencias();
 }
+
 sub getPreferenciasByArray {
     my ($variables_array)= @_;
     
     # C4::AR::Debug::debug("ENTRO A getPreferenciasByArray() ===> FIXEAR PARA QUE USE LA CACHE!!!");
+
     my @filtros;
     my %preferencias_hash;
+
     foreach my $variable (@$variables_array){
+
         push (@filtros, (  variable => {eq => $variable} ) );
+
     }
+
     my $preferencias_array_ref = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( query => [ or  => \@filtros ]);
+
    if ($preferencias_array_ref){
+
         foreach my $p (@$preferencias_array_ref){
             $preferencias_hash{$p->getVariable} = $p->getValue;
         }
+
         return \%preferencias_hash;
     } else{
         return undef;
     }
 }
+
+
 sub getAllPreferencias {
     
     my %preferencias_hash;
+
     require C4::Modelo::PrefPreferenciaSistema;
     require C4::Modelo::PrefPreferenciaSistema::Manager;
+
     my $preferencias_array_ref = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema();
+
     if ($preferencias_array_ref){
+
         foreach my $p (@$preferencias_array_ref){
             $preferencias_hash{$p->getVariable} = $p->getValue;
         }
+
         return \%preferencias_hash;
         
     } else{
         return undef;
     }
 }
+
+
 sub getMenuPreferences{
+
     my %hash;
     
     $hash{'showMenuItem_circ_devolucion_renovacion'} = C4::AR::Preferencias::getValorPreferencia('showMenuItem_circ_devolucion_renovacion');
     $hash{'showMenuItem_circ_prestamos'}             = C4::AR::Preferencias::getValorPreferencia('showMenuItem_circ_prestamos');
+
       
+
     return (\%hash);
 }
+
 =item
     Devuelve las preferencias booleanas de la categoria recibida como parametro
 =cut
 sub getPreferenciasBooleanas{
+
     my ($categoria) = @_;
   
     my $preferencias_array_ref = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( 
@@ -180,9 +205,12 @@ sub getPreferenciasBooleanas{
                                                         type        => { eq => 'bool' },
                                         ],
                                         sort_by => ['categoria','label'],
+
                                 ); 
+
     return $preferencias_array_ref;
 }
+
 =item
     Devuelve una referencia con todas las preferencias filtradas por categoria
 =cut
@@ -196,11 +224,14 @@ sub getPreferenciasByCategoria{
                                         query => [ categoria => { eq => $str }],
                                         sort_by => ['categoria','label'],
                                 ); 
+
     my $preferencias_array_ref_count = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema_count( 
                                         query => [ categoria => { eq => $str }],
                                 );
+
     return ($preferencias_array_ref_count, $preferencias_array_ref);
 }
+
 =item
     Devuelve una referencia con todas las preferencias filtradas por categoria, con like categoria
 =cut
@@ -214,8 +245,10 @@ sub getPreferenciasLikeCategoria{
                                         query => [ categoria=> { like => '%'.$str.'%' }],
                                         sort_by => ['categoria','label'],
                                 ); 
+
     return (scalar($preferencias_array_ref), $preferencias_array_ref);
 }
+
 =item
     Misma funcion que arriba, pero devuelve una hash armada
 =cut
@@ -232,11 +265,15 @@ sub getPreferenciasByCategoriaHash{
     foreach my $pref (@$preferencias_array_ref){
         $hash{$pref->getVariable} = $pref->getValue();
     }
+
     return (\%hash); 
 } 
+
 sub getPreferenciaLike {
     my ($str,$orden)=@_;
+
     # C4::AR::Debug::debug("getValorPreferencia => getPreferenciaLike == $str");
+
     my $preferencias_array_ref;
     my @filtros;
     my $prefTemp = C4::Modelo::PrefPreferenciaSistema->new();
@@ -245,10 +282,14 @@ sub getPreferenciaLike {
                                         query => [ variable=> { like => '%'.$str.'%' }],
                                         sort_by => ['categoria','label'],
                                 ); 
+
     return (scalar($preferencias_array_ref), $preferencias_array_ref);
 }
+
+# busca el nombre de una preferencia dentro de la categoria recibida como parametro
 sub getPreferenciaLikeConCategoria {
     my ($str,$orden,$categoria)=@_;
+
     my $preferencias_array_ref;
     my @filtros;
     my $prefTemp = C4::Modelo::PrefPreferenciaSistema->new();
@@ -258,32 +299,46 @@ sub getPreferenciaLikeConCategoria {
                                                     categoria => { like => $categoria.'%' } ],
                                         sort_by => ['categoria','label'],
                                 ); 
+
     return (scalar($preferencias_array_ref), $preferencias_array_ref);
 }
+
+
 sub getPreferencia{
     my ($variable)  = @_;
     
+#     C4::AR::Debug::debug("ENTRO A getPreferencia() ===> FIXEAR PARA QUE USE LA CACHE!!!");
+
     my $preferencia_array_ref = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( query => [ variable => { eq => "".$variable} ]);
+
     if ($preferencia_array_ref->[0]){
         return ($preferencia_array_ref->[0]);
     } else{
         return undef;
     }
 }
+
+
 sub getValorPreferencia {
     my ($variable)  = @_;
+
+#    verifico si se encuentra en la cache, sino se busca de la base
     if (defined $PREFERENCES->{$variable}){
           # C4::AR::Debug::debug("Preferencias => getValorPreferencia => VARIABLE ==".$variable."== valor => ".$PREFERENCES->{$variable}." CACHED!!!!!!!");
         return $PREFERENCES->{$variable};
     }
+
       # C4::AR::Debug::debug("Preferencias => getValorPreferencia => VARIABLE ==".$variable."== NO CACHED!!!!!!!");
     my $preferencia_array_ref = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( query => [ variable => { eq => $variable} ]);
+
     if ($preferencia_array_ref->[0]){
         return ($preferencia_array_ref->[0]->getValue);
     } else{
         return 0;
     }
 }
+
+
 =item
 guardarVariable
 guarda la variable del sistema ingresada.
@@ -297,11 +352,15 @@ sub t_guardarVariable {
     $params{'explanation'}    = $exp;
     $params{'options'}        = $op;
     $params{'type'}           = $tipo;
+
+
     my $msg_object= C4::AR::Mensajes::create();
     _verificarDatosVariable(\%params,$msg_object);
+
     if(!$msg_object->{'error'}){
         my ($preferencia) = C4::Modelo::PrefPreferenciaSistema->new();
         my $db = $preferencia->db;
+
         $db->{connect_options}->{AutoCommit} = 0;
         $db->begin_work;
     eval {
@@ -321,15 +380,18 @@ sub t_guardarVariable {
     }
     return ($msg_object);
 }
+
 sub setVariable {
     my ($variable, $valor, $db) = @_;
     
     my  $preferencia;
+
     if($db){
         $preferencia = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( db => $db,query => [variable => {eq => $variable}] );
     } else {
         $preferencia = C4::Modelo::PrefPreferenciaSistema::Manager->get_pref_preferencia_sistema( query => [variable => {eq => $variable}] );
     } 
+
     if(scalar(@$preferencia) > 0){
         C4::AR::Debug::debug("Preferencias => setVariable => ".$variable." valor => ".$valor);
        C4::AR::Debug::debug("Preferencias => setVariable => ".$variable." valor CACHE antes => ".$PREFERENCES->{$variable});
@@ -339,18 +401,25 @@ sub setVariable {
         C4::AR::Debug::debug("Preferencias => getVariable => ".$variable." valor desde la base => ".C4::AR::Preferencias::getValorPreferencia($variable));
     }
 }
+
+
 sub _verificarDatosVariable {
     my($params,$msg_object)=@_;
+
     my $var= $params->{'variable'};
     my $val= $params->{'value'};
     my $type= $params->{'type'};
     my $exp= $params->{'explanation'};
     my $op= $params->{'options'};
+
+#Se verifica que el no exista ya la variable que se quiere agregar
     if( getPreferencia($var) ){
         $msg_object->{'error'}= 1;
         C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP005', 'params' => []} ) ;
     }
+
 }
+
 sub t_modificarVariable {
     my ($var, $valor, $expl, $categoria) = @_;
     
@@ -363,6 +432,7 @@ sub t_modificarVariable {
     my ($preferencia)           = C4::Modelo::PrefPreferenciaSistema->new( variable => $var );
     $preferencia->load();
     my $db                      = $preferencia->db; 
+
     $db->{connect_options}->{AutoCommit} = 0;
     $db->begin_work;
     eval {
@@ -371,6 +441,7 @@ sub t_modificarVariable {
         C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP003', 'params' => []} ) ;
         $db->commit;
     };
+
     if ($@){
         #Se loguea error de Base de Datos
         &C4::AR::Mensajes::printErrorDB($@, 'SP001','INTRA');
@@ -379,15 +450,22 @@ sub t_modificarVariable {
         $msg_object->{'error'}= 1;
         C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'SP001', 'params' => []} ) ;
     }
+
     $db->{connect_options}->{AutoCommit} = 1;
+
     return ($msg_object);
 }
+
+
 sub getConfigVisualizacionOPAC{
     my $self = shift;
+
     my %hash_config = {};
     $hash_config{'resumido'}            = C4::AR::Preferencias::getValorPreferencia("detalle_resumido") || 0;
+
     return (\%hash_config);
 }
+
 sub getMetodosAuth{
     my @filtros;
     my @arreglo_temp;
@@ -403,37 +481,53 @@ sub getMetodosAuth{
     foreach my $metodo (@$metodos_auth){
         push (@arreglo_temp, $metodo->getMetodo);
     }
+
     return (\@arreglo_temp);
 }
+
 sub getMetodosAuthAll{
     
     use C4::Modelo::SysMetodoAuth::Manager;
     my $metodos_auth = C4::Modelo::SysMetodoAuth::Manager::get_sys_metodo_auth( query => [], 
                                                                                 sort_by => 'orden ASC',
                                                                               );
+
     return ($metodos_auth);
 }
+
+# get all servers
 sub getSysExternosMeran {
+
     use C4::Modelo::SysExternosMeran::Manager;
     my $sys_externos_meran = C4::Modelo::SysExternosMeran::Manager::get_sys_externos_meran();
+
     return ($sys_externos_meran);
 }
+
+# get only one server
 sub getSysExternoMeran {
     my ($id_server) = @_;
     my @filtros;
         
     use C4::Modelo::SysExternosMeran::Manager; 
     push (@filtros, ('id' => {eq => $id_server}) );
+
     my $sys_externo_meran = C4::Modelo::SysExternosMeran::Manager::get_sys_externos_meran(query => \@filtros);
+
     return ($sys_externo_meran->[0]);
 }
+
+# get only one server
 sub editSysExternoMeran {
     my ($id, $url, $id_ui) = @_;
     my @filtros;
     my $msg_object = C4::AR::Mensajes::create();
+
     use C4::Modelo::SysExternosMeran::Manager; 
     push (@filtros, ('id' => {eq => $id}) );
+
     my $sys_externo_meran = C4::Modelo::SysExternosMeran::Manager::get_sys_externos_meran(query => \@filtros);
+
     $sys_externo_meran = $sys_externo_meran->[0];
     
     if ($sys_externo_meran) {
@@ -457,13 +551,18 @@ sub editSysExternoMeran {
     }
     return ($msg_object);
 }
+
 sub deleteSysExternoMeran {
     my ($id, $url, $id_ui) = @_;
     my @filtros;
+
     use C4::Modelo::SysExternosMeran::Manager; 
     push (@filtros, ('id' => {eq => $id}) );
+
     my $sys_externo_meran = C4::Modelo::SysExternosMeran::Manager::get_sys_externos_meran(query => \@filtros);
+
     $sys_externo_meran = $sys_externo_meran->[0];
+
     my $db = $sys_externo_meran->db;
     $db->begin_work;
     my $msg_object = C4::AR::Mensajes::create();
@@ -481,6 +580,7 @@ sub deleteSysExternoMeran {
     }
     return ($msg_object);
 }
+
 sub addSysExternoMeran {
     use C4::Modelo::SysExternosMeran;
     my ($url, $id_ui)       = @_;
@@ -505,14 +605,20 @@ sub addSysExternoMeran {
     }
     return ($msg_object);
 }
+
 sub unsetCacheMeran{
     C4::AR::CacheMeran::borrar();
 }
+
 BEGIN{
       C4::AR::Preferencias::reloadAllPreferences();
       #TESTING CACHE_MERAN
       #$JUAN = "pruebw";#C4::AR::CacheMeran->new();
 };
+
+
+
 END { }       # module clean-up code here (global destructor)
+
 1;
 __END__

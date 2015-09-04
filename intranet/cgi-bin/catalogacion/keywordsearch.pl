@@ -1,27 +1,28 @@
 #!/usr/bin/perl
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+
+
+# Copyright 2000-2002 Katipo Communications
 #
-# This file is part of Meran.
+# This file is part of Koha.
 #
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Koha is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Koha; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
+# Suite 330, Boston, MA  02111-1307 USA
+
 use CGI;
 use strict;
 use C4::Biblio;
+
+
 my $input    = new CGI;
 my $keywords = $input->param('keyword');
 my $offset   = $input->param('offset');
@@ -29,6 +30,7 @@ my $num      = $input->param('num');
 my $total;
 my $count;
 my @results;
+
 if (! $keywords) {
     print $input->redirect('addbooks.pl');
 } else {
@@ -37,14 +39,17 @@ if (! $keywords) {
     my %search;
     $search{'keyword'}=$keywords;
     ($count, @results) = KeywordSearch(undef,'intra',\%search,$num,$offset);
+
     if ($count < ($offset + $num)) {
         $total = $count;
     } else {
 	$total = $offset + $num;
     } # else
+
     print $input->header;
     print startpage();
     print startmenu('acquisitions');
+
     print << "EOF";
 <font size="6"><em>Biblio Search Results</em></font><br />
 <CENTER>
@@ -61,6 +66,7 @@ Results $offset to $total displayed
 <td background="/images/background-mem.gif"><b>&copy;</b></td>
 </tr>
 EOF
+
     for (my $i = 0; $i < ($total - $offset); $i++) {
 	if ($i % 2) {
 	    print << "EOF";
@@ -71,6 +77,7 @@ EOF
 <tr valign="top" bgcolor="#ffffff">
 EOF
 	} # else
+
 	print << "EOF";
 <td><a href="additem.pl?biblionumber=$results[$i]->{'biblionumber'}">$results[$i]->{'title'}</a></td>
 <td><a href="additem.pl?biblionumber=$results[$i]->{'biblionumber'}">$results[$i]->{'author'}</a></td>
@@ -78,6 +85,7 @@ EOF
 </tr>
 EOF
     } # for
+
     print << "EOF";
 <tr valign=top bgcolor=#cccc99>
 <td background="/images/background-mem.gif">&nbsp;</td>
@@ -87,6 +95,7 @@ EOF
 </table>
 <br />
 EOF
+
     for (my $i = 0; ($i * $num) < $count; $i++) {
 	my $newoffset = $i * $num;
 	my $shownumber = $i + 1;
@@ -94,6 +103,7 @@ EOF
 <a href="keywordsearch.pl?keyword=$keywords&offset=$newoffset&num=$num">$shownumber</a>
 EOF
     } # for
+
     print << "EOF";
 <p />
 Results per page:
@@ -105,6 +115,7 @@ Results per page:
 <br clear="all" />
 <p>&nbsp;</p>
 EOF
+
     print endmenu();
     print endpage();
 } # else

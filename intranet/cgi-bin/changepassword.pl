@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,12 +19,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 use strict;
 require Exporter;
+
 use C4::Output;  # contains gettemplate
 use C4::AR::Auth;
 use C4::Context;
 use CGI;
+
 my $query = new CGI;
+
 my ($template, $params)= C4::Output::gettemplate("changepassword.tmpl", 'intranet');
+
+
 C4::AR::Auth::output_html_with_http_headers($template, $params);

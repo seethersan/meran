@@ -1,8 +1,7 @@
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -70,6 +69,7 @@ sub getPathLogoEtiquetas{
         return (0);
     }
 }
+
 =item
     Devuelve el path del archivo del logo de etiquetas, el anterior devuelve el nombre del archivo
 =cut
@@ -151,6 +151,7 @@ sub eliminarLogoUI{
     return ($msg_object);
     
 }
+
 sub deleteLogos{
     my ($db)        = @_;
     
@@ -319,6 +320,7 @@ sub uploadLogoUI{
    # if($context eq "opac"){
     #    $uploaddir       = C4::Context->config('logosOpacPath');
    #  }else{
+
     my     $uploaddir       = C4::Context->config('logosIntraPath');
     # }
     

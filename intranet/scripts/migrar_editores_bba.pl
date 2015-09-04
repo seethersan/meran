@@ -1,9 +1,9 @@
 #!/usr/bin/perl
+#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
 #
 # This file is part of Meran.
 #
@@ -19,14 +19,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 use CGI::Session;
 use C4::Context;
 use  C4::AR::ImportacionIsoMARC;
+
 my $id = $ARGV[0] || 1;
 my $notfound=0;
 my $witheditor=0;
 my $fixed=0;
+
 my $importacion = C4::AR::ImportacionIsoMARC::getImportacionById($id);
+
 foreach my $registro ($importacion->registros){
     
     my $marc = $registro->getRegistroMARCOriginal();
@@ -38,6 +43,7 @@ foreach my $registro ($importacion->registros){
 		my $marc_record = MARC::Record->new_from_usmarc($n3->nivel2->getMarcRecord());
 		if (!$marc_record->subfield("260","b")) {
 			if($editor){
+
         	my $field = $marc_record->field('260');
         	if($field){
                     $field->add_subfields( 'b' => $editor );
@@ -47,6 +53,7 @@ foreach my $registro ($importacion->registros){
 	                my $new_field = MARC::Field->new('260','','',@subcampos_array);
 	                $marc_record->append_fields($new_field);
 			}
+
 			$n3->nivel2->setMarcRecord($marc_record->as_usmarc);
             $n3->nivel2->save();
 			$fixed++;
@@ -60,9 +67,12 @@ foreach my $registro ($importacion->registros){
 		$notfound++;
 	}
 }
+
 print "NO ENCONTRADOS: ".$notfound."\n";
 print "CON EDITOR : ".$witheditor."\n";
 print "ARREGLADOS : ".$fixed."\n";
+
+
 sub completarConCeros {
     my ($numero) = @_;
     my $ceros = '';
@@ -72,4 +82,5 @@ sub completarConCeros {
     }
     return $ceros.$numero;
 }
+
 1;

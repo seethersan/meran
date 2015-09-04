@@ -1,30 +1,19 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
-#
-# This file is part of Meran.
-#
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::Date;
+package C4::Date;
+
 use strict;
+#EINAR use C4::Context;
+
 use Date::Manip;
 use C4::AR::Preferencias;
+
 require Exporter;
+
 use vars qw($VERSION @ISA @EXPORT %EXPORT_TAGS);
+
 $VERSION = 0.01;
+
 @ISA = qw(Exporter);
+
 @EXPORT = qw(
     display_date_format
     format_date
@@ -42,11 +31,13 @@ $VERSION = 0.01;
     format_date_complete
     esHabil
 );
+
 sub get_date_format
 {
 	#Get the database handle
 	return (C4::AR::Utilidades::trim(C4::AR::Preferencias::getValorPreferencia('dateformat'))||'metric');
 }
+
 sub esHabil{
     my ($date) = @_;
     use Date::Manip::Date;
@@ -57,9 +48,12 @@ sub esHabil{
     return $date_manip->is_business_day;
 	
 }
+
 sub display_date_format
 {
+# 	my $dateformat = get_date_format();
 	my ($dateformat)=@_;
+
 	if ( $dateformat eq "us" )
 	{
 		return "mm/dd/aaaa";
@@ -77,14 +71,20 @@ sub display_date_format
 		return "Invalid date format: $dateformat. Please change in system preferences";
 	}
 }
+
+# Miguel - cambie esta funcion para que no se llame dentro get_date_format, idem format_date_hour format_date_in_iso, display_date_format
 sub format_date
 {
+
 	my ($olddate, $dateformat)=@_;
+
 	my $newdate;
+
 	if ( ! $olddate )
 	{
 		return "";
 	}
+
 	if ( $dateformat eq "us" )
 	{
 		Date_Init("DateFormat=US");
@@ -108,14 +108,18 @@ sub format_date
 		return "Invalid date format: $dateformat. Please change in system preferences";
 	}
 }
+
 sub format_date_complete
 {
     my ($olddate, $dateformat)=@_;
+
     my $newdate;
+
     if ( ! $olddate )
     {
         return "";
     }
+
     if ( $dateformat eq "us" )
     {
         Date_Init("DateFormat=US");
@@ -139,14 +143,19 @@ sub format_date_complete
         return "Invalid date format: $dateformat. Please change in system preferences";
     }
 }
+
+
 sub format_date_hour
 {
 	my ($olddate, $dateformat)=@_;
+
 	my $newdate;
+
 	if ( ! $olddate )
 	{
 		return "";
 	}
+
 	if ( $dateformat eq "us" )
 	{
 		Date_Init("DateFormat=US");
@@ -170,6 +179,7 @@ sub format_date_hour
 		return "Invalid date format: $dateformat. Please change in system preferences";
 	}
 }
+
 sub calc_beginES
 {
 	my $close = C4::AR::Preferencias::getValorPreferencia("close");
@@ -179,6 +189,8 @@ sub calc_beginES
 	my $hour = DateCalc($close,"- $beginESissue minutes",\$err);	
 	return $hour;
 }
+
+
 sub calc_endES
 {
 	my $open = C4::AR::Preferencias::getValorPreferencia("open");
@@ -189,6 +201,10 @@ sub calc_endES
 			      
 	return $hour;
 }
+
+
+
+
 sub format_date_in_iso
 {
 	my ($olddate, $dateformat)=@_;
@@ -198,6 +214,7 @@ sub format_date_in_iso
     {
             return "";
     }
+
     if ( $dateformat eq "us" )
     {
             Date_Init("DateFormat=US");
@@ -217,20 +234,32 @@ sub format_date_in_iso
     {
             return "9999-99-99";
     }
+
 	$newdate = UnixDate($olddate, '%Y-%m-%d');
+
 	return $newdate;
 }
+
 sub updateForHoliday{
+#Recibe una fecha que es la que se puso o se saco como feriado
+#Si $sign es "+" entonces se puso como feriado
+#Si $sign es "-" entonces se saco como feriado
+#Este procedimiento actualiza las fechas que corresponden cuando se setea/dessetea un feriado
 	my ($fecha,$sign)= @_;
 	my $err= "Error con la fecha";
 	my $dateformat = C4::Date::get_date_format();
+
 	my $fecha_nueva_inicio = C4::Date::format_date_in_iso(DateCalc($fecha,"$sign 1 business days",\$err),$dateformat);
 	my $daysOfSanctions= C4::AR::Preferencias::getValorPreferencia("daysOfSanctionReserves");
 	my $fecha_nueva_fin = C4::Date::format_date_in_iso(DateCalc($fecha_nueva_inicio,"+ $daysOfSanctions days",\$err),$dateformat);
 	my $dbh = C4::Context->dbh;
+
 	my $sth = $dbh->prepare("update circ_sancion set startdate=?, enddate=? where sanctiontypecode is null and startdate = ?");
+
 	$sth->execute($fecha_nueva_inicio,$fecha_nueva_fin,$fecha);
 }
+
+
 sub proximosHabiles {
 	my ($cantidad,$todosHabiles,$desde)=@_;
 	my $apertura               =C4::AR::Preferencias::getValorPreferencia("open");
@@ -242,16 +271,21 @@ sub proximosHabiles {
 	$actual=($hora).':'.$min;
 	Date_Init("WorkDayBeg=".$apertura,"WorkDayEnd=".$cierre);
     Date_Init("WorkWeekBeg=".$first_day_week,"WorkWeekEnd=".$last_day_week);
+
 	my $err= "Error con la fecha";
 	my $hoy= ParseDate("today");
+
     $desde= ($desde || $hoy);
+
 	my $hasta;
+
 	if ($todosHabiles) {
 		#esto es si todos los dias del periodo deben ser habiles
         #Los dias Habiles se contolan desde el archivo .DateManip.pm que lee el modulo Date.pm, habria que ver como esquematizarlo
         #OLD WAY anda mejor con 		Date_NextWorkDay
 		#$hasta=DateCalc($desde,"+ ".$cantidad. " days",\$err,2);
 		$hasta = $desde;
+# 		C4::AR::Debug::debug("********** HASTA ANTES DEL CALCULO ".$hasta);
 		for (my $iter_habil = 1; $iter_habil <= $cantidad; $iter_habil++ ){
 			$hasta = DateCalc($hasta,"+ 1 business days",\$err);
 		}
@@ -269,20 +303,28 @@ sub proximosHabiles {
 	my $proximos_feriados = C4::AR::Utilidades::getProximosFeriados($hasta);
 	
 	foreach my $feriado (@$proximos_feriados) {
+# 		C4::AR::Debug::debug("_______________________________________ HASTA __________________________________ ".C4::Date::format_date($hasta,$dateformat));
+# 		C4::AR::Debug::debug("_______________________________________FERIADO______________________________ ".$feriado->getFecha);
 		if( C4::Date::format_date($hasta,$dateformat) eq $feriado->getFecha ) {
 			$hasta=DateCalc($hasta,"+ 1 business days",\$err);
+# 			C4::AR::Debug::debug("_______________________________________ SUMA 1!!! __________________________________ ");
 		}
 	}
     
     $desde = C4::Date::format_date_in_iso($desde, $dateformat);
     $hasta = C4::Date::format_date_in_iso($hasta, $dateformat);
     
+#     C4::AR::Debug::debug("_______________________________________DESDE __________________________________ ".$desde);
+#     C4::AR::Debug::debug("_______________________________________HASTA CANT______________________________ ".$cantidad);
+#     C4::AR::Debug::debug("_______________________________________HASTA___________________________________ ".$hasta);
+
     return (	$desde,
                 $hasta,
                 $apertura,
                 $cierre
 	);
 }
+
 sub mesString{
 	my ($mes)=@_;
 	
@@ -300,6 +342,7 @@ sub mesString{
 	elsif ($mes eq "12") {$mes=C4::AR::Filtros::i18n('Diciembre')};
 	return ($mes);
 }
+
 sub diaString{
     my ($dia)=@_;
     
@@ -310,8 +353,10 @@ sub diaString{
     elsif ($dia eq "4") {$dia=C4::AR::Filtros::i18n('Jueves')}
     elsif ($dia eq "5") {$dia=C4::AR::Filtros::i18n('Viernes')}
     elsif ($dia eq "6") {$dia=C4::AR::Filtros::i18n('S&aacute;bado')}
+
     return ($dia);
 }
+
 sub getCurrentTimestamp {
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
 	my $timestamp = sprintf ("%4d-%02d-%02d %02d:%02d:%02d",$year+1900,$mon+1,$mday,$hour,$min,$sec);

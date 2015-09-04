@@ -1,27 +1,17 @@
-# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
-# Circulation and User's Management. It's written in Perl, and uses Apache2
-# Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP 
-# <desarrollo@cespi.unlp.edu.ar>
+package C4::AR::AnalysisBiblio;
+
 #
-# This file is part of Meran.
+# Este modulo sera el encargado del manejo de la Biblioteca Virtual
+# pedidos, informes y multas seran manejados aqui. 
 #
-# Meran is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
 #
-# Meran is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Meran.  If not, see <http://www.gnu.org/licenses/>.package C4::AR::AnalysisBiblio;
+
 use strict;
 require Exporter;
+
 use C4::Context;
 use C4::Biblio;
+
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw(&BiblioAnalysisData
@@ -36,8 +26,14 @@ use vars qw(@EXPORT @ISA);
 	   &getKeywords
   	   &getKeywordsLike
 	   &getKeywordID
+
 	   &bibdata
+
 	   );
+
+#Recupero los datos del analisis
+#
+
 sub getKeywords{
 	my $dbh = C4::Context->dbh;
 	my $query ="SELECT * FROM keyword  ORDER BY keyword";
@@ -45,8 +41,10 @@ sub getKeywords{
         $sth->execute();
         my @results;
         my $result_array_ref=$sth->fetchrow_hashref;
+
 	return $result_array_ref;
 }
+
 sub getKeywordID{
 	my ($keyword)=@_;
 	
@@ -56,8 +54,10 @@ sub getKeywordID{
         $sth->execute($keyword);
         my @results;
         my $result_array_ref=$sth->fetchrow_hashref;
+
 	return $result_array_ref->{'idkeyword'};
 }
+
 sub getSubjectID{
 	my ($subjectId)=@_;
 	
@@ -67,21 +67,27 @@ sub getSubjectID{
         $sth->execute($subjectId);
         my @results;
         my $result_array_ref=$sth->fetchrow_hashref;
+
 	return $result_array_ref->{'nombre'};
 }
+
 sub getKeywordsLike{
 	my ($dato)=@_;
+
 	my $dbh = C4::Context->dbh;
 	my $query ="SELECT * FROM keyword WHERE keyword like ? ORDER BY keyword";
         my $sth=$dbh->prepare($query);
         $sth->execute($dato.'%');
+
 	my @results;
 	while (my $data = $sth->fetchrow) {
 		push(@results, $data); 
 	} # while
 	$sth->finish;
 	return(@results);
+
 }
+
 sub BiblioAnalysisData{
         my ($bibnum, $bibitemnumber) = @_;
         my $dbh = C4::Context->dbh;
@@ -90,6 +96,7 @@ sub BiblioAnalysisData{
         $sth->execute($bibnum, $bibitemnumber);
         my @results;
         while (my $data=$sth->fetchrow_hashref){
+
 	my  $sth2   = $dbh->prepare("Select * from cat_tema_analitica  where analyticalnumber = ?");
 	 $sth2->execute($data->{'analyticalnumber'});
 	 while (my $dat = $sth2->fetchrow_hashref){
@@ -110,15 +117,19 @@ sub BiblioAnalysisData{
 		 $i+=1;
 		 }
 	 $data->{'SUBJECTS'} = \@subjects;
+
 	 my  $sth3 = $dbh->prepare("	SELECT ak.idkeyword,ak.analyticalnumber,k.keyword 
 					FROM analyticalkeyword ak INNER JOIN keyword k
 					ON (ak.idkeyword = k.idkeyword)
 					WHERE ak.analyticalnumber = ? ");
+
 	 $sth3->execute($data->{'analyticalnumber'});
+
 	 while (my $dat = $sth3->fetchrow_hashref){
 	 	$data->{'keyword'} .= "$dat->{'keyword'}, ";
 	 } # while
  	 chop $data->{'keyword'}; #quito la ultima ,
+
 	 $sth3->finish;
 					 
 	 my @keywords;
@@ -131,13 +142,19 @@ sub BiblioAnalysisData{
 		 push(@keywords, {keyword => $elem, separator => $coma});
 		 $i+=1;
 		 }
+
 	 $data->{'KEYWORDS'} = \@keywords;
+
 	 my @autores=&getanalyticalautors($data->{'analyticalnumber'});
 	 $data->{'analyticalauthor'}=\@autores;
+
          push(@results,$data);
         }
+
         return (@results);
 }
+
+
 sub BiblioAnalysisSingularData {
         my ($analitycalnumber) = @_;
         my $dbh = C4::Context->dbh;
@@ -146,6 +163,7 @@ sub BiblioAnalysisSingularData {
         $sth->execute($analitycalnumber);
         my @results;
         while (my $data=$sth->fetchrow_hashref){
+
 	my  $sth2   = $dbh->prepare("Select * from cat_tema_analitica  where analyticalnumber = ?");
 	 $sth2->execute($data->{'analyticalnumber'});
 	 while (my $dat = $sth2->fetchrow_hashref){
@@ -166,22 +184,29 @@ sub BiblioAnalysisSingularData {
 		 $i+=1;
 		 }
 	 $data->{'SUBJECTS'} = \@subjects;
+
 	 my  $sth3 = $dbh->prepare("	SELECT ak.idkeyword,ak.analyticalnumber,k.keyword 
 					FROM analyticalkeyword ak INNER JOIN keyword k
 					ON (ak.idkeyword = k.idkeyword)
 					WHERE ak.analyticalnumber = ? ");
+
 	 $sth3->execute($data->{'analyticalnumber'});
+
 my @keywords;
+
 	  while (my $dat = $sth3->fetchrow_hashref){
 	 	$data->{'keyword'} .= "$dat->{'keyword'}\n ";
 		push(@keywords, $data);
 	 } # while
 =item
+
 	 while (my $dat = $sth3->fetchrow_hashref){
 	 	$data->{'keyword'} .= "$dat->{'keyword'}, ";
 	 } # while
  	 chop $data->{'keyword'}; #quito la ultima ,
+
 	 $sth3->finish;
+#Miguel falta que los keywords se les agregue un ENTER					 
 	 my @keywords;
 	 my $len= scalar(split(",",$data->{'keyword'}));
 	 my $i= 1;
@@ -197,10 +222,12 @@ my @keywords;
 					 
 	 my @autores=&getanalyticalautors($data->{'analyticalnumber'});
 	 $data->{'analyticalauthor'}=\@autores;
+
          push(@results,$data);
          }
         return (@results);
 }
+
 sub BiblioSingleAnalysisDelete 
 {          my ($analyticalnumber)= @_;
 	   my $dbh = C4::Context->dbh;
@@ -210,7 +237,9 @@ sub BiblioSingleAnalysisDelete
            my $query ="DELETE FROM cat_analitica  WHERE analyticalnumber=? ";
            my $sth=$dbh->prepare ($query);
            $sth->execute($analyticalnumber);
+
 }
+
 sub BiblioAnalysisDelete 
 {          my ($bibnum,$bibnumitems)= @_;
            my $dbh = C4::Context->dbh;
@@ -225,7 +254,10 @@ sub BiblioAnalysisDelete
            my $query ="DELETE FROM cat_analitica WHERE biblionumber=? and biblioitemnumber=?";
            my $sth=$dbh->prepare ($query);
            $sth->execute($bibnum,$bibnumitems);
+
 }
+
+
 sub BiblioAnalysisUpdate 
 {
 	my ($analyticalnumber,$analyticaltitle,$analyticalunititle,$subjectheadings,$classification,$bibnum,$analyticalauthor,$bibnumitems,$parts,$time,$resumen,$url,$keywords)=@_;
@@ -239,13 +271,16 @@ sub BiblioAnalysisUpdate
 	my $sth=$dbh->prepare("	UPDATE cat_analitica  SET analyticaltitle=?, biblionumber=?, 						analyticalunititle=?, biblioitemnumber=?, parts=?, classification=?,  	
 				resumen=?, url=?
 				WHERE analyticalnumber=? ");
+
         $sth->execute($analyticaltitle,$bibnum,$analyticalunititle,$bibnumitems,$parts,$classification,$resumen,$url,$analyticalnumber);
 	$sth->finish;
+
 	&agregarAnalyticalMaterias($dbh,$analyticalnumber,$subjectheadings);
 	&agregarAnalyticalAutores($dbh,$analyticalnumber,$analyticalauthor);
 	&agregarAnalyticalKeywords($dbh,$analyticalnumber,$keywords);
 				
 }
+
 sub BiblioAnalysisInsert{
  	my ($analyticaltitle,$analyticalunititle,$subjectheadings,$classification,$bibnum,$analyticalauthor,$bibnumitems,$parts,$resumen,$url,$keywords)=@_;
  
@@ -258,27 +293,36 @@ sub BiblioAnalysisInsert{
  	my $query ="	INSERT INTO cat_analitica 
         		( `analyticaltitle` , `biblionumber` , `analyticalunititle` , `biblioitemnumber` , `parts`,`classification` , `timestamp`,`analyticalnumber`,`resumen`,`url`) 
         		VALUES (?, ?, ?, ?, ?,?, NOW( ),?,?,?);";
+
  	my $sth=$dbh->prepare($query);
  	$sth->execute($analyticaltitle,$bibnum,$analyticalunititle,$bibnumitems,$parts,$classification,$analyticalnumber,$resumen,$url);
+
   	&agregarAnalyticalMaterias($dbh,$analyticalnumber,$subjectheadings);
   	&agregarAnalyticalAutores($dbh,$analyticalnumber,$analyticalauthor);
    	&agregarAnalyticalKeywords($dbh,$analyticalnumber,$keywords);
+
 	$sth->finish;
 }
+
 sub eliminarAnalyticalKeywords{
+
    my ($dbh,$analyticalnumber)=@_;
+
    my $sth; 
    $sth=$dbh->prepare("DELETE FROM analyticalkeyword  WHERE analyticalnumber= ?;");
    $sth->execute($analyticalnumber);
    $sth->finish;			    
 }
+
 sub eliminarAnalyticalMaterias{
+
    my ($dbh,$analyticalnumber)=@_;
    my $sth; 
     $sth=$dbh->prepare("Delete from cat_tema_analitica  where analyticalnumber=?;");
     $sth->execute($analyticalnumber);
     $sth->finish;			    
 }
+
 sub eliminarAnalyticalAutores{
    my ($dbh,$analyticalnumber)=@_;
    my $sth; 
@@ -288,6 +332,7 @@ sub eliminarAnalyticalAutores{
 }
 		  
 sub agregarAnalyticalKeywords{
+
         my ($dbh,$analyticalnumber,$keywords) =@_;
 	my @ars=split(/^/,$keywords); #separa los \n
 	my $sth;	
@@ -296,17 +341,21 @@ sub agregarAnalyticalKeywords{
 		$aux =~ s/\n//; #elimina los \n
 		$aux=~ s/\s+$//;#elimina el espacio del final
 		if ($aux ne '') {
+
 			$sth=$dbh->prepare("	SELECT count(*) 
 						FROM analyticalkeyword ak INNER JOIN keyword k
 						ON (ak.idkeyword = k.idkeyword) 
 						WHERE ak.analyticalnumber = ? and k.keyword = ? ; ");
+
 			$sth->execute($analyticalnumber,$aux);
 			my $data=$sth->fetchrow;
 			$sth->finish;
 			if ($data eq 0) {
+
 				$sth = $dbh->prepare ("	INSERT INTO analyticalkeyword 
 							(analyticalnumber, idkeyword) 
 							VALUES ( ? , ?); ");
+
 				$sth->execute($analyticalnumber,getKeywordID(uc($aux)));
 				$sth->finish;
 =item
@@ -324,7 +373,9 @@ sub agregarAnalyticalKeywords{
 		} 
 	}# foreach
 }
+
 sub agregarAnalyticalMaterias{
+
         my ($dbh,$analyticalnumber,$subjects) =@_;
 	my @ars=split(/^/,$subjects); #separa los \n
 	my $sth;	
@@ -354,6 +405,7 @@ sub agregarAnalyticalMaterias{
 		} 
 	}# foreach
 }
+
 sub agregarAnalyticalAutores {
         my ($dbh,$analyticalnumber,$auth) = @_;
 	my @ars=split(/^/,$auth);
@@ -370,6 +422,7 @@ sub agregarAnalyticalAutores {
 	$sth->execute($analyticalnumber,$idCol);
 	$sth->finish;
 }}
+
 sub getanalyticalautors{
     	my ($analyticalnumber) = @_;
         my @result;
@@ -393,6 +446,7 @@ my $count=@key;
 my $query;                    # The SQL query
 my @clauses = ();             # The search clauses
 my @bind = ();                # The term bindings
+
 $query = " SELECT distinct cat_analitica.analyticalnumber, biblio.*,biblioitems.*,cat_analitica.*,biblio.author as autorppal   from 
 biblio left join biblioitems on biblio.biblionumber=biblioitems.biblionumber 
 inner join cat_analitica on biblioitems.biblioitemnumber=cat_analitica.biblioitemnumber 
@@ -430,9 +484,15 @@ foreach my $keyword (@key)
  	$results[$i]=$data;
   	$i++;
   }
+# open(A, ">>/tmp/debug.txt");
+# print A "desde analitcas \n";
+# print A " cant ".scalar(@results)."\n";
   $sth->finish;
+# close(A);
   return(scalar(@results),@results);
 }
+
+#Miguel esta funcion solo es llamada desde Search::CatSearch
 sub BiblioAnalysisTypeSearch
 {
 my ($search,$type) = @_;
@@ -440,9 +500,13 @@ my $dbh = C4::Context->dbh;
 my @autor;
 my @title;
 my @subject;
+
 my $query;                    # The SQL query
 my @clauses = ();             # The search clauses
 my @bind = ();                # The term bindings
+
+
+# if (($search->{'subjectitems'} ne '') or ($type eq 'subject')){
 if (($search->{'subjectitems'} ne '') or ($search->{'subjectid'} ne '') ){
 	$query = " SELECT distinct cat_analitica.analyticalnumber, biblio.*,biblioitems.*,biblioanalysis.*,biblio.author as autorppal,cat_tema_analitica.subject   from biblio left join biblioitems on biblio.biblionumber=biblioitems.biblionumber 
 	inner join cat_analitica on biblioitems.biblioitemnumber=cat_analitica.biblioitemnumber 
@@ -450,6 +514,7 @@ if (($search->{'subjectitems'} ne '') or ($search->{'subjectid'} ne '') ){
 	inner join cat_autor on cat_autor_analitica.author = cat_autor.id
 	left join cat_tema_analitica on cat_analitica.analyticalnumber = cat_tema_analitica.analyticalnumber
 	where ";	              
+
 }
 else {
 	$query = " SELECT distinct cat_analitica.analyticalnumber, biblio.*,biblioitems.*,cat_analitica.*,biblio.author as autorppal   from 
@@ -459,6 +524,7 @@ else {
 	inner join cat_autor on cat_autor_analitica.author = cat_autor.id
 	where ";
 }
+
 if ($search->{'subjectitems'} ne ''){
 	$query .= "  cat_tema_analitica.subject= '".$search->{'subjectitems'}."'" ;
 			
@@ -524,7 +590,9 @@ if ($search->{'subjectitems'} ne ''){
 			}
 		$query .= "(" . join(")\nAND (", @clauses) . ")";
 	}
+
 } #end else
+
   my $sth=$dbh->prepare($query);
   $sth->execute(@bind);
   my @results;
@@ -543,9 +611,14 @@ if ($search->{'subjectitems'} ne ''){
   $sth->finish;
   return(scalar(@results),@results);
  }
+
+
+
+
 =item 
 bibdata
 *********** VIENE DEL SEARCH.PM SE DEJO COMO ESTABA****** VER!!!!!!!!!!!!!!!
+
   $data = &bibdata($biblionumber, $type);
 Returns information about the book with the given biblionumber.
 C<$type> is ignored.
@@ -556,6 +629,7 @@ In addition, C<$data-E<gt>{subject}> is the list of the book's
 subjects, separated by C<" , "> (space, comma, space).
 If there are multiple biblioitems with the given biblionumber, only
 the first one is considered.
+
 POSIBLEMENTE NO SE USE MAS, VER!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 SE USA PARA LOS PL DE ANALITICAS. (addanalysis.pl y opac-analysis.pl)
 =cut
@@ -571,13 +645,18 @@ sub bibdata {
     $sth->execute();
     my $data;
     $data  = $sth->fetchrow_hashref;
+
     $sth->finish;
+
 	#Para mostrar el nivel bibliografico  
 	 my $level=C4::AR::Busquedas::getLevel($data->{'classification'});
         $data->{'classification'}= $level->{'description'};
         $data->{'idclass'}= $level->{'code'};
+
     return($data);
 } # sub bibdata
+
 END { }       # module clean-up code here (global destructor)
+
 1;
 __END__
