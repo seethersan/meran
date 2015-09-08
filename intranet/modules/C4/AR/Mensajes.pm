@@ -1,38 +1,34 @@
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 package C4::AR::Mensajes;
-
 use strict;
 require Exporter;
-
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
-
-# set the version for version checking
 $VERSION = 0.01;
-
 @ISA = qw(Exporter);
-
 @EXPORT = qw(
     getMensaje
     getAccion
     encodeUtf8Msj
 );
-
-#000 - Todo normal
-#R000 - R099 para Reservas
-#P100 - P199 para Prestamos
-#S200 - S299 para Sanciones
-#U300 - U399 para Usuarios
-#SP000 - SP999 para errores de sistema
-#B400 - B499 para Errores e Informacion de Base de Datos
-#C500 - C599 para Catalogacion
-#CA600 - CA699 para Control de Autoridades
-#F700 - F799 para Favoritos
-#VO800 - VO899 para Visualizacion Opac
-#E900 - E999 para Estantes
-#RC00 - #RC99 para Recomendaciones
-#IO00 - #IO99 para Importaciones/Exportaciones
-#UP00 - #UP99 para Upload Files
-
-# %mensajes mapea codigo de mensaje con la descripcion del mismo
 my %mensajesOPAC = (
     '000' => '',
     'R001' => 'Disculpe, usted no puede realizar m&aacute;s de *?* reservas',
@@ -147,9 +143,7 @@ my %mensajesOPAC = (
     'B411' => 'Error en funcion C4::AR::Auth::t_operacionesDeOPAC',
     'B412' => 'Error en la funcion C4::AR::RecomendacionDetalle::eliminarDetalleRecomendacion',
     'B413' => 'Error en la funcion C4::AR::Recomendaciones::eliminarRecomendacion',
-
 );
-
 my %mensajesINTRA = (
     '000' => '',
     'CB001' => 'El formato de inventario para el tipo de documento (*?*) se ha acualizado.',
@@ -340,16 +334,12 @@ my %mensajesINTRA = (
     'U423' => 'Se puede imprimir el certificado de libre deuda para *?*. <br/> *?*',
     'U424' => 'No se puede deshabilitar el usuario porque tiene pr&eacute;stamos vigentes y/o vencidos.',
     'U425' => 'El valor ingresado en el Captcha es invalido, por favor intente nuevamente',
-
     'U426' => 'El mail ha sido enviado',
     'U427' => 'Ha ocurrido un error, el mail no ha sido enviado',
     'U428' => 'Disculpe, no se pudo modificar el ejemplar ( *?* ), ya que es el &uacute;nico ejemplar disponible para pr&eacute;stamo domiciliario y el mismo posee reservas ( *?* ).<br/>Cancele las reservas antes e intente nuevamente.',
-
     'U499' => 'El password actual no puede ser igual al nuevo.',
-
     'U500' => 'La tarjeda de identificaci&oacute;n ingresada (Nro. de socio) ya pertenece a otro usuario.',
     'U501' => 'El libro cuyo t&iacute;tulo y autor es:  *?* ya existe.  Desea agregar nuevos ejemplares al registro *?* ? ',
-#     'U405' => 'No existe la estructura de catalogaci&oacute;n que se intentando recuperar.',
     'U502' => 'Los permisos del usuario (*?*) no se pudieron cambiar.',
     'U503' => 'Los permisos del usuario (*?*) se agregaron con &eacute;xito.',
     'U504' => 'Los permisos del usuario (*?*) no se pudieron agregar.',
@@ -448,7 +438,6 @@ my %mensajesINTRA = (
     'E018' => 'Disculpe, no se pudo eliminar el grupo (*?*), se encuentra contenido en al menos 1 estante. Debe quitarlo del estante antes. En caso de no visualizarse el estante, es porque se trata de un estante virtual privado).',
     'REF0' => 'La referencia no se ha podido eliminar, verifique que no se est&eacute; usando.',
     'REF1' => 'La referencia ha sido eliminada correctamente.',
-#   Mensajes de Adquisicion Proveedores y Presupuestos
     'A001' => 'El proveedor ha sido agregado exitosamente.',
     'A002' => 'El nombre del proveedor no puede estar en blanco.',
     'A003' => 'El mail debe ser v&aacute;lido.',
@@ -507,27 +496,22 @@ my %mensajesINTRA = (
     'M002' => 'Error al intentar eliminar las visualizaciones con campo "*?*" y nivel "*?*".',
     'M003' => 'Error en la funcion eliminarTodoElCampo.',
     'M004' => 'Se copi&oacute; toda la visualizaci&oacute;n del campo "*?*", nivel "*?*" y ejemplar "*?*" con &eacute;xito.',
-
     #Mensajes Social
     'SC000' => 'El mensaje ha sido publicado en Twitter',
     'SC001' => 'El mensaje no pudo ser publicado a causa del siguiente error: ',
     'SC002' => 'Se ha excedido en la cantidad de caracteres ingresados. El mensaje no ha sido publicado en Twitter ',
     'SC003' => 'No esta habilitada la preferencia para publicar en Twitter',
     'SC004' => 'Error de Twitter: *?*',
-
      #Metodos Auth
     'MA000' => 'El Metodo fue agregado exitosamente',
     'MA001' => 'El Metodo no pudo ser agregado',
-
     #Mensajes Recomendaciones
     'RC00' => 'El detalle de la recomendacion fue eliminado con &eacute;xito',
     'RC01' => 'Disculpe, no se pudo eliminar el detalle, intente nuevamente.',
     'RC02' => 'La recomendacion fue eliminada con &eacute;xito',
-
     #prestamos vencidos
     'PV00' => 'Se enviar&aacute;n los mails de pr&eacute;stamos vencidos a la brevedad',
     'PV01' => 'Ocurrio un error mientras se mandaban los mails de pr&eacute;stamos vencidos',
-
     #Mensajes Importaciones/Exportaciones
     'IO00' => 'La importaci&oacute;n fue eliminada con &eacute;xito',
     'IO01' => 'Ocurrio un error mientras se intentaba eliminar la importaci&oacute;n',
@@ -548,13 +532,11 @@ my %mensajesINTRA = (
     'IO018' => 'Se ha terminado de importar correctamente.',
     'IO019' => 'No se ha podido cancelar la importaci&oacute;n',
     'IO020' => 'La importaci&oacute;n ha sido cancelada',
-
     #importaciones XML
     'IXML00' => 'La importaci&oacute;n ha sido realizada correctamente',
     'IXML01' => 'El archivo importado no es v&aacute;lido',
     'IXML02' => 'Ocurri&oacute; un error mientras se insertaba en la base de datos la importaci&oacute;n',
     'IXML03' => 'Ocurri&oacute; un error mientras se realizaba la importaci&oacute;n',
-
     #Mensajes Upload Files
     'UP00' => 'Solo se permiten archivos del tipo ("*?*") [Fallo de extension]',
     'UP01' => 'Hay un error y el archivo no puede escribirse en el servidor',
@@ -573,15 +555,12 @@ my %mensajesINTRA = (
     'UP14' => 'Ocurrio un error mientras se eliminaban las imagenes',
     'UP15' => 'El logo se ha eliminado correctamente',
     'UP16' => 'Ocurrio un error mientras se cargaban las imagenes',
-
     #servidores externos meran
     'SEM01' => 'El servidor fue agregado exitosamente',
     'SEM02' => 'El servidor no pudo ser guardado',
     'SEM03' => 'El servidor fue editado exitosamente',
     'SEM04' => 'El servidor fue eliminado exitosamente',
     'SEM05' => 'El servidor no pudo ser eliminado',
-
-#ERRORES DE BASE DE DATOS
     'B400' => '',
     'B401' => 'Error al intentar prestar desde INTRA, funcion C4::AR::Reservas::t_realizarPrestamo.',
     'B402' => 'Error al intentar guardar un item desde INTRA, funcion C4::AR::Catalogacion::transaccion.',
@@ -650,20 +629,16 @@ my %mensajesINTRA = (
     'B462' => 'Error subiendo logos. Funcion C4::AR::Logos::eliminarLogo',
     'B463' => 'Error aliminando la ayuda MARC. Funcion C4::AR::AyudaMarc::eliminarAyudaMarc',
     'B464' => 'Error en funcion C4::AR::Sanciones::aplicarSancionManualSocio',
-
-
     #mensajes ayuda marc
     'AM00' => 'La ayuda MARC ha sido guardada exitosamente',
     'AM01' => 'Error guardando la ayuda MARC',
     'AM02' => 'La ayuda MARC (campo, subcampo) (*?*, *?*) ya existe',
     'AM03' => 'La ayuda MARC fue eliminada con &eacute;xito',
     'AM04' => 'Error eliminando la ayuda MARC',
-
     'REV000' => 'La revisiones han sido eliminadas',
     'REV001' => 'La revisiones no han sido eliminadas, int&eacute;ntelo nuevamente.',
     'REV002' => 'La revisiones han sido aprobadas para su publicaci&oacute;n.',
     'REV003' => 'La revisiones no han sido aprobadas, int&eacute;ntelo nuevamente.',
-
     #tipo de documentos
     'TD000' => 'Error guardando la imagen del tipo de documento, int&eacute;ntelo nuevamente.',
     'TD001' => 'El tipo de documento ha sido guardado exitosamente',
@@ -672,16 +647,12 @@ my %mensajesINTRA = (
     'TD004' => 'El tipo de documento fue eliminado con &eacute;xito',
     'TD005' => 'Ocurri&oacute; un error mientras se eliminaba el tipo de documento',
     'TD006' => 'Error guardando la imagen del tipo de documento. S&oacute;lo se permiten imagenes con extenci&oacute;n .png',
-
     #portadas nivel 2
     'POR00' => 'Error guardando la imagen de la portada, intentelo nuevamente.',
     'POR01' => 'Las imagenes fueron modificadas con exito',
-
     #novedades
     'NOV00' => 'La novedad fue guardada con &eacute;xito',
-
 );
-
 sub getMensaje {
     my($codigo,$tipo,$param)    = @_;
     my $msj                     = "";
@@ -697,20 +668,15 @@ sub getMensaje {
         C4::AR::Debug::debug("mensaje de INTRA");
         $msj = $mensajesINTRA{$codigo};
     }
-
     my $p;
-
     foreach $p (@$param){
         $msj=~ s/\*\?\*/$p/o;
     }
-
     C4::AR::Debug::debug("C4::AR::Mensajes => getMensaje => tipo => ".$tipo);
     C4::AR::Debug::debug("C4::AR::Mensajes => getMensaje => codigo => ".$codigo);
     C4::AR::Debug::debug("C4::AR::Mensajes => getMensaje => mensaje => ".$msj);
-
     return $msj;
 }
-
 =item
 Esta funcion se encarga de setear variables para los distintos pl que la invocan segun un codigo de error,
 estas variables se setean para mostrar u ocultar cosas en los tmpls
@@ -718,40 +684,27 @@ estas variables se setean para mostrar u ocultar cosas en los tmpls
 sub getAccion {
     my($codigo,$tipo)=@_;
     my %acciones;
-
     if($codigo eq 'R001'){
         $acciones{'maximoReservas'}= 1;
-#       $acciones{'materialEnEspera'}= 0;
     }
-
     if($codigo eq 'U302'){
         $acciones{'materialParaRetirar'}= 1;
     }
-
     if($codigo eq 'U303'){
         $acciones{'reservaGrupo'}= 1;
     }
-
     return \%acciones;
 }
-
 =item
 printErrorDB
 Esta funcion logea los bugs que ocurren cuando una transaccion no es ejecutada con exito.
 Guarda los errores en el siguiente archivo: /var/log/koha/debugErrorDBA.txt
 =cut
-
-
 sub printErrorDB {
     my ($errorsDB_array,$codigo,$tipo)=@_;
-
     C4::AR::Debug::printErrorDB($errorsDB_array,$codigo,$tipo);
 }
-
-
-
 sub create {
-
     #se crea el objetos contenedor de mensajes
     my %msg_object;
     $msg_object{'error'}    = 0;
@@ -761,66 +714,47 @@ sub create {
     $session->{'msg_object'} = \%msg_object;
     
     $msg_object{'tipo'}     = $session->param('type')||'INTRA';
-
     return \%msg_object;
 }
-
 sub hayError {
     my($msg_object)=@_;
-
     if($msg_object->{'error'}){
         return 1;
     }else{
         return 0;
     }
 }
-
 sub getFirstCodeError {
     my($msg_object)=@_;
-
     return $msg_object->{'messages'}->[0]->{'codMsg'} || 0;
 }
-
-
 =item
     Esta funcion encodea el mensaje en utf8 para mostrar correctamente los acentos en el cliente
 =cut
 sub encodeUtf8Msj{
-
     my($hash) = @_;
-
     use Encode;
-
     foreach my $value (@$hash) {
         $value = encode("utf8",$value);
     }
 }
-
-#Esta funcion agrega un mensaje al arreglo de objetos mensajes
 sub add {
     my($Message_hashref, $msg_hashref)=@_;
     #@param $Message_hashref es el objeto mensaje contenedor de los mensajes
     #@param $msg_hashref es un mensaje
     #se obtiene el texto del mensaje
-#       my $messageString= &C4::AR::Mensajes::getMensaje($msg_hashref->{'codMsg'},$Message_hashref->{'tipo'},$msg_hashref->{'params'});
     my $session         = CGI::Session->load();
     my $tipo            = $msg_hashref->{'tipo'}||$session->param('type')||'INTRA';
     
     #encodeamos en utf8 para mostrar bien los acentros
     encodeUtf8Msj($msg_hashref->{'params'});
-
     my $messageString   = C4::AR::Mensajes::getMensaje($msg_hashref->{'codMsg'}, $tipo, $msg_hashref->{'params'});
     $msg_hashref->{'message'}= $messageString;
     $msg_hashref->{'codMsg'}= $msg_hashref->{'codMsg'};
-# C4::AR::Debug::debug("Mensajes::add => message: ".$messageString."\n");
-# C4::AR::Debug::debug("Mensajes::add => params: ".$msg_hashref->{'params'}->[0]."\n");
-
     push (@{$session->{'msg_object'}->{'messages'}}, $msg_hashref);
     
     push (@{$Message_hashref->{'messages'}}, $msg_hashref);
 }
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__

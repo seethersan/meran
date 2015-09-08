@@ -1,13 +1,30 @@
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 package C4::AR::Presupuestos;
-
 use strict;
 require Exporter;
 use DBI;
 use C4::Modelo::AdqPresupuestoDetalle;
 use C4::Modelo::AdqPresupuestoDetalle::Manager;
 use C4::AR::PedidoCotizacionDetalle;
-
-
 use vars qw(@EXPORT @ISA);
 @ISA=qw(Exporter);
 @EXPORT=qw(  
@@ -17,20 +34,12 @@ use vars qw(@EXPORT @ISA);
     &getAdqPresupuestos;
     &getPresupuestoPorID;
     &addPresupuesto;
-
 );
-
-# =item
-#   Esta funcion agrega un Presupuesto
-#       Parametros: HASH   { id_proveedor , pedido_cotizacion_id (padre del detalle) }     
-# =cut
 sub addPresupuesto{
-
     my ($param)         = @_;
     my $presupuesto     = C4::Modelo::AdqPresupuesto->new();
     my $msg_object      = C4::AR::Mensajes::create();
     my $db              = $presupuesto->db;
-
     if (!($msg_object->{'error'})){
         # entro si no hay algun error, todos los campos ingresados son validos
         $db->{connect_options}->{AutoCommit} = 0;
@@ -77,44 +86,30 @@ sub addPresupuesto{
     }
     return ($msg_object);
 }
-
   
 sub getAdqPresupuestos{
     my $presupuestos = C4::Modelo::AdqPresupuesto::Manager->get_adq_presupuesto;
     my @results;
-
     foreach my $presupuesto (@$presupuestos) {
         push (@results, $presupuesto);
     }
-
     return(\@results);
 }
-
-
-
 sub getPresupuestoPorID{
      my ( $id_presupuesto, $db) = @_;
      my @result;
   
      $db = $db || C4::Modelo::AdqPresupuesto->new()->db;
-
      my $presupuesto= C4::Modelo::AdqPresupuesto::Manager->get_adq_presupuesto(   
                                                                     db => $db,
                                                                     query   => [ id => { eq => $id_presupuesto} ],
                                                                 );
      return $presupuesto->[0];  
 }
-
-
-
-# -------- Retorna todos los detalles para el presupuesto con id $id_presupuesto ----------------------------
-
 sub getAdqPresupuestoDetalle{
     my ( $id_presupuesto, $db) = @_;
     my @results; 
-
     $db = $db || C4::Modelo::AdqPresupuestoDetalle->new()->db;
-
     my $detalle_array_ref = C4::Modelo::AdqPresupuestoDetalle::Manager->get_adq_presupuesto_detalle(   
                                                                     db => $db,
                                                                     query   => [ adq_presupuesto_id => { eq => $id_presupuesto} ],
@@ -132,36 +127,22 @@ sub getAdqPresupuestoDetalle{
         return 0;
     }
 }
-
-# -----------------------------------------------------------------------------------------------------------
-
-# -------- Retorna el renglon nro: $nro_renglon para el presupuesto con id $id_presupuesto ------------------
-
-
 sub getAdqRenglonPresupuestoDetalle{
     my ( $id_presupuesto, $nro_renglon ,$db) = @_;
     my @results; 
-
     $db = $db || C4::Modelo::AdqPresupuestoDetalle->new()->db;
-
     my $renglon_ref = C4::Modelo::AdqPresupuestoDetalle::Manager->get_adq_presupuesto_detalle(   
                                                                     db => $db,
                                                                     query   => [ adq_presupuesto_id => { eq => $id_presupuesto}, nro_renglon => { eq => $nro_renglon} ],
-#                                                                
                                                                 );
     return $renglon_ref->[0];
     
 }
-
-# ------------------------------------------------------------------------------------------------------------
-
 sub actualizarPresupuesto{
     
      my ($obj) = @_;
-
      my $tabla_array_ref = $obj->{'table'};
      my $pres=$obj->{'id_presupuesto'};
-
      my $msg_object= C4::AR::Mensajes::create();
     
      my $adq_presupuesto_detalle = C4::Modelo::AdqPresupuestoDetalle->new();
@@ -182,7 +163,6 @@ sub actualizarPresupuesto{
                     # --------------- VALIDACIONES DE DATOS INGRESADOS----------------------
                     if($cantidad ne "") {
                           if (!($msg_object->{'error'}) && ( ((&C4::AR::Validator::countAlphaChars($cantidad) != 0)) || (&C4::AR::Validator::countSymbolChars($cantidad) != 0) || (&C4::AR::Validator::countNumericChars($cantidad) == 0))){
-
                                   $msg_object->{'error'}= 1;
                                   C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'A029', 'params' => []} ) ;
                                   
@@ -225,10 +205,7 @@ sub actualizarPresupuesto{
           }
           return ($msg_object);
       }
-
        
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__
-

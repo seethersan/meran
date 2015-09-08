@@ -1,9 +1,9 @@
-#!/usr/bin/perl -w
-#
+#!/usr/bin/perl
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,51 +19,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-#-----------------------------------
-# Script Name: build_marc_word.pl
-# Script Version: 0.1.0
-# Date:  2004/06/05
-# Author:  Joshua Ferraro [jmf at kados dot org]
-# Description: This script builds a new marc_word
-#  table with a reduced number of tags (only those
-#  tags that should be searched) allowing for
-#  faster and more accurate searching when used
-#  with the SearchMarc routines.  Make sure that
-#  the MARCaddword routine in Biblio.pm will index
-#  characters >= 1 char; otherwise, searches like
-#  "O'brian, Patrick" will fail as the search 
-#  routines will seperate that query into "o", 
-#  "brian", and "patrick".  (If "o" is not in the
-#  database the search will fail)
-# Usage: build_marc_word.pl
-# Revision History:
-#    0.1.0  2004/06/11:  first working version.
-#    			 Thanks to Chris Cormack
-#    			 for helping with the $data object
-#    			 and Stephen Hedges for providing
-#    			 the list of MARC tags.
-# FixMe:
-#   *Should add a few parameters like 'delete from
-#    marc_word' or make script ask user whether to
-#    perform that task ...
-#   *Add a 'status' report as the data is loaded ... 
-#-----------------------------------
 use lib '/usr/local/koha/intranet/modules/';
 use strict;
 use C4::Context;
 use C4::Biblio;
 my $dbh=C4::Context->dbh;
-
-#Here is where you name the tags that you wish to index.  If you
-# are using MARC21 this set of default tags should be fine but you
-# may need to add holdings tags specific to your library (e.g., holding
-# branch for Nelsonville is 942k but that may not be the case for your
-# library).
 my @tags=(
-
-#Tag documentation from http://lcweb.loc.gov/marc/bibliographic/ecbdhome.html
-
 "020a", # INTERNATIONAL STANDARD BOOK NUMBER
 "022a", # INTERNATIONAL STANDARD SERIAL NUMBER
 "100a",	# MAIN ENTRY--PERSONAL NAME
@@ -110,23 +71,14 @@ my @tags=(
 "830a", # SERIES ADDED ENTRY--UNIFORM TITLE
 "942k"  # Holdings Branch ?? Unique to NPL??
 );
-
-#note that subfieldcode in marc_subfield_table is subfieldid in marc_word ... even
-#though there is another subfieldid in marc_subfield_table--very confusing naming conventions!
-
-#For each tag we run a search to find the necessary data for building the marc_word table
 foreach my $this_tagid(@tags) {
 	my $query="SELECT bibid,tag,tagorder,subfieldcode,subfieldorder,subfieldvalue FROM marc_subfield_table WHERE tag=? AND subfieldcode=?";
 	my $sth=$dbh->prepare($query);
-
 	my ($tag, $subfieldid);
-
-#split the tag into tag, subfield
 	if ($this_tagid =~ s/(\D+)//) {
 		$subfieldid = $1;
 		$tag = $this_tagid;
 	}
-#Then we pass this information on to MARCaddword in Biblio.pm to actually perform the import into marc_word
 	$sth->execute($tag, $subfieldid);
 	while (my $data=$sth->fetchrow_hashref()){
 		MARCaddword($dbh,$data->{'bibid'},$data->{'tag'},$data->{'tagorder'},$data->{'subfieldcode'},$data->{'subfieldorder'},$data->{'subfieldvalue'});

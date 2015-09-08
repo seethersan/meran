@@ -1,14 +1,26 @@
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 package C4::AR::ImportacionIso;
-
-#
-#Este modulo sera el encargado de interactuar con la tabla ISO2709 donde estan los datos 
-#para la importacion de codigos iso a marc y donde estan las descripciones de cada campo y sus
-#subcampos
-#
-
 use strict;
 require Exporter;
-
 use C4::Context;
 use vars qw(@EXPORT_OK @ISA);
 @ISA=qw(Exporter);
@@ -24,10 +36,6 @@ use vars qw(@EXPORT_OK @ISA);
 	   &list
 	   &insertNuevo
 );
-
-#
-#Dado una Unid. de Informacion sus campos y subcampos ISO me devuelve la descripcion correspondiente
-#
 sub checkDescription{
 	my $dbh = C4::Context->dbh;
 	my $query ="Select descripcion 
@@ -38,11 +46,6 @@ sub checkDescription{
  
 	return ($sth->fetchrow_hashref);
 }
-
-
-#
-#Dado una Unid. de Informacion  inserto la descripcion correspondiente
-
 sub insertDescripcion{ 
         my ($descripcion,$id)=@_; 
         my $dbh = C4::Context->dbh;
@@ -52,8 +55,6 @@ sub insertDescripcion{
 	$sth->execute($descripcion,$id);
         $sth-> finish;                                                                                             
 }
-
-
 sub insertUnidadInformacion{
 	my $dbh = C4::Context->dbh;
 	my $query ="Insert into pref_iso2709 (ui) values (?)";
@@ -61,10 +62,6 @@ sub insertUnidadInformacion{
 	$sth->execute(&ui);
 	$sth->finish;
 }
-
-#Datos para mostrar que estan en la tabla iso2709, para que carguen las descripciones de los
-#campos y subcampos asi despues se puede hacer la importacion
-#
 sub datosCompletos{
 	my ($campoIso,$branchcode)=@_;
 	my $dbh = C4::Context->dbh;
@@ -82,9 +79,6 @@ sub datosCompletos{
 		} 
 	return (@results);
 }
-
-#Muestro todas las tablas de la base de datos
-
 sub mostrarTablas{
         my $dbh = C4::Context->dbh;
         my @results;
@@ -103,10 +97,6 @@ sub mostrarTablas{
 	}
 	return (@results);
 }
-
-#Dado el nombre de una tabla me devuelve todos sus campos
-#
-
 sub mostrarCampos{
         my $dbh = C4::Context->dbh;
         my @results;
@@ -125,7 +115,6 @@ sub mostrarCampos{
 	}
         return (@results);
 }
-#Dado un campo y subcampo inserto la tabla koha al cual pertenece 
                                                                                                                              
 sub insertTablaKoha{
         my ($kohaTabla,$id)=@_;
@@ -136,10 +125,6 @@ sub insertTablaKoha{
         $sth->execute($kohaTabla,$id);
         $sth-> finish;
 }
-
-
-#Inserto una tupla completa nueva
-#
 sub insertNuevo{
         my ($descripcion,$kohaTabla,$campoIso,$subCampoIso,$campoKoha,$orden,$separador,$id,$campoK)=@_;
 	if ($descripcion eq "") {$descripcion= undef;}
@@ -152,7 +137,6 @@ sub insertNuevo{
         $sth->execute($descripcion,$kohaTabla,$campoKoha,$orden,$separador,$campoK,$id);
         $sth-> finish;
 }
-
 sub listadoDeCodigosDeCampo{
         my $dbh = C4::Context->dbh;
         my @results;
@@ -177,9 +161,6 @@ sub list{
 	        }
         return (%results);
 }
-
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__

@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,23 +19,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Z3950;
-
 my $session = CGI::Session->new();
 $session->param("type","intranet");
-
-
-#Eliminar entradas viejas de la cola y los resultaods
-#C4::AR::Z3950::limpiarBusquedas();
 C4::AR::Debug::debug( "Chequeo cola de busqueda z3950 (".C4::Date::getCurrentTimestamp.")");
-
 my $cola =C4::AR::Z3950::busquedasEncoladas();
-
 if  ($cola) {
-#si hay algo que buscar agarro el primero
         C4::AR::Debug::debug( "Buscando por ".$cola->[0]->getBusqueda);
         C4::AR::Z3950::efectuarBusquedaZ3950($cola->[0]);
         C4::AR::Debug::debug( "Busqueda ".$cola->[0]->getBusqueda." Finalizada");

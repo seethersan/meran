@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,15 +19,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use CGI;
 use C4::AR::Auth;
 use C4::Output;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params) = get_template_and_user({
                         template_name   => "admin/global/ldapConfig.tmpl",
                         query           => $input,
@@ -39,11 +35,7 @@ my ($template, $session, $t_params) = get_template_and_user({
                                                 entorno => 'undefined'},
                         debug           => 1,
 			    });
-
-#preguntamos si esta guardando la informacion o mostrando el tmpl normalmente 
 if($input->param('adding') == 1){
-
-#    FIXME: pasar a una hash     
     
     C4::AR::Authldap::setVariableLdap('ldap_version',$input->param('version'));
     C4::AR::Authldap::setVariableLdap('ldap_server',$input->param('host_url'));
@@ -122,67 +114,51 @@ if($input->param('adding') == 1){
     C4::AR::Authldap::setVariableLdap('ldap_lockconfig_field_lock_adress',$input->param('lockconfig_field_lock_adress'));
     $t_params->{'mensaje'} = "Las preferencias de LDAP se modificaron con exito";
 }
-# mostramos el template cargando los datos de configuracion ldap desde la db
-# lo hacemos siempre asi cuando se guardan los cambios se reflejan en el template tambien
 my $variables_ldap_hash             = C4::AR::Authldap::getLdapPreferences();
 my %options_hash;
 $options_hash{'name'}               = "lockconfig_field_map_firstnames";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_firstnames');
 $t_params->{'lockconfig_field_map_firstnames'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_lastname";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_lastname');
 $t_params->{'lockconfig_field_map_lastname'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_email";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_email');
 C4::AR::Debug::debug("valor : ".C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_email'));
 $t_params->{'lockconfig_field_map_email'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_city";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_city');
 $t_params->{'lockconfig_field_map_city'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_country";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_country');
 $t_params->{'lockconfig_field_map_country'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_lang";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_lang');
 $t_params->{'lockconfig_field_map_lang'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_description";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_description');
 $t_params->{'lockconfig_field_map_description'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_url";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_url');
 $t_params->{'lockconfig_field_map_url'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_idnumber";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_idnumber');
 $t_params->{'lockconfig_field_map_idnumber'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_institution";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_institution');
 $t_params->{'lockconfig_field_map_institution'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_departament";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_departament');
 $t_params->{'lockconfig_field_map_departament'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_phone1";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_phone1');
 $t_params->{'lockconfig_field_map_phone1'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_phone2";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_phone2');
 $t_params->{'lockconfig_field_map_phone2'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $options_hash{'name'}               = "lockconfig_field_map_adress";
 $options_hash{'default'}            = C4::AR::Authldap::_getValorPreferenciaLdap('ldap_lockconfig_field_map_adress');
 $t_params->{'lockconfig_field_map_adress'} = C4::AR::Utilidades::generarComboCamposPersona(\%options_hash);
-
 $t_params->{'preferencias'}         = $variables_ldap_hash;
 $t_params->{'page_sub_title'}       = C4::AR::Filtros::i18n("Configuraci&oacute;n Servidor LDAP");
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

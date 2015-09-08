@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,17 +19,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-# small script that dumps an iso2709 file.
-
-
 use strict;
-
-# Koha modules used
 use MARC::File::USMARC;
 use MARC::Record;
 use MARC::Batch;
-
 use Getopt::Long;
 my ( $input_marc_file,$number,$nowarning) = ('',0);
 my $version;
@@ -39,7 +32,6 @@ GetOptions(
     'v' => \$version,
     'w' => \$nowarning,
 );
-
 warn "NUM : $number\n";
 if ($version || ($input_marc_file eq '')) {
 	print <<EOF
@@ -54,7 +46,6 @@ EOF
 ;
 die;
 }
-
 my $batch = MARC::Batch->new( 'USMARC', $input_marc_file );
 $batch->warnings_off() unless $nowarning;
 $batch->strict_off() unless $nowarning;

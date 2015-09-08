@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,8 +19,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Auth;
 use CGI;
@@ -29,7 +27,6 @@ use C4::AR::Utilidades;
 use Encode;
 use C4::AR::Social;
 my $input = new CGI;
-
 my ($template, $session, $t_params) = get_template_and_user({
 									template_name      => "admin/agregar_novedad.tmpl",
 									query              => $input,
@@ -41,15 +38,11 @@ my ($template, $session, $t_params) = get_template_and_user({
                                                             entorno         => 'usuarios'},
 									debug              => 1,
 			    });
-
 my $action          = $input->param('action') || 0;
 my $twitter_enabled = C4::AR::Social::twitterEnabled();
 my $contenido       = $input->param('contenido');
 my $cont;
-
-#estamos agregando
 if ($action){
-
     #------------ data de los inputs-------------
     $t_params->{'titulo'}       = $input->param('titulo');
     $t_params->{'categoria'}    = $input->param('categoria');
@@ -58,17 +51,13 @@ if ($action){
     $t_params->{'nombreAdjunto'}= $input->param('nombreAdjunto');
     $t_params->{'links'}        = $input->param('links');
     #--------- FIN data de los inputs -----------
-
     #--------- imagenes nuevas -----------
     my @arrayFiles;
     
     #copio la referencia de la hash
     my $hash        = $input->{'param'};
-
     my $imagenes    = $hash->{'imagenes'};
-
     foreach my $file ( @$imagenes ){
-
         if($file){
             push(@arrayFiles, $file);
         }
@@ -111,19 +100,14 @@ if ($action){
     if($Message_arrayref->{'error'} == 0){
    
         if ($input->param('check_publicar')){
-
               my $link      = C4::AR::Social::shortenUrl($novedad->getId());
-
               $cont         = $novedad->getResumen();
               $cont         = Encode::decode_utf8($cont);
               my $post      = C4::AR::Preferencias::getValorPreferencia('prefijo_twitter')." ".$cont."... Ver mas en: ".$link;
-
               #  Posteo en twitter. En C4::AR::Social::sendPost se verifica si la preferencia twitter_enabled esta activada
               my $mensaje   = C4::AR::Social::sendPost($post);
         }
-
         C4::AR::Debug::debug("mensajeee : " . $Message_arrayref->{'messages'}[0]->{'message'});
-
         C4::AR::Auth::redirectTo(C4::AR::Utilidades::getUrlPrefix().'/admin/novedades_opac.pl?token='.$input->param('token'));
         
     }else{
@@ -132,7 +116,6 @@ if ($action){
         
     }
 }
-
 $t_params->{'twitter_enabled'}  = $twitter_enabled; 
 $t_params->{'page_sub_title'}   = C4::AR::Filtros::i18n("Agregar Novedad");
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

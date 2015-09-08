@@ -1,12 +1,28 @@
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
-# API ref: /php-ofc-library/open-flash-chart.php version 99
+# This file is part of Meran.
 #
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 
 package open_flash_chart;
 
 use strict;
 
-# This class manages all functions of the open flash chart api.
 package graph;
 
 sub new() {
@@ -113,52 +129,31 @@ sub new() {
   return $self;
 }
 
-# Set the unique_id to use for the flash object id.
 sub set_unique_id() {
 	my ($self) = @_;
   $self->{unique_id} = uniqid();
 }
 
-# Get the flash object ID for the last rendered object.
 sub get_unique_id() {
 	my ($self) = @_;
   return ($self->{unique_id});
 }
 
-#
-# Set the base path for the swfobject.js
-#
-# @param base_path a string argument.
-#   The path to the swfobject.js file
-#
 sub set_js_path() {
 	my ($self, $path) = @_;
   $self->{js_path} = $path;
 }
 
-#
-# Set the base path for the open-flash-chart.swf
-#
-# @param path a string argument.
-#   The path to the open-flash-chart.swf file
-#
 sub set_swf_path() {
 	my ($self, $path) = @_;
   $self->{swf_path} = $path;
 }
 
-#
-# Set the type of output data.
-#
-# @param type a string argument.
-#   The type of data.  Currently only type is js, or nothing.
-#
 sub set_output_type() {
 	my ($self, $type) = @_;
   $self->{output_type} = $type;
 }
 
-# returns the next line label for multiple lines.
 sub next_line() {
   my ($self) = @_;
   my $line_num = '';
@@ -170,7 +165,6 @@ sub next_line() {
   return $line_num;
 }
 
-# escape commas (,)
 sub esc() {
   my ($self, $text) = @_;
   # we replace the comma so it is not URL escaped
@@ -185,7 +179,6 @@ sub esc() {
   return url_escape( $text );
 }
 
-# Format the text to the type of output.
 sub format_output() {
   my ($self, $function, $values) = @_;
   my $tmp='';
@@ -198,13 +191,6 @@ sub format_output() {
 }
 
 
-# Set the text and style of the title.
-#
-# @param title a string argument.
-#   The text of the title.
-# @param style a string.
-#   CSS styling of the title.
-#
 sub set_title() {
 	my ($self, $title, $style) = @_;
 	$style = '' if !defined($style);
@@ -214,41 +200,22 @@ sub set_title() {
   }
 }
 
-#
-# Set the width of the chart.
-#
-# @param width an int argument.
-#   The width of the chart frame.
-#
 sub set_width() {
 	my ($self, $width) = @_;
   $self->{width} = $width;
 }
 
-#
-# Set the height of the chart.
-#
-# @param height an int argument.
-#   The height of the chart frame.
-#
 sub set_height() {
 	my ($self, $height) = @_;
   $self->{height} = $height;
 }
 
-#
-# Set the base path of the swfobject.
-#
-# @param base a string argument.
-#   The base path of the swfobject.
-#
 sub set_base() {
 	my ($self, $base) = @_;
 	$base = 'js/' if !defined($base);
   $self->{base} = $base;
 }
 
-# Number formatting:
 sub set_y_format() {
 	my ($self, $val) = @_;
   $self->{y_format} = $val;
@@ -274,54 +241,27 @@ sub set_is_thousand_separator_disabled() {
   $self->{is_thousand_separator_disabled} = $val?'true':'false';
 }
 
-#
-# Set the data for the chart
-# @param an array ref argument.
-#   An array of the data to add to the chart.
-#
 sub set_data() {
   my ($self, $a) = @_;
   push(@{$self->{data}}, join(',', @$a));
 }
 
-# UGH, these evil functions are making me fell ill
 sub set_links() {
   my ($self, $links) = @_;
   # TO DO escape commas:
   push(@{$self->{links}}, join(',', @$links));
 }
 
-# $val is a boolean
 sub set_x_offset() {
 	my ($self, $val) = @_;
   $self->{x_offset} = $val?'true':'false';
 }
 
-#
-# Set the tooltip to be displayed on each chart item.\n
-# \n
-# Replaceable tokens that can be used in the string include: \n
-# #val# - The actual value of whatever the mouse is over. \n
-# #key# - The key string. \n
-# \<br>  - New line. \n
-# #x_label# - The X label string. \n
-# #x_legend# - The X axis legend text. \n
-# Default string is: "#x_label#<br>#val#" \n
-#
-# @param tip a string argument.
-#   A formatted string to show as the tooltip.
-#
 sub set_tool_tip() {
   my ($self, $tip) = @_;
   $self->{tool_tip} = $self->esc( $tip );
 }
 
-#
-# Set the x axis labels
-#
-# @param a an array ref argument.
-#   An array of the x axis labels.
-#
 sub set_x_labels() {
   my ($self, $a) = @_;
   
@@ -334,21 +274,6 @@ sub set_x_labels() {
 }
 
 
-# Set the look and feel of the x axis labels
-#
-# @param font_size an int argument.
-#   The font size.
-# @param colour a string argument.
-#   The hex colour value.
-# @param orientation an int argument.
-#   The orientation of the x-axis text.
-#   0 - Horizontal
-#   1 - Vertical
-#   2 - 45 degrees
-# @param step an int argument.
-#   Show the label on every $step label.
-# @param grid_colour a string argument.
-#
 sub set_x_label_style() {
   my ($self, $size, $colour, $orientation, $step, $grid_colour) = @_;
   $colour = '' if !defined($colour);
@@ -376,24 +301,12 @@ sub set_x_label_style() {
 }
 
 
-# Set the background colour.
-# @param colour a string argument.
-#   The hex colour value.
-#
 sub set_bg_colour() {
   my ($self, $colour) = @_;
   $self->{bg_colour} = $colour;
 }
 
 
-# Set a background image.
-# @param url a string argument.
-#   The location of the image.
-# @param x a string argument.
-#   The x location of the image. 'Right', 'Left', 'Center'
-# @param y a string argument.
-#   The y location of the image. 'Top', 'Bottom', 'Middle'
-#
 sub set_bg_image() {
   my ($self, $url, $x, $y) = @_;
   $x = 'center' if !defined($x);
@@ -403,25 +316,12 @@ sub set_bg_image() {
   $self->{bg_image_y} = $y;
 }
 
-#
-# Attach a set of data (a line, area or bar chart) to the right Y axis.
-# @param data_number an int argument.
-#   The numbered order the data was attached using set_data.
-#
 sub attach_to_y_right_axis() {
   my ($self, $data_number) = @_;
   push(@{$self->{y2_lines}}, $data_number);
 }
 
 
-# Set the background colour of the grid portion of the chart.
-# @param col a string argument.
-#   The hex colour value of the background.
-# @param col2 a string argument.
-#   The hex colour value of the second colour if you want a gradient.
-# @param angle an int argument.
-#   The angle in degrees to make the gradient.
-#
 sub set_inner_background() {
   my ($self, $col, $col2, $angle) = @_;
   $col2 = '' if !defined($col2);
@@ -437,9 +337,6 @@ sub set_inner_background() {
   }
 }
 
-#
-# Internal function to build the y label style for y and y2
-#
 sub _set_y_label_style() {
   my ($self, $size, $colour) = @_;
   $colour = '' if !defined($colour);
@@ -451,14 +348,6 @@ sub _set_y_label_style() {
   return $tmp;
 }
 
-#
-# Set the look and feel of the y axis labels
-#
-# @param font_size an int argument.
-#   The font size.
-# @param colour a string argument.
-#   The hex colour value.
-#
 sub set_y_label_style() {
   my ($self, $size, $colour) = @_;
   $colour = '' if !defined($colour);
@@ -466,14 +355,6 @@ sub set_y_label_style() {
   $self->{y_label_style} = $self->_set_y_label_style( $size, $colour );
 }
 
-#
-# Set the look and feel of the right y axis labels
-#
-# @param font_size an int argument.
-#   The font size.
-# @param colour a string argument.
-#   The hex colour value.
-#
 sub set_y_right_label_style() {
   my ($self, $size, $colour) = @_;
   $colour = '' if !defined($colour);
@@ -490,57 +371,27 @@ sub set_x_min() {
   $self->{x_min} = $min;
 }
 
-#
-# Set the maximum value of the y axis.
-#
-# @param max a number argument.
-#   The maximum value.
-#
 sub set_y_max() {
   my ($self, $max) = @_;
   $self->{y_auto} = 0;
   $self->{y_max} = $max;
 }
 
-#
-# Set the minimum value of the y axis.
-#
-# @param min an number argument.
-#   The minimum value.
-#
 sub set_y_min() {
   my ($self, $min) = @_;
   $self->{y_min} = $min;
 }
 
-#
-# Set the maximum value of the right y axis.
-#
-# @param max an number argument.
-#   The maximum value.
-#
 sub set_y_right_max() {
   my ($self, $max) = @_;
   $self->{y2_max} = $max;
 }
 
-#
-# Set the minimum value of the right y axis.
-#
-# @param min an number argument.
-#   The minimum value.
-#
 sub set_y_right_min() {
   my ($self, $min) = @_;
   $self->{y2_min} = $min;
 }
 
-#
-# Show the y label on every $step label.
-#
-# @param val an int argument.
-#   Show the label on every $step label.
-#
 sub y_label_steps() {
   my ($self, $val) = @_;
   $self->{y_steps} = $val;
@@ -555,16 +406,6 @@ sub title() {
   }
 }
 
-#
-# Set the parameters of the x legend.
-#
-# @param text a string argument.
-#   The text of the x legend.
-# @param font_size an int argument.
-#   The font size of the x legend text.
-# @param colour a string argument
-#   The hex value of the font colour.
-#
 sub set_x_legend() {
   my ($self, $text, $size, $colour) = @_;
   $size = -1 if !defined($size);
@@ -580,12 +421,6 @@ sub set_x_legend() {
   }
 }
 
-#
-# Set the size of the x label ticks.
-#
-# @param size an int argument.
-#   The size of the ticks in pixels.
-#
 sub set_x_tick_size() {
   my ($self, $size) = @_;
   if( $size > 0 ) {
@@ -593,12 +428,6 @@ sub set_x_tick_size() {
   }
 }
 
-#
-# Set how often you would like to show a tick on the x axis.
-#
-# @param steps an int argument.
-#   Show a tick ever $steps.
-#
 sub set_x_axis_steps() {
   my ($self, $steps) = @_;
   if ( $steps > 0 ) {
@@ -606,12 +435,6 @@ sub set_x_axis_steps() {
   }
 }
 
-#
-# Set the depth in pixels of the 3D X axis slab.
-#
-# @param size an int argument.
-#   The depth in pixels of the 3D X axis.
-#
 sub set_x_axis_3d() {
   my ($self, $size) = @_;
   if( $size > 0 ) {
@@ -619,7 +442,6 @@ sub set_x_axis_3d() {
   }
 }
 
-# The private method of building the y legend output.
 sub _set_y_legend() {
   my ($self, $text, $size, $colour) = @_;
   $colour = '' if !defined($colour);
@@ -637,16 +459,6 @@ sub _set_y_legend() {
   return $tmp;
 }
 
-#
-# Set the parameters of the y legend.
-#
-# @param text a string argument.
-#   The text of the y legend.
-# @param font_size an int argument.
-#   The font size of the y legend text.
-# @param colour a string argument
-#   The hex colour value of the font colour.
-#
 sub set_y_legend() {
   my ($self, $text, $size, $colour) = @_;
   $size = -1 if !defined($size);
@@ -655,29 +467,11 @@ sub set_y_legend() {
   $self->{y_legend} = $self->_set_y_legend( $text, $size, $colour );
 }
 
-#
-# Set the parameters of the right y legend.
-#
-# @param text a string argument.
-#   The text of the right y legend.
-# @param font_size an int argument.
-#   The font size of the right y legend text.
-# @param colour a string argument
-#   The hex value of the font colour.
-#
 sub set_y_right_legend() {
   my ($self, $text, $size, $colour) = @_;
   $self->{y_legend_right} = $self->_set_y_legend( $text, $size, $colour );
 }
 
-#
-# Set the colour of the x axis line and grid.
-#
-# @param axis a string argument.
-#   The hex colour value of the x axis line.
-# @param grid a string argument.
-#   The hex colour value of the x axis grid.
-#
 sub x_axis_colour() {
   my ($self, $axis, $grid) = @_;
   $grid = '' if !defined($grid);
@@ -685,14 +479,6 @@ sub x_axis_colour() {
   $self->{x_grid_colour} = $grid;
 }
 
-#
-# Set the colour of the y axis line and grid.
-#
-# @param axis a string argument.
-#   The hex colour value of the y axis line.
-# @param grid a string argument.
-#   The hex colour value of the y axis grid.
-#
 sub y_axis_colour() {
   my ($self, $axis, $grid) = @_;
   $grid = '' if !defined($grid);
@@ -703,32 +489,12 @@ sub y_axis_colour() {
   }
 }
 
-#
-# Set the colour of the right y axis line.
-#
-# @param colour a string argument.
-#   The hex colour value of the right y axis line.
-#
 sub y_right_axis_colour() {
   my ($self, $colour) = @_;
 
   $self->{y2_axis_colour} = $colour;
 }
 
-#
-# Draw a line without markers on values.
-#
-# @param width an int argument.
-#   The width of the line in pixels.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label
-# @param circles an int argument
-#   Need to find out.
-#
 sub line() {
   my ($self, $width, $colour, $text, $size, $circles) = @_;
   $colour = '' if !defined($colour);
@@ -756,20 +522,6 @@ sub line() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a line with solid dot markers on values.
-#
-# @param width an int argument.
-#   The width of the line in pixels.
-# @param dot_size an int argument.
-#   Size in pixels of the dot.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub line_dot() {
   my ($self, $width, $dot_size, $colour, $text, $font_size) = @_;
   $text = '' if !defined($text);
@@ -786,20 +538,6 @@ sub line_dot() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a line with hollow dot markers on values.
-#
-# @param width an int argument.
-#   The width of the line in pixels.
-# @param dot_size an int argument.
-#   Size in pixels of the dot.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub line_hollow() {
   my ($self, $width, $dot_size, $colour, $text, $font_size) = @_;
   $text = '' if !defined($text);
@@ -816,24 +554,6 @@ sub line_hollow() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw an area chart.
-#
-# @param width an int argument.
-#   The width of the line in pixels.
-# @param dot_size an int argument.
-#   Size in pixels of the dot.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param alpha an int argument.
-#   The percentage of transparency of the fill colour.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-# @param fill_colour a string argument.
-#   The hex colour value of the fill colour.
-#
 sub area_hollow() {
   my ($self, $width, $dot_size, $colour, $alpha, $text, $font_size, $fill_colour) = @_;
   $text = '' if !defined($text);
@@ -855,18 +575,6 @@ sub area_hollow() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a bar chart.
-#
-# @param alpha an int argument.
-#   The percentage of transparency of the bar colour.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub bar() {
   my ($self, $alpha, $colour, $text, $size) = @_;
   $colour = '' if !defined($colour);
@@ -880,20 +588,6 @@ sub bar() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a bar chart with an outline.
-#
-# @param alpha an int argument.
-#   The percentage of transparency of the bar colour.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param colour_outline a strng argument.
-#   The hex colour value of the outline.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub bar_filled() {
   my ($self, $alpha, $colour, $colour_outline, $text, $size ) = @_;
   $text = '' if !defined($text);
@@ -918,18 +612,6 @@ sub bar_sketch() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a 3D bar chart.
-#
-# @param alpha an int argument.
-#   The percentage of transparency of the bar colour.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub bar_3D() {
   my ($self, $alpha, $colour, $text, $size) = @_;
   $colour = '' if !defined($colour);
@@ -943,20 +625,6 @@ sub bar_3D() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a 3D bar chart that looks like glass.
-#
-# @param alpha an int argument.
-#   The percentage of transparency of the bar colour.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param outline_colour a string argument.
-#   The hex colour value of the outline.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub bar_glass() {
   my ($self, $alpha, $colour, $outline_colour, $text, $size) = @_;
   $text = '' if !defined($text);
@@ -969,18 +637,6 @@ sub bar_glass() {
   push(@{$self->{lines}}, {'type'=>$type, 'description'=>$description});
 }
 
-#
-# Draw a faded bar chart.
-#
-# @param alpha an int argument.
-#   The percentage of transparency of the bar colour.
-# @param colour a string argument.
-#   The hex colour value of the line.
-# @param text a string argument.
-#   The label of the line.
-# @param font_size an int argument.
-#   Font size of the label.
-#
 sub bar_fade() {
   my ($self, $alpha, $colour, $text, $size) = @_;
   $colour = '' if !defined($colour);
@@ -1051,20 +707,6 @@ sub scatter() {
   push(@{$self->{data}}, join(',',@$a));
 }
 
-#
-# Draw a pie chart.
-#
-# @param alpha an int argument.
-#   The percentage of transparency of the pie colour.
-# @param line_colour a string argument.
-#   The hex colour value of the outline.
-#	@param $style a string argument.
-#	  CSS style string
-# @param gradient a boolean argument.
-#   Use a gradient true or false.
-# @param border_size an int argument.
-#   Size of the border in pixels.
-#
 sub pie() {
   my ($self, $alpha, $line_colour, $style, $gradient, $border_size) = @_;
   $gradient = 'true' if !defined($gradient);
@@ -1082,17 +724,6 @@ sub pie() {
   }
 }
 
-#
-# Set the values of the pie chart.
-# Takes actual values and converts to 100%
-#
-# @param values an array argument.
-#   An array ref of the values for the pie chart.
-# @param labels an array argument.
-#   An array ref of the labels for the pie pieces.
-# @param links an array argument.
-#   An array ref of the links to the pie pieces.
-#
 sub pie_values() {
   my ($self, $values, $labels, $links ) = @_;
   
@@ -1162,20 +793,11 @@ sub pie_values() {
   $self->{pie_links}  = join(',',@$links);
 }
 
-#
-# Set the pie slice colours.
-#
-# @param colours an array argument.
-#   The hex colour values of the pie pieces.
-#
 sub pie_slice_colours() {
   my ($self, $colours ) = @_;
   $self->{pie_colours} = join(',',@$colours);
 }
 
-#
-# Render the output.
-#
 sub render() {
   my ($self) = @_;
 
@@ -1383,7 +1005,6 @@ sub render() {
 
 
 
-# URL-encode string
 sub url_escape {
   my($toencode) = @_;
   $toencode=~s/([^a-zA-Z0-9_\-. ])/uc sprintf("%%%02x",ord($1))/eg;
@@ -1391,7 +1012,6 @@ sub url_escape {
   return $toencode;
 }
 
-# uniqid, simulating php builtin
 sub uniqid {
   my $prefix = shift || 'ofc_';
   my @chars = split(" ", "a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9");
@@ -1508,7 +1128,6 @@ sub add_ex() {
 	push(@{$self->{tips}}, graph->esc( $tip ));
 }
 	
-# return the variables for this chart
 sub	_get_variable_list() {
 	my ($self) = @_;
 	my @values;
@@ -1575,7 +1194,6 @@ sub new() {
   return $self;
 }
 
-# return the variables for this chart
 sub _get_variable_list() {
   my ($self) = @_;
 	my @values;
@@ -1644,8 +1262,6 @@ sub add() {
 	push(@{$self->{links}}, $link);
 }
 
-# return the variables for this
-# bar chart
 sub _get_variable_list() {
 	my ($self) = @_;
 	
@@ -1736,7 +1352,6 @@ sub new() {
   return $self;
 }
 
-#/ override the base method
 sub _get_variable_list() {
 	my ($self) = @_;
   my @values;
@@ -1766,10 +1381,6 @@ sub new() {
   return $self;
 }
 
-#
-# this has an outline colour and a 'jiggle' parameter
-# called offset
-#
 package bar_sketch;
 our @ISA = qw(bar_outline);
 
@@ -1786,7 +1397,6 @@ sub new() {
   return $self;
 }
 
-# override the base method
 sub _get_variable_list() {
 	my ($self) = @_;
   my @values;

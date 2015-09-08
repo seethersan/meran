@@ -1,21 +1,30 @@
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 package C4::AR::Estadisticas;
-
-#
-#Este modulo sera el encargado del manejo de estadisticas sobre los prestamos
-#,reservas, devoluciones y todo tipo de consulta sobre el uso de la biblioteca
-#
-#
-
 use strict;
 require Exporter;
 use C4::Date;
 use C4::AR::Busquedas;
-
-
 use vars qw(@EXPORT @ISA);
-
 @ISA=qw(Exporter);
-
 @EXPORT=qw(
 	usuarios
 	historicoPrestamos
@@ -61,7 +70,6 @@ use vars qw(@EXPORT @ISA);
     actualizarNotaHistoricoCirculacion
 );
 sub actualizarNotaHistoricoCirculacion{
-
     my ($params) = @_;
     my $id_historico = $params->{'id_historico'};
     my $historico = C4::Modelo::RepHistorialCirculacion->new(id => $id_historico);
@@ -75,229 +83,107 @@ sub actualizarNotaHistoricoCirculacion{
     }
     return ($historico);
 }
-
 sub barcodesPorTipo{
     my ($branch) = @_;
     my $clase='par';
     my @results;
     my $row;
-
     $row->{'tipo'}='TODOS';
     $row->{'minimo'}= &getMinBarcode($branch);
     $row->{'maximo'}= &getMaxBarcode($branch);
-
    if (($row->{'minimo'} ne '') or ($row->{'maximo'} ne '')){
       push @results,$row 
    }
-
     my $cat_ref_tipo_nivel3 = C4::Modelo::CatRefTipoNivel3::Manager->get_cat_ref_tipo_nivel3(
                                                                                           select => ['id_tipo_doc'],
                                                                                        );
-
    foreach my $it (@$cat_ref_tipo_nivel3) {
       my $row;
       my $id_tipo_doc = $it->{'id_tipo_doc'};
-
       $row->{'tipo'}=  $id_tipo_doc;
-
       my $inicio=$branch."-".$it->{'id_tipo_doc'}."-%";
-
       $row->{'minimo'} = C4::AR::Estadisticas::getMinBarcodeLike($branch,$inicio);
-
       $row->{'maximo'} = C4::AR::Estadisticas::getMaxBarcodeLike($branch,$inicio);
-
       if (($row->{'minimo'} ne '') or ($row->{'maximo'} ne ''))  {
          push @results,$row 
       }
    }
    return @results;
 }
-
-
 sub getMinYMaxBarcode{
     my ($params_hash_ref) = @_;
-
-
     my @filtros;
     my @cat_nivel3_result;
     my @info_array;;
-
     my $cat_nivel3_array_ref = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3( 
                                                                                             query => \@filtros,
                                                                           );
-
     my $cant = scalar(@$cat_nivel3_array_ref);
-
     for(my $i=0; $i < $cant; $i++){
-
         my %hash_info;
         my $barcode_temp = $cat_nivel3_array_ref->[$i]->getBarcode();
-
         if($barcode_temp ne ""){
-
             $hash_info{'value'}   = $barcode_temp;
             push(@info_array, \%hash_info);
         }
     }
-
     @cat_nivel3_result = sort { $a->{'value'} cmp $b->{'value'} } @info_array;
-
-#     @cat_nivel3_result = C4::AR::Utilidades::sortHASHString();
-
-#     for(my $i=0; $i < scalar(@cat_nivel3_result); $i++){
-#       C4::AR::Debug::debug("hash de signatura_topografica => ".@cat_nivel3_result[$i]->{'value'}); 
-#     }
-
     my $barcode_min = @cat_nivel3_result[1]->{'value'};
     my $barcode_max = @cat_nivel3_result[scalar(@cat_nivel3_result) - 1]->{'value'};
-
-#     C4::AR::Debug::debug("min => ".$signatura_min); 
-#     C4::AR::Debug::debug("max => ".$signatura_max);
-
     return ($barcode_min, $barcode_max);
 }
-
-
 sub getMinYMaxSignaturaTopografica{
     my ($params_hash_ref) = @_;
-
-
     my @filtros;
     my @cat_nivel3_result;
     my @info_array;;
-
     my $cat_nivel3_array_ref = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3( 
                                                                                             query => \@filtros,
                                                                           );
-
     my $cant = scalar(@$cat_nivel3_array_ref);
-
     for(my $i=0; $i < $cant; $i++){
-
         my %hash_info;
         my $signatura_temp = $cat_nivel3_array_ref->[$i]->getSignatura_topografica();
-
         if($signatura_temp ne ""){
-
             $hash_info{'value'}   = $signatura_temp;
             push(@info_array, \%hash_info);
         }
     }
-
     @cat_nivel3_result = sort { $a->{'value'} cmp $b->{'value'} } @info_array;
-
-#     @cat_nivel3_result = C4::AR::Utilidades::sortHASHString();
-
-#     for(my $i=0; $i < scalar(@cat_nivel3_result); $i++){
-#       C4::AR::Debug::debug("hash de signatura_topografica => ".@cat_nivel3_result[$i]->{'value'}); 
-#     }
-
     my $signatura_min = @cat_nivel3_result[1]->{'value'};
     my $signatura_max = @cat_nivel3_result[scalar(@cat_nivel3_result) - 1]->{'value'};
-
-#     C4::AR::Debug::debug("min => ".$signatura_min); 
-#     C4::AR::Debug::debug("max => ".$signatura_max);
-
     return ($signatura_min, $signatura_max);
 }
-
-
-# sub busquedaBetweenSigTop{
-# 
-#     my ($params) = @_;
-# 
-#     use Sphinx::Search;
-#     
-#     my $sphinx  = Sphinx::Search->new();
-#     my $query   = '';
-#     my $tipo    = 'SPH_MATCH_EXTENDED';
-#     my $orden   = $params->{'orden'};
-# #     my $min= $params->{'desde_signatura'};
-# #     my $max= $params->{'hasta_signatura'};
-#     
-#     my $min= $params->{'desde_barcode'};
-#     my $max= $params->{'hasta_barcode'};
-#     
-#     $query .= '@string '.'barcode% '.'>= '.$min.'&'.' <= '.$max;
-#    
-# #     $sphinx->SetLimits($params->{'ini'}, $params->{'cantR'});
-#     $sphinx->SetEncoders(\&Encode::encode_utf8, \&Encode::decode_utf8);
-# #     $sphinx->SetIDRange($min, $max);
-#     
-#     # NOTA: sphinx necesita el string decode_utf8
-#     
-# #     $sphinx->SetFilterRange('string', $min, $max);
-#     my $results = $sphinx->Query($query);
-# 
-#       C4::AR::Debug::debug("QUERY".$query);
-#   
-#     C4::AR::Utilidades::printHASH($results);
-# 
-#     my $matches = $results->{'matches'};
-#     my $total_found = $results->{'total_found'};
-#   
-# 
-#     C4::AR::Debug::debug("TOTAL FOUND".$total_found);
-# 
-#     return ($total_found, $results );
-# 
-# }
-
-
-
-
-# TODO ver si se puede utilizar el sphix para no procesar todos los ejemplares
-
 sub listarItemsDeInventorioPorBarcode{
     my ($params_hash_ref) = @_;
-
-
     my @filtros;
     my @cat_nivel3_result;
     my @info_reporte;
     my $orden = $params_hash_ref->{'sort'} || 'barcode';
-
     my $cat_nivel3_array_ref = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3( 
                                                                                             query => \@filtros,
-#               require_objects     => ['nivel2','nivel1'],
-#               select              => ['cat_registro_marc_n2.*','cat_registro_marc_n1.*'],
                                                                               );
-
-
-
     my $cant            = scalar(@$cat_nivel3_array_ref);
     my $cant_total      = 0;
     my $barcode         = C4::AR::Utilidades::trim($params_hash_ref->{'barcode'});
     my $desde_barcode   = C4::AR::Utilidades::trim($params_hash_ref->{'desde_barcode'});
     my $hasta_barcode   = C4::AR::Utilidades::trim($params_hash_ref->{'hasta_barcode'});
-
     for(my $i=0; $i < $cant; $i++){
-#         C4::AR::Debug::debug("barcode => ".$cat_nivel3_array_ref->[$i]->getBarcode());
-
         my %hash_info;
-
         $hash_info{'nro_inventario'}          = $cat_nivel3_array_ref->[$i]->getBarcode();
         $hash_info{'signatura_topografica'}   = $cat_nivel3_array_ref->[$i]->getSignatura_topografica();
         $hash_info{'autor'}                   = $cat_nivel3_array_ref->[$i]->nivel2->nivel1->getAutor();
         $hash_info{'titulo'}                  = $cat_nivel3_array_ref->[$i]->nivel2->nivel1->getTitulo();
         $hash_info{'edicion'}                 = $cat_nivel3_array_ref->[$i]->nivel2->getEdicion();
-# TODO falta implementar
-#         $hash_info{'edicion'}                 = $cat_nivel3_array_ref->[$i]->nivel2->getVolumen();
         $hash_info{'editor'}                  = $cat_nivel3_array_ref->[$i]->nivel2->getEditor();
         $hash_info{'anio_publicacion'}        = $cat_nivel3_array_ref->[$i]->nivel2->getAnio_publicacion();
         $hash_info{'ui'}                      = $cat_nivel3_array_ref->[$i]->getId_ui_poseedora();
-
-
         if ($barcode ne "" && $cat_nivel3_array_ref->[$i]->getBarcode() =~ m/^$barcode/i) {
-
-# TODO esto esta feooooooo despues lo acomodo
             if($params_hash_ref->{'id_ui'} ne "" && $cat_nivel3_array_ref->[$i]->getId_ui_poseedora() eq $params_hash_ref->{'id_ui'}){
-
                 push(@info_reporte, \%hash_info);
                 push(@cat_nivel3_result, $cat_nivel3_array_ref->[$i]);
                 $cant_total++;
             }
-
             if($params_hash_ref->{'id_ui'} eq ""){
                 push(@info_reporte, \%hash_info);
                 push(@cat_nivel3_result, $cat_nivel3_array_ref->[$i]);
@@ -305,58 +191,25 @@ sub listarItemsDeInventorioPorBarcode{
             }
         } 
     
-
         if (($desde_barcode ne "")&&($cat_nivel3_array_ref->[$i]->getBarcode() ge $desde_barcode) && 
             ($hasta_barcode ne "")&&($cat_nivel3_array_ref->[$i]->getBarcode() le $hasta_barcode)) {
-
             if($params_hash_ref->{'id_ui'} ne "" && $cat_nivel3_array_ref->[$i]->getId_ui_poseedora() eq $params_hash_ref->{'id_ui'}){
                 push(@info_reporte, \%hash_info);
                 push(@cat_nivel3_result, $cat_nivel3_array_ref->[$i]);
                 $cant_total++;
             }
-
             if($params_hash_ref->{'id_ui'} eq ""){
-
                 push(@info_reporte, \%hash_info);
                 push(@cat_nivel3_result, $cat_nivel3_array_ref->[$i]);
                 $cant_total++;
             }
         }
     }#END for(my $i=0; $i < $cant; $i++)
-
     @cat_nivel3_result = sort { $a->{$orden} cmp $b->{$orden} } @info_reporte;
-
     $params_hash_ref->{'cant_total'}    = $cant_total;
     @cat_nivel3_result                  = C4::AR::Utilidades::paginarArrayResult($params_hash_ref, @cat_nivel3_result);
-
-
     return ($cant_total, \@cat_nivel3_result, \@info_reporte);
 }
-
-
-
-
-
-# TODO DEPRECATED
-# sub getMaxBarcode {
-#    my ($branch) = @_;
-#    use C4::Modelo::CatRegistroMarcN3::Manager;
-#    my $max = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3(
-#                                                          select => ['MAX(t1.barcode) as barcode'],
-#                                                          );
-#    return ($max->[0]->barcode);
-# }
-
-# TODO DEPRECATED
-# sub getMinBarcode {
-#    my ($branch) = @_;
-#    use C4::Modelo::CatRegistroMarcN3::Manager;
-#    my $min = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3(
-#                                                          select => ['MIN(t1.barcode) as barcode'],
-#                                                          );
-#    return ($min->[0]->barcode);
-# }
-
 sub getMinBarcodeLike {
    my ($branch,$part_barcode) = @_;
    use C4::Modelo::CatRegistroMarcN3::Manager;
@@ -366,7 +219,6 @@ sub getMinBarcodeLike {
                                                          );
    return ($min->[0]->barcode);
 }
-
 sub getMaxBarcodeLike {
    my ($branch,$part_barcode) = @_;
    use C4::Modelo::CatRegistroMarcN3::Manager;
@@ -376,30 +228,23 @@ sub getMaxBarcodeLike {
                                                          );
    return ($max->[0]->barcode);
 }
-
 sub listadoDeInventorio{
-
     my ($params_obj)=@_;
-
     use C4::Modelo::CatRegistroMarcN3::Manager;
     my @filtros;
-
     push (@filtros,(barcode => {eq => $params_obj->{'minBarcode'},
                                 gt => $params_obj->{'minBarcode'},
                                 }));
     push (@filtros,(barcode => {eq => $params_obj->{'maxBarcode'},
                                 lt => $params_obj->{'maxBarcode'},
                                 }));
-#     push (@filtros,(id_ui_origen => {eq => $params_obj->{'id_ui_origen'}}));
     my $inventorio = 0;
     my $inventorio_count = 0;
-
     eval{
         $inventorio_count = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3_count(
                                                                         query => \@filtros,
                                                                         require_objects => ['nivel2','nivel1','nivel1.cat_autor'],
                                                                         );
-
         $inventorio = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3(
                                                                         query => \@filtros,
                                                                         require_objects => ['nivel2','nivel1','nivel1.cat_autor'],
@@ -408,46 +253,32 @@ sub listadoDeInventorio{
                                                                         offset => $params_obj->{'ini'},
                                                                         );
     };
-
     return ($inventorio_count,$inventorio);
 }
-
 sub historicoDeBusqueda{
    my ($params_obj)=@_;
-
    my $dateformat = C4::Date::get_date_format();
    my @filtros;
-
    if ($params_obj->{'fechaIni'} ne ""){
       push(@filtros, ( 'busqueda.fecha' => {       eq => format_date_in_iso($params_obj->{'fechaIni'},$dateformat),
                                                    gt => format_date_in_iso($params_obj->{'fechaIni'},$dateformat),
                                  }
                       ) );
    }
-
    if ($params_obj->{'fechaFin'} ne ""){
       push(@filtros, ( 'busqueda.fecha' => {       eq => format_date_in_iso($params_obj->{'fechaFin'},$dateformat), 
                                                    lt => format_date_in_iso($params_obj->{'fechaFin'},$dateformat), 
                                 }
                      ) );
    }
-
    if($params_obj->{'catUsuarios'} ne "SIN SELECCIONAR"){
    
-#   FIXME: ver si anda! cambiado el 16/05 porque no esta mas el cod_categoria en usr_socio, esta el id_categoria
-#      push(@filtros, ( 'busqueda.socio.cod_categoria' => { eq=> $params_obj->{'catUsuarios'}, }) );
-
         push(@filtros, ( 'busqueda.socio.categoria.getCategory_code' => { eq => $params_obj->{'catUsuarios'}, }) );
    }
-
    use C4::Modelo::RepHistorialBusqueda::Manager;
-
    my $busquedas_count = C4::Modelo::RepHistorialBusqueda::Manager->get_rep_historial_busqueda_count(
                                                                                           query => \@filtros,
-#                                                                                           with_objects => ['busqueda','busqueda.socio'],
                                                                                      );
-
-
    my $busquedas = C4::Modelo::RepHistorialBusqueda::Manager->get_rep_historial_busqueda(
                                                                                 query => \@filtros,
                                                                                 with_objects => ['busqueda','busqueda.socio'],
@@ -455,114 +286,60 @@ sub historicoDeBusqueda{
                                                                                 offset  => $params_obj->{'ini'},
                                                                                 sorty_by => $params_obj->{'orden'},
                                                                     );
-
    return($busquedas_count,$busquedas);
-
 }
-
 sub historicoPrestamos{
    #Se realiza un Historial de Prestamos, con los siguientes datos:
    #Apellido y Nombre, DNI,Categoria del Usuario, Tipo de Prestamo, Codigo de Barras, 
    #Fecha de Prestamo, Fecha de Devolucion, Tipo de Item
    
    my ($params_obj)=@_;
-
    my $dateformat = C4::Date::get_date_format();
-
    my @filtros;
-
   
    my $prestamos_count = C4::Modelo::CircPrestamo::Manager->get_circ_prestamo_count(
                                                                         query => \@filtros,
                                                                         require_objects => ['nivel3','socio','ui','ui_prestamo'],
                                                                     ); 
-
    my $prestamos = C4::Modelo::CircPrestamo::Manager->get_circ_prestamo(
                                                                         query => \@filtros,
                                                                         require_objects => ['nivel3','socio','ui','ui_prestamo','tipo'],
                                                                         limit   => $params_obj->{'cantR'},
                                                                         offset  => $params_obj->{'ini'},
                                                                      ); 
-
    return($prestamos_count,$prestamos);
 }
-
-
 sub prestamosAnual{
-
     my ($params)=@_;
     my @filtros;
-
     use C4::Modelo::CircPrestamo::Manager;
-
     push ( @filtros, ('fecha_prestamo' => { like => $params->{'year'}.'%' }));
-
     my $prestamos_anual_count = C4::Modelo::CircPrestamo::Manager->get_circ_prestamo_count(
                                                                                 query => \@filtros,
                                                                                 group_by => ['month(fecha_prestamo)'],
                                                                                 require_objects => ['nivel3','socio','tipo','ui','ui_prestamo'],
                                                                                );
-
     my $prestamos_anual = C4::Modelo::CircPrestamo::Manager->get_circ_prestamo(
                                                                                 query => \@filtros,
                                                                                 group_by => ['month(fecha_prestamo)'],
                                                                                 select => ['*','COUNT(*) AS agregacion_temp'],
                                                                                 require_objects => ['nivel3','socio','tipo','ui','ui_prestamo','tipo'],
                                                                                );
-
     push ( @filtros, ('fecha_devolucion' => {ne => undef} ));
-
     my $prestamos_anual_devueltos = C4::Modelo::CircPrestamo::Manager->get_circ_prestamo(
                                                                                 query => \@filtros,
                                                                                 group_by => ['month(fecha_prestamo)'],
                                                                                 select => ['*','COUNT(*) AS agregacion_temp'],
                                                                                 require_objects => ['nivel3','socio','tipo','ui','ui_prestamo','tipo'],
                                                                                );
-
     return ($prestamos_anual_count,$prestamos_anual);
-
 }
-
-# sub prestamosAnual{
-#     my ($branch,$year)=@_;
-#     my $dbh = C4::Context->dbh;
-# 	my @results;
-# 	my $query ="SELECT month( date_due ) AS mes, count( * ) AS cantidad,SUM( renewals ) AS 
-# 			   renovaciones, issuecode
-# 		    FROM  circ_prestamo 
-# 		    WHERE year( date_due ) = ? 
-# 		    GROUP BY month( date_due ), issuecode";
-# 
-# 	my $sth=$dbh->prepare($query);
-#         $sth->execute($year);
-# 	while (my $data=$sth->fetchrow_hashref){
-# 		$data->{'mes'}=&mesString($data->{'mes'});
-# 		push(@results,$data);
-#         	};
-# 	$query ="SELECT count( * ) AS devoluciones
-#                  FROM  circ_prestamo 
-#                  WHERE year( date_due ) = ? and returndate is not null
-#                  GROUP BY month( date_due ), issuecode";
-# 	my $sth=$dbh->prepare($query);
-#         $sth->execute($year);
-# 	my $i=0;
-# 	while (my $data=$sth->fetchrow_hashref){
-# 		@results[$i]->{'devoluciones'}=$data->{'devoluciones'};
-# 		$i++;
-# 		};
-# 
-# 	return(@results);
-# }
-
-#
-##Ejemplares perdidos del branch que le paso por parametro
 sub disponibilidad{
    my ($params_obj)=@_;
    use C4::Modelo::CatHistoricoDisponibilidad::Manager;
    my $dateformat = C4::Date::get_date_format();
    my $dates='';
    my @filtros;
-
    if (($params_obj->{'fechaInicio'} ne '') && ($params_obj->{'fechaInicio'} ne '')){
       push(@filtros, ( fecha => {      eq=> format_date_in_iso($params_obj->{'fechaInicio'},$dateformat), 
                                        gt => format_date_in_iso($params_obj->{'fechaInicio'},$dateformat), 
@@ -578,9 +355,7 @@ sub disponibilidad{
     if (substr($params_obj->{'ui'},0,3) ne "SIN"){
         push (@filtros,( id_ui => { eq => $params_obj->{'ui'}.'%'}));
     }
-
    push(@filtros, ( tipo_prestamo => { eq => $params_obj->{'disponibilidad'} } ) );
-
    my $det_disponibilidad = C4::Modelo::CatHistoricoDisponibilidad::Manager->get_cat_historico_disponibilidad(
                                                                                                           query => \@filtros,
                                                                                                           distinct => 1,
@@ -589,15 +364,8 @@ sub disponibilidad{
                                                                                                           offset => $params_obj->{'ini'},
                                                                                                           sorty_by => $params_obj->{'orden'},
                                                                                                          );
-
-
-
-
    return (scalar(@$det_disponibilidad),$det_disponibilidad);
 }
-
-
-#Cantidad de renglones seteado en los parametros del sistema para ver por cada pagina
 sub cantidadRenglones{
         my $dbh = C4::Context->dbh;
         my $query="select value
@@ -607,11 +375,6 @@ sub cantidadRenglones{
 	$sth->execute();
 	return($sth->fetchrow_array);
 }
-
-#
-#Esta funcion recibe un numero que equivale a la cantidad de tuplas que devuelve cualquier consulta
-# y en base a eso arma el array con la cantidad de paginas que tiene que quedar como respuesta
-# Paginador
 sub armarPaginas{
 	my ($cant,$actual)=@_;
 	my $renglones = cantidadRenglones();
@@ -627,7 +390,6 @@ sub armarPaginas{
 	};
 	return(@numeros);
 }
-
 sub armarPaginasPorRenglones {
 	my ($cant,$actual,$renglones)=@_;
 	my $paginas = 0;
@@ -642,16 +404,6 @@ sub armarPaginasPorRenglones {
 	};
 	return(@numeros);
 }
-
-# sub insertarNota{
-# 	my ($id,$nota)=@_;
-#         my $dbh = C4::Context->dbh;
-#         my $query="update  rep_registro_modificacion set nota=?
-# 		   where idModificacion=?";
-#         my $sth=$dbh->prepare($query);
-#         $sth->execute($nota,$id);
-# }
-
 sub cantRegFechas{
 	my ($chkfecha,$fechaInicio,$fechaFin,$tipo,$operacion,$chkuser,$chknum,$user,$numDesde,$numHasta)=@_;
         my $dbh = C4::Context->dbh;
@@ -667,7 +419,6 @@ sub cantRegFechas{
 		push(@bind,$fechaInicio);
 		push(@bind,$fechaFin);
 	}
-
 	if ($operacion ne ''){
 		if ($where eq ''){
 			$where = "WHERE";
@@ -676,7 +427,6 @@ sub cantRegFechas{
 		else {$query.= " AND operacion=?";}
 		push(@bind,$operacion);
 	}
-
 	if ($tipo ne ''){
 		if ($where eq ''){
 			$where = "WHERE";
@@ -685,7 +435,6 @@ sub cantRegFechas{
 		else {$query.= " AND tipo=?";}
 		push(@bind,$tipo);
 	}
-
 	if ($chkuser ne "false"){
 		if ($where eq ''){
 			$where = "WHERE";
@@ -704,15 +453,10 @@ sub cantRegFechas{
 		push(@bind,$numDesde);
 		push(@bind,$numHasta);
 	}
-
 	my $sth=$dbh->prepare($query);
         $sth->execute(@bind);
         return($sth->fetchrow_array);
-
-
 }
-
-
 sub registroEntreFechas{
     my ($params_obj) = @_;
     
@@ -740,7 +484,6 @@ sub registroEntreFechas{
     if ($params_obj->{'user'} ne "-1"){
         push(@filtros, ( responsable => { eq => $params_obj->{'user'} }) );
     }
-
     if ($params_obj->{'nivel'} ne ''){
         push(@filtros, ( tipo => { eq => $params_obj->{'nivel'} }) );
     }
@@ -749,7 +492,6 @@ sub registroEntreFechas{
                                                                         query               => \@filtros,
                                                                         require_objects     => ['socio_responsable'],
                                                                 );
-
     my $rep_registro_modificacion_array_ref = C4::Modelo::RepRegistroModificacion::Manager->get_rep_registro_modificacion(
                                     query               => \@filtros,
                                     sorty_by            => $params_obj->{'orden'},
@@ -758,11 +500,8 @@ sub registroEntreFechas{
                                     require_objects     => ['socio_responsable','socio_responsable.persona'],
                                     select              => ['rep_registro_modificacion.*','socio_responsable.*','usr_persona.*']
                 );
-
-
     return ($registros_count,$rep_registro_modificacion_array_ref);
 }
-
 =item
 sub cantRegDiarias{
    my ($today)=@_;
@@ -775,7 +514,6 @@ sub cantRegDiarias{
         $sth->execute();
         return($sth->fetchrow_array);
 }
-
 sub registroActividadesDiarias{
    my ($orden,$fecha,$ini,$cantR)=@_;
         my $dbh = C4::Context->dbh;
@@ -796,8 +534,6 @@ sub registroActividadesDiarias{
         return (@results);
 }
 =cut
-
-
 sub cantidadRetrasados{
         my ($branch)=@_; 
 	my $dbh = C4::Context->dbh;
@@ -811,12 +547,7 @@ sub cantidadRetrasados{
                 push(@results,$data);
         }
         return (@results);
-
 }
-
-#
-#Renovaciones realizadas por socios al dia de hoy
-#
 sub renovacionesDiarias{
         my ($branch)=@_; 
 	my $dbh = C4::Context->dbh;
@@ -831,10 +562,6 @@ sub renovacionesDiarias{
         }
         return (@results);
 }
-
-#
-#Prestamos realizados en una fecha dada
-#
 sub prestamosEnUnaFecha{
 	my ($branch,$fecha)=@_;
         my $dbh = C4::Context->dbh;
@@ -849,11 +576,6 @@ sub prestamosEnUnaFecha{
         }
         return (@results);
 }
-
-#
-#Devoluciones que se tienen que hacer en una fecha dada
-#
-
 sub devolucionesParaFecha{
 	my ($branch,$fecha)=@_;
         my $dbh = C4::Context->dbh;
@@ -868,8 +590,6 @@ sub devolucionesParaFecha{
         }
         return (@results);
 }
-
-#Historial de prestamos realizados por un usuario 
                                                                                                                              
 sub historialUsuario{
         my ($id,$branch)=@_;
@@ -881,10 +601,6 @@ sub historialUsuario{
         $sth->execute($id,$branch);
 	return($sth->fechtrow_hashref);
 }
-
-
-#Usuarios de un branch dado 
-#Damian - 31/05/2007 - Se agrego para difereciar usuarios que usan y no usan la biblioteca
 sub usuarios{
         my ($branch,$orden,$ini,$fin,$anio,$usos,$categ,@chck)=@_;
 	my $dbh = C4::Context->dbh;
@@ -895,14 +611,12 @@ sub usuarios{
 	my $queryCant ="SELECT count( * ) AS cantidad
                     FROM borrowers b
                     WHERE branchcode=? ";
-
         my $query ="SELECT  b.phone,b.emailaddress,b.dateenrolled,c.description as categoria ,
 		    b.firstname,b.surname,b.streetaddress,b.cardnumber,b.city,b.borrowernumber
                     FROM borrowers b inner join usr_ref_categoria_socio c on (b.categorycode = c.categorycode)
  		    WHERE b.branchcode=? ";
 	my $where="";
 	push(@bind,$branch);
-
 	my $query2 = "SELECT * FROM  circ_prestamo i WHERE b.borrowernumber = i.borrowernumber ";
 	my $exists = "";
 	for (my $i=0; $i < scalar(@chck); $i++){
@@ -929,7 +643,6 @@ sub usuarios{
 		$queryCant.=$where.$exists.$query2.")";
 		$query.=$where.$exists.$query2.") GROUP BY b.borrowernumber ".$finCons;
 	}
-
         my $sth=$dbh->prepare($queryCant);
         $sth->execute(@bind,@bind2);
 	my $cantidad=$sth->fetchrow;
@@ -948,12 +661,8 @@ sub usuarios{
         }
         return ($cantidad,@results);
 }
-
-
-# Verifica que una fecha este entre otras 2 
 sub estaEnteFechas {
    my ($begindate,$enddate,$vencimiento)=@_;
-
   if (($begindate eq '')or($enddate eq '')or($vencimiento eq '')){ return 1;} # Si alguna de las fechas viene vacia se devuelve 1
   else {
 		# Se hacen las comapraciones
@@ -964,33 +673,26 @@ sub estaEnteFechas {
 	}
   return 0;
 }
-
 sub prestamos{
-
          my ($params_obj)=@_;
          my @results;
          my $dateformat = C4::Date::get_date_format();
          my @filtros;
-
          if ($params_obj->{'fechaIni'} ne ""){
             push(@filtros, ( 'fecha_prestamo' => {       eq=> format_date_in_iso($params_obj->{'fechaIni'},$dateformat), 
                                                          gt => format_date_in_iso($params_obj->{'fechaIni'},$dateformat), 
                                        }
                            ) );
          }
-
          if ($params_obj->{'fechaIni'} ne ""){
             push(@filtros, ( 'fecha_prestamo' => {       eq=> format_date_in_iso($params_obj->{'fechaFin'},$dateformat), 
                                                          lt => format_date_in_iso($params_obj->{'fechaFin'},$dateformat), 
                                     }
                            ) );
          }
-
          if($params_obj->{'id_ui'} ne "SIN SELECCIONAR"){
             push(@filtros, ( id_ui_origen => { eq=> $params_obj->{'id_ui'}, }) );
          }
-
-
          my $prestamos = C4::Modelo::CircPrestamo::Manager->get_circ_prestamo(
                                                                              query => \@filtros,
                                                                              require_objects => ['socio','nivel3'],
@@ -1007,21 +709,17 @@ sub prestamos{
                if ($prestamo->socio->persona->getTelefono eq "" ){
                   $prestamo->socio->persona->setTelefono('-');
                }
-
                if (!($prestamo->socio->persona->getEmail)){
                         $prestamo->socio->persona->setEmail('-');
                         $prestamo->{'ok'}=1;
                }
-
                if (!($prestamo->getFecha_devolucion)){
                   $prestamo->setFecha_devolucion('-');
                }
                else{
                   $prestamo->setFecha_devolucion(C4::Date::format_date($prestamo->getFecha_devolucion,$dateformat));
                }
-
                $prestamo->setFecha_prestamo(C4::Date::format_date($prestamo->getFecha_prestamo,$dateformat));;
-
             if ( $params_obj->{'estado'} eq "TO" ){
                   push (@results,$prestamo);
             }
@@ -1036,18 +734,6 @@ sub prestamos{
             }
          }
       }#foreach
-
-#       # Da el ORDEN al arreglo
-#        if (($orden ne "vencimiento") and ($orden ne "date_due")) {
-#        #ordeno alfabeticamente
-#           my @sorted = sort { $a->{$orden} cmp $b->{$orden} } @results;
-#           @results=@sorted;
-#        }
-#        else
-#        {#ordeno Fechas
-#           my @sorted = sort { Date::Manip::Date_Cmp($a->{$orden},$b->{$orden}) } @results;
-#           @results=@sorted;
-#        }
       #
          my $cantReg=scalar(@results);
       #Se chequean si se quieren devolver todos
@@ -1060,16 +746,13 @@ sub prestamos{
             else{
                @results2=@results[$params_obj->{'ini'}..$params_obj->{'cantR'}-1+$params_obj->{'ini'}];
             }
-
             return($cantReg,\@results2);
          }
             else{
               return ($cantReg,\@results);
          }
 }
-
 sub reservas{
-
     my ($id_ui,$orden,$ini,$cantR,$tipo)=@_;
     my $dateformat = C4::Date::get_date_format();
     my @filtros;
@@ -1081,7 +764,6 @@ sub reservas{
     
     if($tipo eq "GR"){
         push (@filtros, ( estado => { eq => 'G'}) );
-
     
     }
     elsif($tipo eq "EJ"){
@@ -1106,16 +788,12 @@ sub reservas{
     
     return ($reservas_count,$reservas);
 }
-
 sub reservasEdicion{
-
     my ($id_ui,$ini,$cantR,$tipo,$id2)=@_;
     my $dateformat = C4::Date::get_date_format();
     my @filtros;
     my @results;
-
     my $ordenAux    = 'timestamp ASC';
-
     $ordenAux    = 'id_reserva DESC';
     
     push (@filtros, ( id_ui => { eq => $id_ui}) );
@@ -1141,7 +819,6 @@ sub reservasEdicion{
     
     return ($reservas_count,$reservas);
 }
-
 sub cantidadAnaliticas{
         my $dbh = C4::Context->dbh;
         my @results;
@@ -1154,44 +831,27 @@ sub cantidadAnaliticas{
         }
         return (@results);
 }
-
-
 sub tiposDeItem_reporte{
       my ($id_ui)=@_;
       my @filtros;
       push (@filtros, ( id_ui_poseedora => { eq => $id_ui}) );
-
       my $tipos_item = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3(
                                                                         query => \@filtros,  
                                                                         select => ['nivel2.*','COUNT(tipo_documento) AS agregacion_temp'],
                                                                         group_by => ['tipo_documento'],
                                                                         with_objects => ['nivel2'],
-
                                                                      );
       my $tipos_item_count = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3_count(
                                                                         query => \@filtros,  
                                                                         with_objects => ['nivel2'],
-
                                                                      );
-
       return ($tipos_item_count,$tipos_item);
 }
-
 sub reporteNiveles{
       my ($id_ui)=@_;
         
-
-#       my $query="SELECT ref_nivel_bibliografico.description, COUNT( ref_nivel_bibliografico.description ) AS cant
-# 		FROM ref_nivel_bibliografico
-# 		LEFT JOIN cat_nivel2 n2 ON bibliolevel.code = n2.nivel_bibliografico
-# 		INNER JOIN cat_nivel3 n3 ON n2.id2 = n3.id2
-# 		WHERE holdingbranch = ?
-# 		GROUP BY ref_nivel_bibliografico.description";
-
       my @filtros;
-
       push (@filtros, ( id_ui_poseedora => { eq => $id_ui}) );
-
       my $niveles = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3(
                                                                      query => \@filtros,
                                                                      select => ['*','COUNT(nivel_bibliografico) AS agregacion_temp'],
@@ -1199,23 +859,14 @@ sub reporteNiveles{
                                                                      sort_by => ['ref_nivel_bibliografico.description'],
                                                                      with_objects => ['nivel2.ref_nivel_bibliografico'],
                                                                   );
-
       return (scalar(@$niveles),$niveles);
 }
-
 sub disponibilidadAnio {
-
     my ($id_ui,$ini,$fin)=@_;
     my @filtros;
     my $dateformat = C4::Date::get_date_format();
     use C4::Modelo::CatHistoricoDisponibilidad::Manager;
-#       my $query="SELECT month( date )  AS mes, year( date )  AS year, avail, count( avail )  AS cantidad
-#       FROM cat_detalle_disponibilidad
-#       WHERE branch =  ?  AND date BETWEEN ? AND  ?
-#       GROUP  BY year( date ) , month( date )  ORDER  BY month( date ) , year( date )";
-
    push (@filtros, ( id_ui => { eq => $id_ui}) );
-
    if ($ini ne ""){
       push(@filtros, ( 'fecha' => {       eq=> format_date_in_iso($ini,$dateformat), 
                                           gt => format_date_in_iso($ini,$dateformat), 
@@ -1228,7 +879,6 @@ sub disponibilidadAnio {
                                   }
                      ) );
    }
-
    my $detalle_disponibilidad =
                      C4::Modelo::CatHistoricoDisponibilidad::Manager->get_cat_historico_disponibilidad(
                                                                                                 query => \@filtros,
@@ -1241,8 +891,6 @@ sub disponibilidadAnio {
                                                                                                   );
    return (scalar(@$detalle_disponibilidad),$detalle_disponibilidad);
 }
-
-#Damian - 11/04/2007 - Para buscar a los usuarios que administran el sistema.
 sub getuser{
 	#my ($branch)=@_;
 	my $dbh = C4::Context->dbh;
@@ -1257,8 +905,6 @@ sub getuser{
 	}
 	return(\%results);
 }
-
-#Damian - 04/05/2007 - Para buscar la cantidad de prestamos de cada tipo (estadisticas generales).
 sub estadisticasGenerales{
    my ($params_obj)=@_;
    my @filtros;
@@ -1268,7 +914,6 @@ sub estadisticasGenerales{
                                        gt => $params_obj->{'fechaInicio'}, 
                                  }
                         ) );
-
       push(@filtros, ( fecha => {      eq => $params_obj->{'fechaFin'},
                                        lt => $params_obj->{'fechaFin'},
                                  }
@@ -1288,7 +933,6 @@ sub estadisticasGenerales{
                                                                      query => \@filtros,
                                                                      select => ['*','SUM(renovaciones) AS agregacion_temp'],
                                                                      group_by => ['tipo_prestamo',],
-
                                                                     );
    my $domiTotal=0;
    #my $noRenovados;
@@ -1297,9 +941,6 @@ sub estadisticasGenerales{
    my $sala;
    my $foto;
    my $especial;
-
-
-#FIXME que es esto????????????????????????????????????????????????????????????
 =item
    while (my $data=$sth->fetchrow_hashref){
       if($data->{'issuecode'} eq 'DO'){
@@ -1322,15 +963,12 @@ sub estadisticasGenerales{
 if ($prestamos->[0]){
    $domiTotal = $especial = $prestamos->[0]->agregacion_temp; #ARREGLO TEMPORAL POR EL FIXME DE ARRIBA
 }
-#******Para saber cuantos libros se devolvieron***********
    if($domiTotal){
       if ($params_obj->{'chkfecha'} ne "false"){
-
          push(@filtros, ( fecha => {      eq => $params_obj->{'fechaInicio'}, 
                                           gt => $params_obj->{'fechaInicio'}, 
                                     }
                            ) );
-
          push(@filtros, ( fecha => {      eq => $params_obj->{'fechaFin'},
                                           lt => $params_obj->{'fechaFin'},
                                     }
@@ -1341,16 +979,11 @@ if ($prestamos->[0]){
                                                                                           query => \@filtros,
                                                                                           group_by => ['tipo_prestamo',],
                                                                                        );
-#       $devueltos=$data->{'devueltos'};
    }else {
             $domiTotal="";
          } # Si no es una busqueda por domiciliario para que no muestre 0 en el tmpl
-
-
     return ($domiTotal,$renovados,$devueltos,$sala,$foto,$especial); 
 }
-
-
 sub cantidadUsuariosPrestamos{
    my ($fechaInicio, $fechaFin, $chkfecha)=@_;
    my $dbh = C4::Context->dbh;
@@ -1362,17 +995,14 @@ sub cantidadUsuariosPrestamos{
       push(@bind,$fechaFin);
    }
    $query .=" GROUP BY nro_socio";
-
    my $sth=$dbh->prepare($query);
         $sth->execute(@bind);
    my $cant;
    if($sth->rows()!=0){
       $cant=$sth->rows();
    }
-
 return ($cant);
 }
-
 sub cantidadUsuariosRenovados{
    my ($fechaInicio, $fechaFin, $chkfecha)=@_;
    my $dbh = C4::Context->dbh;
@@ -1384,17 +1014,14 @@ sub cantidadUsuariosRenovados{
       push(@bind,$fechaFin);
    }
    $query .=" GROUP BY nro_socio";
-
    my $sth=$dbh->prepare($query);
         $sth->execute(@bind);
    my $cant;
    if($sth->rows()!=0){
       $cant=$sth->rows();
    }
-
 return ($cant);
 }
-
 sub cantidadUsuariosReservas{
    my ($fechaInicio, $fechaFin, $chkfecha)=@_;
    my $dbh = C4::Context->dbh;
@@ -1406,30 +1033,24 @@ sub cantidadUsuariosReservas{
       push(@bind,$fechaFin);
    }
    $query .=" GROUP BY nro_socio";
-
    my $sth=$dbh->prepare($query);
         $sth->execute(@bind);
    my $cant;
    if($sth->rows()!=0){
       $cant=$sth->rows();
    }
-
 return ($cant);
 }
-
 sub historialReservas {
   my ($bornum,$ini,$cantR)=@_;
  
   # RE HACER, ESTA DEPRECATED
   return (0,0);
 }
-
 sub historicoCirculacion{
-
     my ($params)=@_;
     use C4::Modelo::RepHistorialCirculacion::Manager;
     my @filtros;
-
     if ( $params->{'chkfecha'} ){
         push( @filtros,(fecha =>{eq => $params->{'fechaIni'}, gt => $params->{'fechaIni'}}) );
         push( @filtros,(fecha =>{eq => $params->{'fechaFin'}, lt => $params->{'fechaFin'}}) );
@@ -1440,24 +1061,19 @@ sub historicoCirculacion{
     if( $params->{'tipoOperacion'} ne '-1' ){
         push( @filtros, (tipo_operacion => { eq => $params->{'tipoOperacion'}}) );
     }
-
     if( $params->{'tipoPrestamo'} ){
         push( @filtros, (tipo_prestamo => {eq => $params->{'tipoPrestamo'}}) );
     }
-
     if( $params->{'id3'} ){
         push( @filtros , (id3 => {eq => $params->{'id3'}}) );
     }
-
     my $orden = $params->{'orden'} || 'fecha',
-
     my $cantidad_registros = C4::Modelo::RepHistorialCirculacion::Manager->get_rep_historial_circulacion_count(
                                                                                                             query => \@filtros,
                                                                                                             require_objects => ['nivel1',
                                                                                                                                 'nivel2',
                                                                                                                                 'nivel3',
                                                                                                                                 'socio',
-#                                                                                                                                 'responsable',
                                                                                                                                 'tipo_prestamo_ref',
                                                                                                                                ],
                                                                                                            );
@@ -1470,19 +1086,16 @@ sub historicoCirculacion{
                                                                                                                                 'nivel2',
                                                                                                                                 'nivel3',
                                                                                                                                 'socio',
-#                                                                                                                                 'responsable',
                                                                                                                                 'tipo_prestamo_ref',
                                                                                                                                ],
                                                                                                            );
     return ($cantidad_registros,$historicoCirculacion);
 }
-
 sub historicoSanciones{
     my ($params_obj)=@_;
     use C4::Modelo::RepHistorialSancion::Manager;
     my @filtros;
     my @results;
-
     if ($params_obj->{'fechaIni'} ne ''){
         push (@filtros, ( fecha => {  eq => $params_obj->{'fechaIni'},
                                         gt => $params_obj->{'fechaIni'} }) );
@@ -1506,8 +1119,6 @@ sub historicoSanciones{
         push (@filtros, ( 'circ_tipo_sancion.tipo_operacion' => { eq => $params_obj->{'tipoPrestamo'} },) );
     }
 =cut
-
-
     my $sanciones_count = C4::Modelo::RepHistorialSancion::Manager->get_rep_historial_sancion_count(
                                                                                 query => \@filtros,
                                                                                 #FIXME falta circ_tipo_sancion
@@ -1524,8 +1135,6 @@ sub historicoSanciones{
                                                                             );
     return ($sanciones_count,$sanciones_array_ref);
 }
-
-
 sub tipoDeOperacion(){
 	my ($tipo)=@_;
 	if($tipo eq "issue"){$tipo="Prestamo";}
@@ -1540,55 +1149,20 @@ sub tipoDeOperacion(){
 	elsif($tipo eq "Delete"){$tipo="Borrado";}
 	return $tipo;
 }
-
 sub userCategReport{
 	my ($id_ui)=@_;
-#         my $query=" SELECT categorycode, count( categorycode ) as cant FROM borrowers WHERE branchcode = ? GROUP BY categorycode  ";
    my @filtros;
    use C4::Modelo::UsrSocio::Manager;
    push (@filtros, ( id_ui => { eq => $id_ui },) );
    
-#   FIXME: ver si anda! cambiado el 16/05 porque no esta mas cod_categoria en usr_socio, esta id_categoria
    my $socios = C4::Modelo::UsrSocio::Manager->get_usr_socio(
                                                                query => \@filtros,
                                                                select => ['*','COUNT(id_categoria) AS agregacion_temp'],
                                                                group_by => ['id_categoria'],
                                                                require_objects => ['categoria','ui'],
                                                             );
-#  	my $clase='par';
-# 	my $catcode;
-# 	my $i=0;
-# 	my %indices;
-#         while (my $data=$sth->fetchrow_hashref){
-# 	        if ($clase eq 'par') {$clase='impar'} else {$clase='par'};
-# 		      $catcode=$data->{'categorycode'};
-# 		      $indices{$catcode}=$i;
-# 		      $results[$i]->{'reales'}=$data->{'cant'};
-# 		      $results[$i]->{'categoria'}=C4::AR::Busquedas::getborrowercategory($data->{'categorycode'});
-# 		      $results[$i]->{'clase'}=$clase;
-# 		      $i++;
-#         }
-# 
-# 	my $query=" SELECT categorycode, count( categorycode ) as cant FROM persons WHERE branchcode = ? AND borrowernumber IS NULL GROUP BY categorycode  ";
-# 	$sth=$dbh->prepare($query);
-#         $sth->execute($branch);
-# 	while (my $data=$sth->fetchrow_hashref){
-# 		$catcode=$data->{'categorycode'};
-# 		if (not exists($indices{$catcode})){
-# 			if ($clase eq 'par') {$clase='impar'} else {$clase='par'};
-# 			$results[$i]->{'reales'}=0;
-# 			$results[$i]->{'potenciales'}=$data->{'cant'};
-# 			$results[$i]->{'categoria'}=C4::AR::Busquedas::getborrowercategory($data->{'categorycode'});
-# 			$results[$i]->{'clase'}=$clase;
-# 			$i++;
-# 		}
-# 		else{
-# 			$results[$indices{$catcode}]->{'potenciales'}=$data->{'cant'};
-# 		}
-# 	}
          return (scalar(@$socios),$socios);
 }
-
 =item
 SE USA EN EL REPORTE Generar Etiquetas
 =cut
@@ -1600,7 +1174,6 @@ sub signaturamax {
 	my $res= ($sth->fetchrow_hashref)->{'max'};
 	return $res;
 }
-
 =item
 SE USA EN EL REPORTE Generar Etiquetas
 =cut
@@ -1612,16 +1185,10 @@ sub signaturamin {
 	my $res= ($sth->fetchrow_hashref)->{'min'};
 	return $res;
 	}
-
-
 sub listaDeEjemplares {
-# FIXME falta el tema de paginar cuando es pdf (o sea, no hay que paginar)
     my ($params) = @_;
-
     my $id_ui=  $params->{'id_ui'} || C4::AR::Preferencias::getValorPreferencia('defaultUI');
-
     my @filtros;
-
     if (C4::AR::Utilidades::validateString($params->{'sig_top_begin'})){
         push (@filtros,( signatura_topografica => { like => $params->{'sig_top_begin'}.'%'}));
     }
@@ -1643,16 +1210,13 @@ sub listaDeEjemplares {
                                             }));
         }
     }
-
     if (substr($params->{'id_ui'},0,3) ne "SIN"){
         push (@filtros,( id_ui_origen => { eq => $params->{'id_ui'}.'%'}));
     }
-
     my $results_count = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3_count( query => \@filtros,
                                                                               require_objects => ['nivel2','nivel1'],
                                                                     );
     my $results;
-
     if ($params->{'accion'} ne "pdf"){
         $results = C4::Modelo::CatRegistroMarcN3::Manager->get_cat_registro_marc_n3( query => \@filtros,
                                                                       limit => $params->{'cantR'},
@@ -1664,11 +1228,8 @@ sub listaDeEjemplares {
                                                                       require_objects => ['nivel2','nivel1'],
                                                                     );
     }
-
     return ($results_count,$results);
 }
-
 END { }       # module clean-up code here (global destructor)
-
 1;
 __END__

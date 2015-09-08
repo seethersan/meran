@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,15 +19,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Auth;
 use CGI;
 use C4::AR::TipoDocumento;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params) = get_template_and_user({
 									template_name       => "catalogacion/tipoDocumento.tmpl",
 									query               => $input,
@@ -39,40 +35,27 @@ my ($template, $session, $t_params) = get_template_and_user({
                                                                 entorno         => 'usuarios'},
 									debug               => 1,
 			    });
-
-#si estamos modificando un tipo de doc, viene el post por aca
 my $obj = $input->Vars; 
-
 if($obj->{'tipoAccion'} eq "MOD"){
-
 	my $msg_object 	= C4::AR::TipoDocumento::modTipoDocumento($obj,$input->upload('imagen'));
-
 	my $codMsg 		= C4::AR::Mensajes::getFirstCodeError($msg_object);
         
     $t_params->{'mensaje'} = C4::AR::Mensajes::getMensaje($codMsg,'INTRA');
-
     if (C4::AR::Mensajes::hayError($msg_object)){
         $t_params->{'mensaje_class'} = "alert-error";
     }else{
         $t_params->{'mensaje_class'} = "alert-success";
     }
-
 }elsif($obj->{'tipoAccion'} eq "ADD"){
-
 	my $msg_object 	= C4::AR::TipoDocumento::agregarTipoDocumento($obj,$input->upload('imagen'));
-
 	my $codMsg 		= C4::AR::Mensajes::getFirstCodeError($msg_object);
         
     $t_params->{'mensaje'} = C4::AR::Mensajes::getMensaje($codMsg,'INTRA');
-
     if (C4::AR::Mensajes::hayError($msg_object)){
         $t_params->{'mensaje_class'} = "alert-error";
     }else{
         $t_params->{'mensaje_class'} = "alert-success";
     }
-
 }
-
 $t_params->{'page_sub_title'}   = C4::AR::Filtros::i18n("Tipo de documento");
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

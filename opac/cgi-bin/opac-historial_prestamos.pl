@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,14 +19,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Auth;
 use CGI;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params)= get_template_and_user({
 								template_name => "opac-main.tmpl",
 								query => $input,
@@ -38,18 +34,15 @@ my ($template, $session, $t_params)= get_template_and_user({
                                                     entorno => 'undefined'},
 								debug => 1,
 			});
-
 my $ini                         = $input->param('page') || 0;
 my $orden                       = 'id DESC';
 my $url                         = C4::AR::Utilidades::getUrlPrefix()."/opac-historial_prestamos.pl?token=".$input->param('token');
 my $nro_socio                   = C4::AR::Auth::getSessionNroSocio($session);
 my ($ini,$pageNumber,$cantR)    = &C4::AR::Utilidades::InitPaginador($ini);
 my ($cantidad,$prestamos)       = C4::AR::Prestamos::getHistorialPrestamosParaTemplate($nro_socio,$ini,$cantR,$orden);
-
 $t_params->{'paginador'}        = C4::AR::Utilidades::crearPaginadorOPAC($cantidad, $cantR, $pageNumber,$url,$t_params);
 $t_params->{'prestamos'}        = $prestamos;
 $t_params->{'cantidad'}         = $cantidad;
 $t_params->{'content_title'}    = C4::AR::Filtros::i18n("Historial de pr&eacute;stamos");
 $t_params->{'partial_template'} = "opac-historial_prestamos.inc";
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

@@ -1,31 +1,26 @@
-#!/usr/bin/perl -w
-
-# $Id: testKoha.pl,v 1.1 2002/11/22 09:05:18 tipaul Exp $
-
-
-# Copyright 2000-2002 Katipo Communications
+#!/usr/bin/perl
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
-# This file is part of Koha.
+# This file is part of Meran.
 #
-# Koha is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# Koha; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-# Suite 330, Boston, MA  02111-1307 USA
-
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 use strict;
 use Test::Harness;
-
-# please add many tests here
-# Please make the test name the same as the module name where possible
-
 my @tests=(
 	't/format.t',
 	't/Input.t',
@@ -34,22 +29,5 @@ my @tests=(
 	't/require.t',
 	't/Catalogue.t',
 );
-
-
 runtests (@tests);
-
 exit;
-
-# $Log: testKoha.pl,v $
-# Revision 1.1  2002/11/22 09:05:18  tipaul
-# moving non koha-running files to misc dir
-#
-# Revision 1.6  2002/08/14 18:12:51  tonnesen
-# Added copyright statement to all .pl and .pm files
-#
-# Revision 1.5  2002/06/20 18:04:46  tonnesen
-# Are we getting sick of merging yet?  Not me!
-#
-# Revision 1.1.2.7  2002/06/20 15:19:33  amillar
-# Test valid ISBN numbers in Input.pm
-#

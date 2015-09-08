@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,27 +19,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use C4::AR::Nivel2;
 use C4::Context;
 use C4::Modelo::CatRegistroMarcN1;
 use C4::Modelo::CatRegistroMarcN1::Manager;
 use C4::Modelo::CatRegistroMarcN2;
 use C4::Modelo::CatRegistroMarcN2::Manager;
-
-#Ticket #3462
-# Pasar url de revistas de los niveles 2 al 1.
-
   my $revistas = C4::Modelo::CatRegistroMarcN1::Manager->get_cat_registro_marc_n1(
                                                                         query => [ 
                                                                                     template => { eq => 'REV' },
                                                                             ],  
                                                                 );
-
-
 foreach my $nivel1 (@$revistas){
-
     #URL
     my $marc_record1 = $nivel1->getMarcRecordObject();
     
@@ -52,7 +43,6 @@ foreach my $nivel1 (@$revistas){
             
             my $marc_record2 = $nivel2->getMarcRecordObject();
             my $campo = $marc_record2->field('856');
-
             
             if($campo){
                 my $urlGrupo = $campo->subfield('u');
@@ -107,9 +97,5 @@ foreach my $nivel1 (@$revistas){
             $nivel1->save();
         
         }
-
 }
-
-
-
 1;

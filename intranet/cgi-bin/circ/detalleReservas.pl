@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,16 +19,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use CGI;
 use C4::AR::Auth;
-
-
-
 my $input=new CGI;
-
 my ($template, $session, $t_params, $usuario_logueado) =  get_template_and_user ({
 								template_name	=> 'circ/detalleReservas.tmpl',
 								query		=> $input,
@@ -39,15 +33,11 @@ my ($template, $session, $t_params, $usuario_logueado) =  get_template_and_user 
                                                         accion => 'CONSULTA', 
                                                         entorno => 'undefined'},
     });
-
-
 my $obj         = $input->param('obj');
 $obj            = C4::AR::Utilidades::from_json_ISO($obj);
 my $nro_socio   = $obj->{'nro_socio'};
 my $reservas    = C4::AR::Reservas::obtenerReservasDeSocio($nro_socio);
-
 if($reservas){
-
 	my @reservas_asignadas;
 	my $racount = 0;
 	my @reservas_espera;
@@ -71,6 +61,4 @@ if($reservas){
 	$t_params->{'RESERVAS_ESPERA'}              = \@reservas_espera;
 	$t_params->{'reservas_espera_count'}        = $recount;
 }
-
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

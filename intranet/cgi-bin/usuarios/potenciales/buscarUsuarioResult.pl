@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,8 +19,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use C4::AR::Auth;
 use CGI;
@@ -29,9 +27,7 @@ use Date::Manip;
 use C4::AR::Usuarios;
 use C4::AR::Utilidades;
 use Encode;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params)= get_template_and_user({
                                 template_name => "usuarios/potenciales/buscarUsuarioResult.tmpl",
                                 query => $input,
@@ -43,8 +39,6 @@ my ($template, $session, $t_params)= get_template_and_user({
                                                     entorno => 'usuarios'},
                                 debug => 1,
                  });
-
-
 my $obj=C4::AR::Utilidades::from_json_ISO($input->param('obj'));
 my $orden=$obj->{'orden'}||'apellido';
 my $socioBuscado=$obj->{'persona'};
@@ -55,17 +49,13 @@ my $activo;
 my ($cantidad,$socios);
 my ($ini,$pageNumber,$cantR)=C4::AR::Utilidades::InitPaginador($ini);
 my $habilitados = $obj->{'habilitados_filter'} || 0; #se setea por defecto para mostrar los deshabilitados
-
 if ($inicial){
     ($cantidad,$socios)= C4::AR::Usuarios::getSocioLike($socioBuscado,$orden,$ini,$cantR,$habilitados,$inicial, $obj->{'categoria'});
 }else{												
     ($cantidad,$socios)= C4::AR::Usuarios::getSocioLike($socioBuscado,$orden,$ini,$cantR,$habilitados,0, $obj->{'categoria'});
 }
-
 $t_params->{'paginador'}= C4::AR::Utilidades::crearPaginador($cantidad,$cantR, $pageNumber,$funcion,$t_params);
-
 if($socios){
-
 	my $comboDeCategorias= C4::AR::Utilidades::generarComboCategoriasDeSocio();
 	
 	my @resultsdata; 
@@ -73,7 +63,6 @@ if($socios){
 	
 	foreach my $socio (@$socios){
 		my $clase="";
-
     	$activo = C4::AR::Utilidades::translateYesNo_fromNumber($socio->esRegular);
 		
 		my %row = (
@@ -88,9 +77,7 @@ if($socios){
 	
 	$t_params->{'resultsloop'}= \@resultsdata;
 	
-
 }#END if($socios)
-
 $t_params->{'cantidad'}			= $cantidad;
 $t_params->{'socio_busqueda'} 	= Encode::encode('utf8', $socioBuscado);
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);

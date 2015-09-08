@@ -1,8 +1,9 @@
-#
+#!/usr/bin/perl
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -18,14 +19,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
 use CGI::Session;
 use C4::Context;
-
-#Permisos de socios!
     use C4::Modelo::UsrSocio;
     use C4::Modelo::UsrSocio::Manager;
-
     my $socio_array_ref = C4::Modelo::UsrSocio::Manager->get_usr_socio( 
                                                     require_objects => ['persona','ui','persona.documento','categoria'],
                                                     select       => ['persona.*','usr_socio.*','usr_ref_categoria_socio.*','ui.*'],

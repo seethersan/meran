@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,30 +19,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use C4::AR::Nivel2;
-#Sí, Nivel2:
-
-#440^v => 505^g
-
-#Pero hay que tener en cuenta que solo se deben migrar los 440^v cuando el 440^a y b estén vacíos, para asegurarnos que no se esté cambiando un número que sí pertenezca a una serie. 
-#Hasta ahora es el único error de migración real que apareció.
-
-
 sub trim{
     my ($string) = @_;
-
     $string =~ s/^\s+//;
     $string =~ s/\s+$//;
-
     return $string;
 }
-
-
-
 my $registros_array_ref = C4::AR::Nivel2::getAllNivel2();
-
  print "Modificando el campo 440v al 505g del nivel 2 \n";
  my $st1 = time();
  #Procesamos los registros
@@ -53,10 +37,8 @@ my $registros_array_ref = C4::AR::Nivel2::getAllNivel2();
          my $marc_record = MARC::Record->new_from_usmarc($nivel->getMarcRecord());
          my $porcentaje= int (($registro * 100) / $cantidad );
          print "Procesando registro: $registro de $cantidad ($porcentaje%) \r";
-
         my $field = $marc_record->field('440');
         if(($field)&&(trim($field->subfield('v')))&&(!trim($field->subfield('a')))&&(!trim($field->subfield('b')))){
-
             #Es para migrar
             my $dato = $field->subfield('v');
             $field->delete_subfield(code => 'v');
@@ -88,12 +70,10 @@ my $registros_array_ref = C4::AR::Nivel2::getAllNivel2();
         }
      $registro++;
     }
-
  #Fin Proceso
  my $end1 = time();
  my $tardo1=($end1 - $st1);
  my $min= $tardo1/60;
  print "Tardo $min minutos !!!\n";
  print "Se modificaron $registro_modificados registros !!!\n";
-
 1;

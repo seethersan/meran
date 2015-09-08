@@ -1,5 +1,24 @@
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
+#
+# This file is part of Meran.
+#
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 package C4::AR::AuthMysql;
-
 =head1 NAME
   C4::AR::AuthMysql 
 =head1 SYNOPSIS
@@ -8,7 +27,6 @@ package C4::AR::AuthMysql;
     En este modulo se centraliza todo lo relacionado a la authenticacion del usuario contra una base mysql.
     Sirve tanto para utilizar el esquema propio de Meran como para autenticarse con password planas.
 =cut
-
 require Exporter;
 use strict;
 use C4::AR::Preferencias;
@@ -18,8 +36,6 @@ use vars qw(@ISA @EXPORT_OK );
     checkPassword
     
 );
-
-
 =item 
     Funcion que recibe un userid y un password e intenta autenticarse ante un ldap, si lo logra devuelve un objeto Socio.
 =cut
@@ -27,7 +43,6 @@ sub _checkPwPlana{
     #FIXME esto no existe, habria q ver de definirlo
     return undef;
 }
-
 =item
     Funcion que recibe un userid, un nroRandom y un password e intenta validarlo por mysql utilizando el mecanismo interno de Meran, si lo logra devuelve un objeto Socio.
 =cut
@@ -42,16 +57,13 @@ sub _checkPwEncriptada{
     }
     return undef;
 }
-
 =item sub _verificar_password_con_metodo
-
     Verifica la password ingresada por el usuario con la password recuperada de la base, todo esto con el metodo indicado por parametros   
     Parametros:
     $socio: recuperada de la base
     $nroRandom: el nroRandom previamente generado
     $password: ingresada por el usuario
 =cut
-
 sub _verificar_password_con_metodo {
     my ($password, $socio, $nroRandom) = @_;
     C4::AR::Debug::debug("Password del socio socio_password --- password ingresado $password --- Nro_random $nroRandom");
@@ -66,7 +78,6 @@ sub _verificar_password_con_metodo {
         return undef;
     }
 }
-
 sub checkPassword{
     my ($userid,$password,$nroRandom) = @_;
     my $socio=undef;
@@ -80,7 +91,6 @@ sub checkPassword{
 	
 }	
 	
-#TODO: checkear si viene plainPassword	
 sub passwordsIguales{
 	my ($nuevaPassword1,$nuevaPassword2,$socio) = @_;
 	
@@ -92,7 +102,6 @@ sub passwordsIguales{
 	return ($nuevaPassword1 eq $nuevaPassword2);
 	
 }
-
 =item
     Verifica que la password nueva no sea igual a la que ya tiene el socio
     Es independiente del flag de plainPassword en meran.conf
@@ -103,7 +112,6 @@ sub validarPassword{
     my ($userid,$password,$nuevaPassword,$nroRandom) = @_;
     my $socio        = undef;
     my $msg_object   = C4::AR::Mensajes::create();
-
     C4::AR::Debug::debug("\nPassword actual ".$password."\nNuevo password ".$nuevaPassword);
    
     ($socio) = _checkPwEncriptada($userid,$password,$nroRandom);
@@ -129,7 +137,6 @@ sub validarPassword{
 	
     return ($socio,$msg_object);
 }
-
 =item
     Función que setea el password de un socio. Usada en el cambio de password del socio.
     Es independiente del valor de 'plainPassword' porque se manda siempre con AES desde el cliente
@@ -138,21 +145,15 @@ sub validarPassword{
 sub setearPassword{
     
     my ($socio,$nuevaPassword)  = @_;
-
     my $key                     = $socio->getPassword;
         
     $nuevaPassword              = C4::AR::Auth::desencriptar($nuevaPassword,$key);
-
     $nuevaPassword              = C4::AR::Auth::hashear_password($nuevaPassword,'MD5_B64');
     
     $nuevaPassword              = C4::AR::Auth::hashear_password($nuevaPassword,C4::AR::Auth::getMetodoEncriptacion());
-
     $socio->setPassword($nuevaPassword);	
-
     return $socio;
 }
-
-
 END { }       # module clean-up code here (global destructor)
 1;
 __END__

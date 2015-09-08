@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,7 +19,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
 use strict;
 require Exporter;
 use C4::AR::Auth;
@@ -29,16 +28,11 @@ use C4::AR::BackgroundJob;
 use Proc::Simple;
 use C4::AR::Utilidades;
 use C4::AR::ImportacionIsoMARC;
-
 my $input = new CGI;
 my $obj=$input->param('obj');
 my $job;
-
 $obj=C4::AR::Utilidades::from_json_ISO($obj);
-
 my $accion = $obj->{'accion'};
-
-
 if ($accion eq "START_DEMO"){
 	
 	 $job = C4::AR::BackgroundJob->new("DEMO","NULL",0);
@@ -48,14 +42,9 @@ if ($accion eq "START_DEMO"){
      C4::AR::Auth::printValue($job->id);
      
 }elsif ($accion eq "COMENZAR_IMPORTACION"){
-
 	 $job = C4::AR::BackgroundJob->new("IMPORTACION",C4::AR::Auth::getSessionNroSocio,10);
      my $proc = Proc::Simple->new();
      my $id = $obj->{'id'};
-
-#http://search.cpan.org/dist/Proc-Simple/Simple.pm#METHODS
-
      $proc->start(\&C4::AR::ImportacionIsoMARC::procesarImportacion,$id,$job);
      C4::AR::Auth::printValue($job->id);
-
 }

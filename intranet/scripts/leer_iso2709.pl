@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,8 +19,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use C4::Modelo::IoImportacionIsoRegistro;
 use MARC::Moose::Record;
 use MARC::Moose::Reader::File::Isis;
@@ -30,25 +28,20 @@ my $badRecords=0;
 my $records=0;
 my $exit=0;
 open (OUT,">", $outfile); 
-
-
 my $reader = MARC::Moose::Reader::File::Isis->new(
     file   =>  $ARGV[0] || 'biblio.iso');
-
     while ( my $record = $reader->read() ) {
       $records++;
          my $marc_record = MARC::Record->new();
          my $registro_erroneo=0;
          for my $field ( @{$record->fields} ) {
              my $new_field=0;
-
              if(($field->tag < '010')&&(!$field->{'subf'})){
                  #CONTROL FIELD
                  $new_field = MARC::Field->new( $field->tag, $field->{'value'} );
                  }
                  else {
                     for my $subfield ( @{$field->subf} ) {
-
                         if(!$new_field){
                             my $ind1=$field->ind1?$field->ind1:'#';
                             my $ind2=$field->ind2?$field->ind2:'#';
@@ -58,7 +51,6 @@ my $reader = MARC::Moose::Reader::File::Isis->new(
                                  #Empiezo viendo a partir de los campos 900 (son solo 10 los de control!!!)
                                 my $movidos =$params->{'camposMovidos'};
                                 my $campos =$params->{'camposArchivo'};
-
                                 if($movidos->{$campo}){
                                     #ya fue movido?
                                     $campo=$movidos->{$campo};
@@ -76,7 +68,6 @@ my $reader = MARC::Moose::Reader::File::Isis->new(
                                      $campos->{$campo}=1;
                                 }
                              }
-
                             $new_field= MARC::Field->new($campo, $ind1, $ind2,$subfield->[0] => $subfield->[1]);
                             }
                         else{
@@ -96,14 +87,11 @@ my $reader = MARC::Moose::Reader::File::Isis->new(
          }
        
   print $marc_record->as_formatted();
-#Se guarda!
                 my %parametros;
                 $parametros{'id_importacion_iso'}   = '2';
                 $parametros{'marc_record'}          = $marc_record->as_usmarc();
                 my $Io_registro_importacion         = C4::Modelo::IoImportacionIsoRegistro->new(db => $db);
                 $Io_registro_importacion->agregar(\%parametros);
-
 }
 print "TOTAL RECORDS!!!---> ".$records."\n";
-
 close OUT;

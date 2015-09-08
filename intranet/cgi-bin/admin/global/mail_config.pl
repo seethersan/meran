@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-#
 # Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
 # Circulation and User's Management. It's written in Perl, and uses Apache2
 # Web-Server, MySQL database and Sphinx 2 indexing.
-# Copyright (C) 2009-2013 Grupo de desarrollo de Meran CeSPI-UNLP
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
 # This file is part of Meran.
 #
@@ -19,8 +19,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Meran.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 use strict;
 use CGI;
 use C4::AR::Auth;
@@ -28,9 +26,7 @@ use C4::Context;
 use C4::Output;
 use C4::AR::Preferencias;
 use C4::AR::Mail;
-
 my $input = new CGI;
-
 my ($template, $session, $t_params, $socio)  = get_template_and_user({
                             template_name => "admin/global/mailConfig.tmpl",
                             query => $input,
@@ -42,13 +38,9 @@ my ($template, $session, $t_params, $socio)  = get_template_and_user({
                                                 entorno => 'undefined'},
                             debug => 1,
                  });
-
-
 my $post_accion               = $input->param('post_form');
 my $mensaje;
-
 if($post_accion){
-# viene desde el post del formulario
     
     my %hash_temp               = {};
     my $accion                  = $input->param('accion');
@@ -60,7 +52,6 @@ if($post_accion){
     my $mailFrom                = $input->param('mailFrom');
     my $reserveFrom             = $input->param('reserveFrom');
     my $smtp_server_sendmail    = $input->param('smtp_server_sendmail')||0; 
-
     my $categoria               = 'mail';
     my $Message_arrayref        = C4::AR::Preferencias::t_modificarVariable('smtp_server', $smtp_server,'',$categoria);
     $Message_arrayref           = C4::AR::Preferencias::t_modificarVariable('smtp_metodo', $smtp_metodo, '',$categoria);
@@ -70,19 +61,14 @@ if($post_accion){
     $Message_arrayref           = C4::AR::Preferencias::t_modificarVariable('mailFrom', $mailFrom, '',$categoria);
     $Message_arrayref           = C4::AR::Preferencias::t_modificarVariable('reserveFrom', $reserveFrom, '',$categoria);
     $Message_arrayref           = C4::AR::Preferencias::t_modificarVariable('smtp_server_sendmail', $smtp_server_sendmail, '',$categoria);
-
     my $msg_object              = C4::AR::Mensajes::create();  
     my $user                    = C4::AR::Usuarios::getSocioInfoPorNroSocio(C4::AR::Auth::getSessionNroSocio());
-
     my $default_ui              = C4::AR::Preferencias::getValorPreferencia('defaultUI');
     my $ui                      = C4::Modelo::PrefUnidadInformacion->getByCode($default_ui);
     my $mail_to                 = $user->persona->getEmail; 
-
     if($accion eq 'PROBAR_CONFIGURACION'){
     #   solo si esta probando la configuracion mandamos el mail de prueba
-
         my ($ok, $msg_error)        = C4::AR::Mail::send_mail_TEST($mail_to);    
-
         if($ok){
             $msg_object->{'error'}  = 0;
             C4::AR::Mensajes::add($msg_object, {'codMsg'=> 'U413', 'params' => [$mail_to]} ) ;
@@ -93,13 +79,10 @@ if($post_accion){
         
         $mensaje = $msg_object->{'messages'}[0]->{'message'};
     }
-
     elsif($accion eq 'MODIFICAR_CONFIGURACION'){
         $mensaje = "Se guardaron los cambios con &eacute;xito"
     }
-
 }
-
 my $preferencias_mail         = C4::AR::Preferencias::getPreferenciasByCategoriaHash('mail');
 $t_params->{'preferencias'}   = $preferencias_mail;
 $t_params->{'mensaje'}        = $mensaje;

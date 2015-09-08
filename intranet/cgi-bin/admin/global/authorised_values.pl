@@ -1,29 +1,27 @@
 #!/usr/bin/perl
-
-# Copyright 2000-2002 Katipo Communications
+# Meran - MERAN UNLP is a ILS (Integrated Library System) wich provides Catalog,
+# Circulation and User's Management. It's written in Perl, and uses Apache2
+# Web-Server, MySQL database and Sphinx 2 indexing.
+# Copyright (C) 2009-2015 Grupo de desarrollo de Meran CeSPI-UNLP
+# <desarrollo@cespi.unlp.edu.ar>
 #
-# This file is part of Koha.
+# This file is part of Meran.
 #
-# Koha is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
+# Meran is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+# Meran is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# Koha; if not, write to the Free Software Foundation, Inc., 59 Temple Place,
-# Suite 330, Boston, MA  02111-1307 USA
-
+# You should have received a copy of the GNU General Public License
+# along with Meran.  If not, see <http://www.gnu.org/licenses/>.
 use strict;
 use CGI;
 use C4::AR::Auth;
-
-
-
-
 sub StringSearch  {
 	my ($env,$searchstring,$type)=@_;
 	my $dbh = C4::Context->dbh;
@@ -41,7 +39,6 @@ sub StringSearch  {
 	$sth->finish;
 	return ($cnt,\@results);
 }
-
 my $input = new CGI;
 my $searchfield=$input->param('searchfield');
 $searchfield=~ s/\,//g;
@@ -49,7 +46,6 @@ my $id = $input->param('id');
 my $offset=$input->param('offset');
 my $script_name=C4::AR::Utilidades::getUrlPrefix()."/admin/authorised_values.pl";
 my $dbh = C4::Context->dbh;
-
 my ($template, $session, $t_params) = C4::AR::Auth::get_template_and_user({
                                     template_name => "admin/global/authorised_values.tmpl",
                                     query => $input,
@@ -63,15 +59,12 @@ my ($template, $session, $t_params) = C4::AR::Auth::get_template_and_user({
 			    });
 my $pagesize=20;
 my $op = $input->param('op');
-
 if ($op) {
         $t_params->{'script_name'}= $script_name;
         $t_params->{$op}= 1; # we show only the TMPL_VAR names $op
 } else {
     $t_params->{'script_name'} = $script_name || 1; # we show only the TMPL_VAR names $op
 }
-################## ADD_FORM ##################################
-# called by default. Used to create form to add or  modify a record
 if ($op eq 'add_form') {
 	my $data;
 	if ($id) {
@@ -98,8 +91,6 @@ if ($op eq 'add_form') {
 	$t_params->{'authorised_value'}= $data->{'authorised_value'};
 	$t_params->{'lib'}= $data->{'lib'};
 	$t_params->{'id'}= $data->{'id'};
-
-
 	if ($data->{'category'}) {
 	
 	
@@ -107,8 +98,6 @@ $t_params->{'category'}= "<input type=\'hidden\'name=\'category\'value=".$data->
 	} else {
 		$t_params->{'category'}= "<input type=text name=\'category\' size=8 maxlength=8>";
 	}
-################## ADD_VALIDATE ##################################
-# called by add_form, used to insert/modify data in DB
 } elsif ($op eq 'add_validate') {
 	my $dbh = C4::Context->dbh;
 	my $sth=$dbh->prepare("replace pref_valor_autorizado (id,category,authorised_value,lib) values (?,?,?,?)");
@@ -119,8 +108,6 @@ $t_params->{'category'}= "<input type=\'hidden\'name=\'category\'value=".$data->
 	$sth->finish;
 	print "Content-Type: text/html\n\n<META HTTP-EQUIV=Refresh CONTENT=\"0; URL=authorised_values.pl?searchfield=".$input->param('category')."\"></html>";
 	exit;
-################## DELETE_CONFIRM ##################################
-# called by default form, used to confirm deletion of data in DB
 } elsif ($op eq 'delete_confirm') {
 	my $dbh = C4::Context->dbh;
 	my $sth=$dbh->prepare("select category,authorised_value,lib from pref_valor_autorizado where id=?");
@@ -130,11 +117,6 @@ $t_params->{'category'}= "<input type=\'hidden\'name=\'category\'value=".$data->
 	$t_params->{'searchfield'}= $searchfield;
 	$t_params->{'Tvalue'}= $data->{'authorised_value'};
 	$t_params->{'id'}=$id;
-
-
-#  END $OP eq DELETE_CONFIRM
-################## DELETE_CONFIRMED ##################################
-# called by delete_confirm, used to effectively confirm deletion of data in DB
 } elsif ($op eq 'delete_confirmed') {
 	my $dbh = C4::Context->dbh;
 	my $sth=$dbh->prepare("delete from pref_valor_autorizado where id=?");
@@ -142,9 +124,7 @@ $t_params->{'category'}= "<input type=\'hidden\'name=\'category\'value=".$data->
 	$sth->finish;
 	print "Content-Type: text/html\n\n<META HTTP-EQUIV=Refresh CONTENT=\"0; URL=authorised_values.pl?searchfield=$searchfield\"></html>";
 	exit;
-
 													# END $OP eq DELETE_CONFIRMED
-################## DEFAULT ##################################
 } else { # DEFAULT
 	# build categories list
 	my $sth = $dbh->prepare("select distinct category from pref_valor_autorizado");
@@ -183,11 +163,9 @@ $t_params->{'category'}= "<input type=\'hidden\'name=\'category\'value=".$data->
 		$row_data{delete} = "$script_name?op=delete_confirm&searchfield=$searchfield&id=".$results->[$i]{'id'};
 		push(@loop_data, \%row_data);
 	}
-
 	$t_params->{'loop'}= \@loop_data;
 	$t_params->{'tab_list'}= $tab_list;
 	$t_params->{'category'}= $searchfield;
-
 	if ($offset>0) {
 		my $prevpage = $offset-$pagesize;
 		$t_params->{'isprevpage'}= $offset;
@@ -202,5 +180,4 @@ $t_params->{'category'}= "<input type=\'hidden\'name=\'category\'value=".$data->
 		$t_params->{'script_name'}= $script_name;
 	}
 } #---- END $OP eq DEFAULT
-
 C4::AR::Auth::output_html_with_http_headers($template, $t_params, $session);
