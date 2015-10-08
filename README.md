@@ -9,7 +9,7 @@ It's written in Perl, and uses Apache2 Web-Server, MySQL database and Sphinx 2 i
 Quick start
 -----------
 
-Clone the repo, `git clone git@github.com:Desarrollo-CeSPI/meran.git`
+Clone the repo, `git clone https://github.com/Desarrollo-CeSPI/meran`
 
 Installation
 ------------
@@ -33,13 +33,13 @@ Once that you have cloned the repo, go to MERAN_REPO/docs/generacionInstalador.
  ./new_instalador.sh
 ```
 
-This will generate new installation files in the directory aux/, extract them. 
+This will generate new installation files in the directory aux/, extract them.
 
 ```
 tar -xzvf meranunlp-vX.x.x.tar.gz
 ``` 
 
-And now proceed to install.
+Files will normally be extracted inside a directory called meranunlp. From that directory, proceed to install.
 
 ```
 chmod +x instalar.sh
@@ -47,6 +47,12 @@ chmod +x instalar.sh
 ```
 
 And follow the steps. MERAN_ID it's an identifier for the installation, since you can have multiples MERAN installed.
+
+After installing Meran, some patches should be applied to the database. For that, inside MERAN_REPO/docs/instalador:
+
+```
+mysql meran -p -f < updates.sql
+```
 
 2) Directly from the sources
 ----------------------------
