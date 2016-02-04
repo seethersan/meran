@@ -23,29 +23,6 @@
         </div>
         <div class="nav-collapse">
           <ul class="nav">
-	            <li class="dropdown">
-	              <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% 'Cat&aacute;logo' | i18n %] <b class="caret"></b></a>
-	              <ul class="dropdown-menu">
-			            <li>
-			                [% PERL %]
-			                    print C4::AR::Filtros::link_to( text    =>  "[% 'B&uacute;squeda Avanzada' | i18n %]",
-                                  							    icon    => "icon-search",
-			                                                    url     =>  '[% url_prefix %]/opac-advanced_search.pl',
-			                                                    title   =>  "[% 'B&uacute;squeda Avanzada' | i18n %]",
-			                            ) ;
-			                [% END %]
-			            </li>
-			            <li>
-			                [% PERL %]
-			                    print C4::AR::Filtros::link_to( text    =>  " [% 'Estantes Virtuales' | i18n %]",
-			                                                    url     =>  '[% url_prefix %]/opac-estante.pl',
-			                                                    icon    => "icon-folder-open",
-			                                                    title   =>  "[% 'Estantes Virtuales' | i18n %]",
-			                            ) ;
-			                [% END %]
-			            </li>   
-		            </ul>
-	            </li>  
 	            [% IF socio_data.usr_nro_socio %]
 	                <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% 'Mi cuenta' | i18n %] <b class="caret"></b></a>
@@ -120,50 +97,13 @@
 
           <ul class="nav pull-right">
             <li>
-                    [% PERL %]
-	                    print C4::AR::Filtros::link_to( text    =>  "[% 'Contacto' | i18n %]",
-	                                                    url     =>  '[% url_prefix %]/opac-contact.pl',
-	                                                    title   =>  "[% 'Contacto' | i18n %]",
-	                            ) ;
-	                [% END %]
-			 </li>
-            <li class="divider-vertical"></li>
-			[% IF socio_data.usr_nro_socio %]
-	            <li class="dropdown">
-		            <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% socio_data.usr_nombre %]&nbsp;[% socio_data.usr_apellido %]<b class="caret"></b></a>
-		            <ul class="dropdown-menu">
-                    <li>
-                            [% PERL %]
-                              print C4::AR::Filtros::link_to( text    =>  '<i class="icon-user"></i> [% "Mis Datos" | i18n %]',
-                                                              url     =>  '[% url_prefix %]/misDatos.pl',
-                                                              title   =>  "[% 'Mis Datos' | i18n %]",
-                                      ) ;
-                            [% END %]
-                    </li>
-		                <li>
-		                
-		                    [% PERL %]
-                              print C4::AR::Filtros::link_to( text    =>  '<i class="icon-cog"></i> [% "Ajustes" | i18n %]',
-                                                              url     =>  '[% url_prefix %]/settings.pl',
-                                                              title   =>  "[% 'Ajustes' | i18n %]",
-                                      ) ;
-                            [% END %]
-		                </li>
-		                <li class="divider"></li>
-		                <li><a href="[% url_prefix %]/logout.pl?token=[% token %]"><i class="icon-off"></i> [% "Salir" | i18n %]</a></li>
-		            </ul>
-				</li>
-            [% ELSE %]
-            	<li class="active" >
-            	
-                      [% PERL %]
-                          print C4::AR::Filtros::link_to( text    =>  "[% 'Iniciar sesi&oacute;n' | i18n %]",
-                                                          url     =>  '[% url_prefix %]/auth.pl',
-                                                          title   =>  "[% 'Iniciar sesi&oacute;n' | i18n %]",
-                                  ) ;
-                      [% END %]
-            	</li>
-            [% END %]
+                [% PERL %]
+                    print C4::AR::Filtros::link_to( text    =>  "[% 'Contacto' | i18n %]",
+                                                    url     =>  '[% url_prefix %]/opac-contact.pl',
+                                                    title   =>  "[% 'Contacto' | i18n %]",
+                            ) ;
+                [% END %]
+		        </li>
           </ul>
         </div><!-- /.nav-collapse -->
       </div>
