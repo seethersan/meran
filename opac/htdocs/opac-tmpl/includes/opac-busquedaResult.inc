@@ -210,28 +210,6 @@
 
 [% USE HTML %]
 	        	<div>
-		        	[% IF external_search  %]
-					          [% IF cant_external_servers %]
-						          <div class="right" style="margin-top: 10px">
-        									[% PERL %]
-        										print C4::AR::Filtros::action_button( 
-        											button        => "btn btn-success",
-        											action       	=> 'doExternalSearches("[% buscoPor | html %]")', 
-        											icon         	=> "icon-white icon-search ",
-        											title        	=> "[% 'Externos' | i18n %]",
-        											popover => { 
-        												title   =>'[% "Atenci&oacute;n" | i18n %]',
-        												text    => '[% "Buscar en servidores externos hace la misma b&uacute;squeda 
-        																en cat&aacute;logos ajenos a esta biblioteca. 
-        																Tenga en cuenta que puede llevar un tiempo considerable." | i18n %]',
-        												placement => "left",
-        											},
-        											
-        										) ;
-        									[% END %]
-								      </div>
-				          	[% END %]
-			          [% END %]
 			          
             		<div class="page-header" style="border-bottom: none; padding-bottom: 0px;">
             			<h3>
@@ -277,17 +255,12 @@
                  print C4::AR::Filtros::sortableTableHeader(   
                                                          id             => "tablaResult",
                                                          class          => "table table-bordered",
-                                                         columns        => ['[% "Tipo"|i18n %]','[% "T&iacute;tulo"|i18n %]','[% "Autor"|i18n %]',
-                                                                             '[% "Edici&oacute;n"|i18n %]','[% "Disponibilidad"|i18n %]', '[% "Valoraci&oacute;n" | i18n %]',
+                                                         columns        => ['[% "Tipo"|i18n %]','[% "Apellido y Nombre"|i18n %]',
                                                                              [% IF socio_data.usr_permisos_opac %]'[% "Favoritos" | i18n %]'[% END %]
                                                                             ],
-                                                          sortable_fields  => {  'Tipo' => '',
-                                                                               'T&iacute;tulo' =>'titulo', 
-                                                                               'Autor' => 'autor',
-                                                                               'Edici&oacute;n' => '',
-                                                                               'Disponibilidad' =>'',
-                                                                               'Valoracion' =>'',
-                                                                      
+                                                          sortable_fields  => {   'Tipo' => '',
+                                                                                  'T&iacute;tulo' => 'titulo',
+
                                                                              },
                                                           order => "[% orden %]",
                                                           order_direction => "[% sentido_orden %]",
@@ -310,7 +283,7 @@
                                 [% IF loop.count < 4 %]
                                   [% FOREACH p IN portada.value %]
                                     <a class="fancylink" rel="group_[% grupo %]" href="/uploads/covers-added/[% p.image_name %]">
-                                      <img class="cover_result" alt="coverllll" src="/uploads/covers-added/[% p.image_name %]" title="Portada" />
+                                      <img class="cover_result" alt="coverllll" src="/uploads/covers-added/[% p.image_name %]" title="Foto" />
                                    </a>
                                 [% END %]
                                [% END %]
@@ -321,23 +294,23 @@
                                  [% IF loop.count < 4 %]
                                      [% IF portada.portada_registro_big %]
                                          <a class="fancylink" rel="group_[% grupo %]" href="/uploads/covers/[% portada.portada_registro_big %]">
-                                             <img alt="coverllll" src="/uploads/covers/[% portada.portada_registro %]" title="Portada" />
+                                             <img alt="coverllll" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
                                          </a>
                                      [% ELSE %]
                                        [% IF portada.portada_registro_medium %]
                                            <a class="fancylink" rel="group_[% grupo %]" href="/uploads/covers/[% portada.portada_registro_medium %]">
-                                               <img alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Portada" />
+                                               <img alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
                                            </a>
                                        [% ELSE %]
-                                               <img alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Portada" />
+                                               <img alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
                                        [% END %]
                                     [% END %]
                                   [% END %]
                               [% END %]
                        [% ELSE %]
                              <img src="/uploads/covers/[% NIVEL.cat_ref_tipo_nivel3 %].png" 
-                                   alt="[% 'Sin Portada' | i18n %]"
-                                   title="[% 'Sin Portada' | i18n %]" />
+                                   alt="[% 'Sin foto' | i18n %]"
+                                   title="[% 'Sin foto' | i18n %]" />
                        [% END %]
                          <br />
                          <center><div style="font-weight: bold; font-size: 10px; clear:both;" >[% NIVEL.cat_ref_tipo_nivel3_name %] </div></center>
@@ -346,10 +319,10 @@
                         <td>	
                             [% IF NIVEL.titulo %]
                                     [% PERL %]
-                                        print C4::AR::Filtros::link_to( text 		=>   "[% IF HTML.escape(NIVEL.titulo) %][% NIVEL.titulo %][% ELSE %]SIN T&Iacute;TULO[% END %]",
+                                        print C4::AR::Filtros::link_to( text 		=>   "[% IF HTML.escape(NIVEL.titulo) %][% NIVEL.titulo %][% ELSE %]SIN DATOS[% END %]",
                                                                         url 		=>   "[% url_prefix %]/opac-detail.pl", 
                                                                         params 		=>   ["id1=[% NIVEL.id1 %]"],
-                                                                        title 		=>    "[% 'Mostrar Detalle del registro' | i18n %]",
+                                                                        title 		=>    "[% 'Mostrar detalle del registro' | i18n %]",
     		                                                            on_click 	=> "startOverlay();"
                                                                     ) ;
                                     [% END %]
@@ -358,169 +331,7 @@
                             [% END %]
                         </td>
 
-                        <td>
-                            [% IF NIVEL.nomCompleto %]
-                                [% PERL %]
-                                    print C4::AR::Filtros::link_to( text =>     "[% NIVEL.nomCompleto %]",
-                                                                    url =>      "[% url_prefix %]/opac-busquedasDB.pl", 
-                                                                    params =>   ["tipoAccion=BUSQUEDA_AVANZADA","autor=[% HTML.escape(NIVEL.nomCompleto) %]"],
-                                                                    title =>    "[% 'Buscar de este autor' | i18n %]"
-                                                                ) ;
-                                [% END %]                                
-                            [% ELSE %]
-                                ----------
-                            [% END %]
-                        </td>
 
-                        <td>
-                        [% IF NIVEL.estadoDeColeccion %]
-							            <span id="coleccion_[% NIVEL.id1 %]">
-                            <ul class="listado_sin_margen estado_coleccion unstyled">
-                            [% FOREACH anio IN NIVEL.estadoDeColeccion.keys.sort %]
-                            [% IF NIVEL.estadoDeColeccion.$anio.keys %]
-                            <li>
-                                [% IF  (NIVEL.estadoDeColeccion.$anio.size > 1 || (NIVEL.estadoDeColeccion.$anio.keys.first && NIVEL.estadoDeColeccion.$anio.keys.first != '#'))||
-                                (NIVEL.estadoDeColeccion.$anio.item('#').size > 1 || (NIVEL.estadoDeColeccion.$anio.item('#').keys.first && NIVEL.estadoDeColeccion.$anio.item('#').keys.first != '#')) 
-                                       %]
-                                   [% IF anio != '#' %] <b>[% anio %]</b>  [% END %]
-
-                                  [% FOREACH volumen IN NIVEL.estadoDeColeccion.$anio.keys.sort %]
-                                    
-                                      [% IF  NIVEL.estadoDeColeccion.$anio.$volumen.keys.size > 1 || NIVEL.estadoDeColeccion.$anio.$volumen.keys.sort.first != '#' %]
-                                       [% IF volumen != '#' %] <b>[% volumen %]</b>[% END %]
-                                        (
-                                          [% FOREACH fasciculo IN NIVEL.estadoDeColeccion.$anio.$volumen.keys.sort %]
-
-                                              [% PERL %]
-                                                print C4::AR::Filtros::link_to( text =>     "[% HTML.escape(fasciculo) %]",
-                                                                url=>"[% url_prefix %]/opac-detail.pl", 
-                                                                params =>   ["id1=[% NIVEL.id1 %]","id2=[% NIVEL.estadoDeColeccion.$anio.$volumen.$fasciculo %]#detalle_grupo_[% NIVEL.estadoDeColeccion.$anio.$volumen.$fasciculo %]"],
-                                                                title =>    "[% 'Mostrar Detalle del Registro' | i18n %]",
-                                                                class =>  "link_to_detail"
-                                                              ) ;
-                                               [% END %]
-
-                                          [% END %]
-                                         )
-                                      [% ELSE %]
-                                            [% PERL %]
-                                                print C4::AR::Filtros::link_to( text =>     "[% HTML.escape(volumen) %]",
-                                                                url=>"[% url_prefix %]/opac-detail.pl", 
-                                                                params =>   ["id1=[% NIVEL.id1 %]","id2=[% NIVEL.estadoDeColeccion.$anio.$volumen.item('#') %]#detalle_grupo_[% NIVEL.estadoDeColeccion.$anio.$volumen.item('#') %]"],
-                                                                title =>    "[% 'Mostrar Detalle del Registro' | i18n %]",
-                                                                class =>  "link_to_detail"
-                                                              ) ;
-                                            [% END %]
-                                      [% END %]
-
-                                  [% END %]
-
-                                [% ELSE %]
-                                           [% PERL %]
-                                                print C4::AR::Filtros::link_to( text =>     "[% HTML.escape(anio) %]",
-                                                                url=>"[% url_prefix %]/opac-detail.pl", 
-                                                                params =>   ["id1=[% NIVEL.id1 %]","id2=[% NIVEL.estadoDeColeccion.$anio.item('#').item('#') %]#detalle_grupo_[% NIVEL.estadoDeColeccion.$anio.item('#').item('#') %]"],
-                                                                title =>    "[% 'Mostrar Detalle del Registro' | i18n %]",
-                                                                class =>  "link_to_detail"
-                                                              ) ;
-                                            [% END %]
-                                [% END %]
-                            </li>
-                            [% END %]
-                            [% END %]
-                            </ul>
-                            </span>
-    						  <script type="text/javascript">$("#coleccion_[% NIVEL.id1 %]").expander({
-    							  slicePoint: 2000, 
-    							  widow: 10,
-    							  expandEffect: 'fadeIn', 
-    							  expandText: '<i class="icon-arrow-down"></i>',
-    							  userCollapseText: '<i class="icon-arrow-up"></i>',
-                                  expandPrefix: '',
-    							});
-    						 </script>
-						 
-						[% ELSE %]
-							[% IF NIVEL.grupos %]
-								<span id="grupos_[% NIVEL.id1 %]" class="detalle_registro_edicion">
-									[% FOREACH NIVEL.grupos %]
-										[% IF edicion %]
-											[% edicion %] &nbsp;
-										[% END %]
-										[% IF loop.prev.anio_publicacion != anio_publicacion %]
-											[% IF anio_publicacion %]
-												([% anio_publicacion %])<br/>
-											[% END %]
-										[% END %]
-											
-									[% END %]
-								</span>
-						  <script type="text/javascript">$("#grupos_[% NIVEL.id1 %]").expander({
-							  slicePoint: 2000, 
-							  widow: 10,
-							  expandEffect: 'fadeIn', 
-							  expandText: '<i class="icon-arrow-down"></i>',
-							  userCollapseText: '<i class="icon-arrow-up"></i>',
-                              expandPrefix: '',
-							});
-						 </script>
-							[% END %]
-						[% END %]
-   
-
-
-   	  					[% IF NIVEL.cat_ref_tipo_nivel3 == "ANA" %]
-   	  						 [% IF NIVEL.titulo_registro_padre %]
-                      EN: <br>
-                      [% PERL %]
-                          print C4::AR::Filtros::link_to( 
-                              text 		=> 
-                              "[% IF HTML.escape(NIVEL.titulo_registro_padre) %]
-                                [% HTML.escape( NIVEL.titulo_registro_padre) %]
-                               [% ELSE %]
-                               SIN T&Iacute;TULO
-                               [% END %]
-                               [% IF HTML.escape(NIVEL.autor_registro_padre) %]
-                                / [% HTML.escape(NIVEL.autor_registro_padre) %]
-                               [% END %]
-                               [% IF HTML.escape(NIVEL.detalle_grupo_registro_padre) %]
-                                 <br>[% HTML.escape(NIVEL.detalle_grupo_registro_padre) %]
-                               [% END %]
-                               [% IF HTML.escape(NIVEL.tipo_documento_padre) %]
-                                 <br>([% HTML.escape(NIVEL.tipo_documento_padre) %])
-                               [% END %]",
-                              url 		=>   "[% url_prefix %]/opac-detail.pl", 
-                              params 		=>   ["id1=[% NIVEL.nivel1_padre %]","id2=[% NIVEL.nivel2_padre %]"],
-                              title 		=>    "[% 'Mostrar Detalle del registro' | i18n %]", on_click 	=> "startOverlay();"
-                          ) ;
-                      [% END %]
-                    [% END %]
-                [% END %]
-
-                        </td>
-
-                        <td>
-                            [% IF NIVEL.disponibilidad %]
-                                [% FOREACH NIVEL.disponibilidad %]
-                                	[% flag = 0 %]
-                                    [% IF cantTotal %]
-                                        [% IF flag %]
-                                    		[% 'Disponible para ' | i18n %]&nbsp;
-                                			[% flag = 1 %]
-                                    	[% END %]
-                                    	<span class="label [% IF domicilio %] label-success [% END %]">[% tipoPrestamo %]</span>
-                                        <br /><br />
-                                    [% END %]
-                                [% END %]
-                            [% END %]
-                        </td>
-                        <td class="span2">
-                            [% IF NIVEL.rating > 0 %]
-								<div class="rating_div" id="rating_[% NIVEL.id1 %]" data-rating="[% NIVEL.rating %]"></div>
-	                         [% ELSE %]
-	                           [% '----------' %]
-	                         [% END %]
-                        </td>
                         [% IF socio_data.usr_permisos_opac %]
                         <td id="fav_[% NIVEL.id1 %]">
                             [% IF NIVEL.esta_en_favoritos %]
