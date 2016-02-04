@@ -76,9 +76,6 @@
                                 
                               </dl>
 
-                              [% IF (mostrarSignaturaEnDetalleOPAC) && (cat_ref_tipo_nivel3 != "ELE") %]
-                                <p>[% 'Puede solicitar m&aacute;s f&aacute;cilmente el ejemplar con:' | i18n %] <strong> [% HTML.escape(primer_signatura) %]</strong></p>
-                              [% END %]
                                 [% IF tiene_indice %]
                                     [% PERL %]
                                             print C4::AR::Filtros::action_button(  
@@ -113,21 +110,6 @@
                                   </div>
                                 [% END %]
                                  
-                                [% IF esta_en_estante_virtual %]
-
-                                        [% PERL %]
-
-                                           print C4::AR::Filtros::action_link_button( 
-                                                              button    => "btn btn-inverse",
-                                                              url       => "[% url_prefix %]/opac-busquedasDB.pl", 
-                                                              params    => ["tipoAccion=BUSQUEDA_AVANZADA",
-                                                                             "estantes_grupo=[% id2 %]"],
-                                                              icon      => "",
-                                                              title     => "[% 'Ver estantes' | i18n %]",
-                                                          );
-                                        [% END %]
-
-                               [% END %]
                             [% IF socio_data.usr_nro_socio && informar_error %]
                                 [% PERL %]
 
@@ -190,31 +172,7 @@
         [% END %]  <!--END  IF nivel2_array -->
 
         [% INCLUDE 'e-docs_grupo.inc' %]
-                                
-        [% IF !preferencias.resumido %]
-            [% INCLUDE 'opac-detail_partial_N2_ejemplares.inc' %]
-        [% END %]                             
-
-        [% IF cat_ref_tipo_nivel3 != "ANA" %]
-          [% IF disponible %]
-            [% INCLUDE 'opac-detail_partial_disponibilidad.inc' %]
-          [% END %]
-        [% END %]
-
-        [% IF show_analiticas > 0 %]
-            <div class="accordion-heading">
-
-                       [% PERL %]
-                               print C4::AR::Filtros::link_to( text   => "[% 'Anal&iacute;ticas' | i18n %] <span class='badge badge-warning' style='cursor: default;'>[% cant_analiticas %]</span>",
-                                                               url    => "[% url_prefix %]/opac-analiticas.pl", 
-                                                               params   => ["id2=[% id2 %]"],
-                                                               title  => "[% 'Anal&iacute;ticas' | i18n %]",
-                                                               class  => "accordion-toggle"
-                                                           ) ;
-                       [% END %]
-            </div>
-        [% END %]
-
+                                                       
 
   </section>
 
