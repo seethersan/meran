@@ -294,15 +294,15 @@
                                  [% IF loop.count < 4 %]
                                      [% IF portada.portada_registro_big %]
                                          <a class="fancylink" rel="group_[% grupo %]" href="/uploads/covers/[% portada.portada_registro_big %]">
-                                             <img alt="coverllll" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
+                                             <img class="cover_result" alt="coverllll" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
                                          </a>
                                      [% ELSE %]
                                        [% IF portada.portada_registro_medium %]
                                            <a class="fancylink" rel="group_[% grupo %]" href="/uploads/covers/[% portada.portada_registro_medium %]">
-                                               <img alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
+                                               <img class="cover_result" alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
                                            </a>
                                        [% ELSE %]
-                                               <img alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
+                                               <img class="cover_result" alt="cover" src="/uploads/covers/[% portada.portada_registro %]" title="Foto" />
                                        [% END %]
                                     [% END %]
                                   [% END %]
@@ -312,8 +312,6 @@
                                    alt="[% 'Sin foto' | i18n %]"
                                    title="[% 'Sin foto' | i18n %]" />
                        [% END %]
-                         <br />
-                         <center><div style="font-weight: bold; font-size: 10px; clear:both;" >[% NIVEL.cat_ref_tipo_nivel3_name %] </div></center>
                      </td>
 
                         <td>	
