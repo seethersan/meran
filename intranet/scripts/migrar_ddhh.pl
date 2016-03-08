@@ -30,7 +30,8 @@ use MARC::Record;
 use C4::AR::ImportacionIsoMARC;
 use C4::AR::Catalogacion;
 use C4::Modelo::CatRegistroMarcN2Analitica;
-
+use File::Copy;
+use File::Basename;
 
 
 sub prepararNivelParaImportar{
@@ -274,7 +275,7 @@ sub buscarRegistroDuplicado{
 my $op = $ARGV[0] || 0;
 my $db_driver =  "mysql";
 my $db_name   = 'ddhh';
-my $db_host   = 'localhost';
+my $db_host   = 'db';
 my $db_user   = 'root';
 my $db_passwd = 'dev';
 open (ERROR, '>/var/log/meran/errores_migracion_ddhh_'.$op.'.txt');
@@ -286,12 +287,13 @@ my $desaparecidos=$db->prepare("SELECT ddhhdesaparecidos.apellido, ddhhdesaparec
 $desaparecidos->execute();
 my $cant =  $desaparecidos->rows;
 my $count=0;
+my $countexists=0;
 my $template = 'PER';
 my $nivel = "Monografico";
 
 while (my $desaparecido=$desaparecidos->fetchrow_hashref) {
-    my ($marc_record_n1,$marc_record_n2,$marc_record_n3_base,$ejemplares) = prepararRegistroParaMigrar($libro,$template,$nivel);
-
+    my ($marc_record_n1,$marc_record_n2,$marc_record_n3_base,$ejemplares) = prepararRegistroParaMigrar($desaparecido,$template,$nivel);
+    
     my ($msg_object,$id1);
     #Si ya existe?
     my $n1 = buscarRegistroDuplicado($marc_record_n1,$template);
@@ -309,7 +311,7 @@ while (my $desaparecido=$desaparecidos->fetchrow_hashref) {
             #Logueo error
             my $codMsg  = C4::AR::Mensajes::getFirstCodeError($msg_object);
             my $mensaje = C4::AR::Mensajes::getMensaje($codMsg,'INTRA');
-            print ERROR "Error REGISTRO: Agregando Nivel 1: ".$libro->{'libro_nombre'}." registro número: ".$libro->{'titulo_id'}." (ERROR: $mensaje )\n";
+            print ERROR "Error REGISTRO: Agregando Nivel 1: ".$desaparecido->{'libro_nombre'}." registro número: ".$libro->{'titulo_id'}." (ERROR: $mensaje )\n";
         }
     }
     if ($id1){
@@ -318,33 +320,21 @@ while (my $desaparecido=$desaparecidos->fetchrow_hashref) {
             print "Nivel 2 creado ?? ".$msg_object2->{'error'}."\n";
             if (!$msg_object2->{'error'}){
                 $grupos_creados ++;
-                #Analíticas
-                #my $cant_analiticas = agregarAnaliticas($id1,$id2,$material->{'RecNo'});
-                #$analiticas_creadas += $cant_analiticas;
-        #       print "Analiticas creadas? ".$cant_analiticas."\n";
-                print "Ejemplaress";
-                foreach my $ejemplar (@$ejemplares){
-                    my $marc_record_n3 = $marc_record_n3_base->clone();
-                    foreach my $campo (@$ejemplar){
-                        if($campo->[2]){
-                              if ($marc_record_n3->field($campo->[0])){
-                                #Existe el campo agrego subcampo
-                                $marc_record_n3->field($campo->[0])->add_subfields($campo->[1] => $campo->[2]);
-                              }
-                              else{
-                                #No existe el campo
-                                my $field= MARC::Field->new($campo->[0], '', '', $campo->[1] => $campo->[2]);
-                                $marc_record_n3->append_fields($field);
-                              }
-                        }
-                    }
-                    #print $marc_record_n3->as_formatted;
-                    my ($msg_object3) = guardarNivel3DeImportacion($id1,$id2,$marc_record_n3,$template,'BLGL');
-         #           print "Nivel 3 creado ?? ".$msg_object3->{'error'}."\n";
-                    if (!$msg_object3->{'error'}){
-                            $ejemplares_creados ++;
-                    }
+                print "FOTO";
+
+                my $path = $desaparecido->{'archivofoto'};
+                if (-e $path) {
+                    my $uploaddir               = C4::Context->config("portadasNivel2Path");
+                    my $filename = basename($path);
+                    copy("$path","$uploaddir/$filename");
+                    $portadaNivel2 = C4::Modelo::CatRegistroMarcN2Cover->new();                
+                    $portadaNivel2->agregar($filename, $id2);  
+                    $countexists ++;
+                } else {
+                       print "La foto $foto NO existe!!.\n"; 
                 }
+
+
             }
             else{
             #Logueo error
@@ -364,5 +354,4 @@ $desaparecidos->finish();
 print "FIN MIGRACION: \n";
 print "Registros creados: $registros_creados \n";
 print "Grupos creados: $grupos_creados \n";
-print "Ejemplares Creados: $ejemplares_creados \n";
-print "Analíticas Creadas: $analiticas_creadas \n";
+print "Fotos Copiadas: $countexists \n";
