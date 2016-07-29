@@ -11,7 +11,7 @@ __PACKAGE__->meta->setup(
         id                  => { type => 'serial', overflow => 'truncate'},
         id_ui               => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 4},
         nombre              => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 255},
-        nombre_largo        => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 255},
+	nombre_largo 	    => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 255},
         ciudad              => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 255, default => "La Plata"},
         titulo_formal       => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 255, default => "Universidad Nacional de La Plata"},
         direccion           => { type => 'varchar', overflow => 'truncate', not_null => 1 , length => 255},
