@@ -7,7 +7,7 @@ if [ $(uname -a|grep x86_64|wc -l) -gt 0 ];
      versionKernel=32;
 fi;
 echo "Bienvenido al instalador de meran version $version para sistemas de $versionKernel bits" 
-DEBIAN_VERSION="debian7"
+DEBIAN_VERSION="7"
 
 generarConfSphinx()
 {
