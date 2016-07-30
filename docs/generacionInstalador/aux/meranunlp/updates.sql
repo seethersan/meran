@@ -379,7 +379,7 @@ CREATE TABLE indice_sugerencia (
 	trigrams	VARCHAR(255) NOT NULL,
 	freq		INTEGER NOT NULL,
 	UNIQUE(keyword)
-);
+) ROW_FORMAT = DYNAMIC;
 
 INSERT INTO  pref_preferencia_sistema (id ,variable ,value ,explanation ,options ,type ,categoria ,label ,explicacion_interna ,revisado)
 VALUES 
