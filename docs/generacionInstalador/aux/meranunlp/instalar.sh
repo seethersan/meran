@@ -7,7 +7,7 @@ if [ $(uname -a|grep x86_64|wc -l) -gt 0 ];
      versionKernel=32;
 fi;
 echo "Bienvenido al instalador de meran version $version para sistemas de $versionKernel bits" 
-DEBIAN_VERSION=$(cat /etc/debian_version | cut -c1)  
+DEBIAN_VERSION="debian7"
 
 generarConfSphinx()
 {
@@ -398,7 +398,6 @@ if [ $(perl -v|grep 5.10.1|wc -l) -eq 0 ];
   	if [ $(perl -v|grep 5.14.2|wc -l) -eq 0 ];
 	then
     		echo "No tenes la versión adecuada de perl instalada, se va a interrumpir el proceso, deberías tener la 5.10.1"
-		exit 1
 	else
 		echo "Version de PERL 5.14.2";
 	fi
